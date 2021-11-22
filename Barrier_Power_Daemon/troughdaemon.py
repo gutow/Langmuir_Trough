@@ -31,7 +31,7 @@ def pid_exists(pid):
         return True
 
 pidpath = '/tmp/troughctl.pid'
-while true:
+while True:
     if os.path.exists(pidpath):
         file=open(pidpath,'r')
         pid = int(file.readline())

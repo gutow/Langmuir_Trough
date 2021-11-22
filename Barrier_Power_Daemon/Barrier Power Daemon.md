@@ -21,7 +21,11 @@ pip install RPi.GPIO pi-plates`. This will not work on a computer
    that does not support Raspberry Pi-like GPIO.
 5. Exit the virtual environment: `exit`.
 6. Copy `troughdaemon.py` to the directory you virtual environment.
-8. Edit the `trough.service` file to point to the relocated
+7. Edit the `trough.service` file to point to the relocated
    `troughdaemon.py`.
-9. Copy `trough.service` to `/etc/systemd/user`.
-10. Activate the daemon: `systemctl enable trough.service`.
+8. Copy `trough.service` to `/etc/systemd/user`.
+9. Activate the daemon: `systemctl enable trough.service`.
+10. Start the daemon: `systemctl start trough.service`.
+11. Make sure the daemon is running: `systemctl status trough.service`.
+   If it is not running troubleshoot using the error messages provided.
+12. 

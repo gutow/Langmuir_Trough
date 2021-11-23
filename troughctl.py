@@ -9,26 +9,28 @@ def troughctl():
     from collections import deque
     from piplates import DAQC2plate as DAQC2
 
-    def barrier_at_limit_check():
+    def barrier_at_limit_check(openlimit, closelimit):
         """
-        Checks if barrier is at or beyond limit and stops barrier if it is headed moving
+        Checks if barrier is at or beyond limit and stops barrier if it is moving
         in a direction that would make it worse.
+        :param float openlimit: lowest voltage allowed for opening
+        :param float closelimit: highest voltage allowed for closing
 
         Returns
         =======
         True or False. If True also shuts down power to barrier
         """
-        import piplates.DAQC2plate as DAQC2
+
         direction = 0  # -1 closing, 0 stopped, 1 openning.
         if (DAQC2.getDAC(0, 0) >= 2.5):
             direction = -1
         else:
             direction = 1
         position = DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1)
-        if (position >= 7.78) and (direction == -1):
+        if (position >= closelimit) and (direction == -1):
             DAQC2.clrDOUTbit(0, 0)  # switch off power/stop barriers
             return True
-        if (position <= 0.005) and (direction == 1):
+        if (position <= openlimit) and (direction == 1):
             DAQC2.clrDOUTbit(0, 0)  # switch off power/stop barriers
             return True
         return False
@@ -50,6 +52,10 @@ def troughctl():
     cmd_deque = deque()
 
     timedelta = 0.500  # seconds
+    openmin = 0.005 # minimum voltage allowed when opening.
+    openlimit = openmin
+    closemax = 7.78 # maximum voltage allowed when closing.
+    closelimit = closemax
     run = True
     while run:
         starttime = time.time()
@@ -94,7 +100,11 @@ def troughctl():
         therm_std.append(stdev_avg)
 
         # Check barrier positions
-        barrier_at_limit = barrier_at_limit_check()
+        if openlimit < openmin:
+            openlimit = openmin
+        if closelimit > closemax:
+            closelimit = closemax
+        barrier_at_limit = barrier_at_limit_check(openlimit,closelimit)
         # Send warnings and error messages
         # Check command pipe and update command queue
         # Each command is a python list.

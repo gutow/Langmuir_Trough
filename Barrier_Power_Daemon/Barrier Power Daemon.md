@@ -12,20 +12,22 @@ that has all the modules to access the DAQC2 plate.
 
 ## To set up
 1. Gain super user status `sudo -i`.
-2. Create a virtual environment for the daemon to run in:
+2. If not already installed install `venv` and `wheel` tools
+   `apt install python3-venv python3-wheel`
+3. Create a virtual environment for the daemon to run in:
    `python3 -m venv /usr/local/shared/trough`.
-3. Navigate to this directory and activate this virtual environment:
+4. Navigate to this directory and activate this virtual environment:
    `source bin/activate`.
-4. Install the piplates software and what it depends on: `python -m
-pip install RPi.GPIO pi-plates`. This will not work on a computer
+5. Install the piplates software and what it depends on: `python -m
+pip install spidev six RPi.GPIO pi-plates`. This will not work on a computer
    that does not support Raspberry Pi-like GPIO.
-5. Exit the virtual environment: `exit`.
-6. Copy `troughdaemon.py` to the directory you virtual environment.
-7. Edit the `trough.service` file to point to the relocated
+6. Exit the virtual environment: `exit`.
+7. Copy `troughdaemon.py` to the directory of your virtual environment.
+8. Edit the `trough.service` file to point to the relocated
    `troughdaemon.py`.
-8. Copy `trough.service` to `/etc/systemd/user`.
-9. Activate the daemon: `systemctl enable trough.service`.
-10. Start the daemon: `systemctl start trough.service`.
-11. Make sure the daemon is running: `systemctl status trough.service`.
+9. Copy `trough.service` to `/etc/systemd/user`.
+10. Activate the daemon: `systemctl enable /etc/systemd/user/trough.service`.
+11. Start the daemon: `systemctl start trough.service`.
+12. Make sure the daemon is running: `systemctl status trough.service`.
    If it is not running troubleshoot using the error messages provided.
-12. 
+   There should be a log file created in as specified in the `.service` file.

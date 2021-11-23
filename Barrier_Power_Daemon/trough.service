@@ -6,6 +6,7 @@ After=multi-user.target
 Type=exec
 ExecStart=/usr/local/shared/trough/bin/python /usr/local/shared/trough/troughdaemon.py
 WorkingDirectory=/usr/local/shared/trough
+StandardOutput=/usr/local/shared/trough/Barrier_Power.log
 Restart=always
 
 [Install]

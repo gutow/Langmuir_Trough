@@ -30,4 +30,4 @@ pip install spidev six RPi.GPIO pi-plates`. This will not work on a computer
 11. Start the daemon: `systemctl start trough.service`.
 12. Make sure the daemon is running: `systemctl status trough.service`.
    If it is not running troubleshoot using the error messages provided.
-   There should be a log file created in as specified in the `.service` file.
+   There should be a log file created as specified in the `.service` file.

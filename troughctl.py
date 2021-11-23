@@ -131,9 +131,9 @@ def troughctl():
             elif cmd[0] == 'MotorCal':
                 # calibrate the voltages for starting motor and speeds
             elif cmd[0] == 'ConstPi':
-        # maintain a constant pressure
-        # not yet implemented
-        # Delay if have not used up all 200 ms
+                # maintain a constant pressure
+                # not yet implemented
+                # Delay if have not used up all 200 ms
         used = time.time() - starttime
         if used < 0.495:
             time.sleep(0.495 - used)

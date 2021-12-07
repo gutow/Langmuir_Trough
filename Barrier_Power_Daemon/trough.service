@@ -1,0 +1,13 @@
+[Unit]
+Description=Trough Barrier Power Daemon
+After=multi-user.target
+
+[Service]
+Type=exec
+ExecStart=/usr/local/shared/trough/bin/python /usr/local/shared/trough/troughdaemon.py
+WorkingDirectory=/usr/local/shared/trough
+StandardOutput=/usr/local/shared/trough/Barrier_Power.log
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

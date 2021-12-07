@@ -1,12 +1,15 @@
-def troughctl():
+def troughctl(CTLPipe,DATAPipe):
     """
     Will run as separate process taking in commands through a pipe and returning data
     on demand through a second pipe.
     Iteration 1, collects data into a fifo and watches barrier position.
+    :param Pipe CTLPipe: pipe commands come in on and messages go out on.
+    :param Pipe DATAPipe: pipe data is sent out on
     """
     import time
     import numpy as np
     from collections import deque
+    from multiprocessing import Pipe
     from piplates import DAQC2plate as DAQC2
 
     def barrier_at_limit_check(openlimit, closelimit):
@@ -56,6 +59,8 @@ def troughctl():
     openlimit = openmin
     closemax = 7.78 # maximum voltage allowed when closing.
     closelimit = closemax
+    speed = 0 # 0 to 1 fraction of maximum speed.
+    direction = 0 # -1 close, 0 don't move, 1 open
     run = True
     while run:
         starttime = time.time()
@@ -105,8 +110,11 @@ def troughctl():
         if closelimit > closemax:
             closelimit = closemax
         barrier_at_limit = barrier_at_limit_check(openlimit,closelimit)
-        # Send warnings and error messages
+        # TODO: Send warnings and error messages
         # Check command pipe and update command queue
+        if CTLPipe.poll():
+            for i in range(0,CTLPipe.qsize()):
+                cmd_deque.append(CTLPipe.recv())
         # Each command is a python list.
         #    element 1: cmd name (string)
         #    element 2: single command parameter (number or string)
@@ -118,8 +126,25 @@ def troughctl():
                 DAQC2.clrDOUTbit(0, 0)  # switch off power/stop barriers
             elif cmd[0] == 'Send':
                 # send current contents of the data deques
+                DATAPipe.send(time_stamp, pos_V, pos_std, bal_V, bal_std,
+                              therm_V, therm_std)
+                # purge the sent content
+                time_stamp.clear()
+                pos_V.clear()
+                pos_std.clear()
+                bal_V.clear()
+                bal_std.clear()
+                therm_V.clear()
+                therm_std.clear()
             elif cmd[0] == 'Start':
                 # start barriers moving using current direction and speed
+                if speed > 1:
+                    speed = 1
+                if speed < 0:
+                    speed = 0
+                if (direction != -1) and (direction != 0) and (direction != 1):
+                    direction = 0
+
             elif cmd[0] == 'Direction':
                 # set the direction
             elif cmd[0] == 'Speed':
@@ -133,7 +158,7 @@ def troughctl():
             elif cmd[0] == 'ConstPi':
                 # maintain a constant pressure
                 # not yet implemented
-                # Delay if have not used up all 200 ms
+        # Delay if have not used up all 200 ms
         used = time.time() - starttime
         if used < 0.495:
             time.sleep(0.495 - used)

@@ -38,6 +38,204 @@ def troughctl(CTLPipe,DATAPipe):
             return True
         return False
 
+    def motorcal(barriermin, barriermax):
+        '''
+        :param float barriermin: minimum voltage for barrier (do not open more).
+        :param float barriermax: maximum voltage for barrier (do not close more).
+        :returns float maxclose: DAC setting for maximum close speed.
+        :returns float minclose: DAC setting for minimum close speed.
+        :returns float startclose: DAC setting providing minimum voltage to start closing.
+        :returns float maxopen: DAC setting for maximum close speed.
+        :returns float minopen: DAC setting for minimum close speed.
+        :returns float startopen: DAC setting providing minimum voltage to start opening.
+        '''
+
+        import os, time
+        # Since this runs in a tight loop needs to take over watching barriers.
+        # Check if a trough controller is registered at /tmp/troughctl.pid.
+        # If one is store it's pid and replace with own. Will revert on exit without
+        # crashing.
+        pidpath = '/tmp/troughctl.pid'
+        ctlpid = None
+        if os.path.exists(pidpath):
+            file = open(pidpath, 'r')
+            ctlpid = int(file.readline())
+            file.close()
+        pid = os.getpid()
+        # print(str(pid))
+        file = open(pidpath, 'w')
+        file.write(str(pid) + '\n')
+        file.close()
+        # Do not proceed until this file exists on the file system
+        while not os.path.exists(pidpath):
+            pass  # just waiting for file system to catch up.
+        # Read it to make sure
+        file = open(pidpath, 'r')
+        checkpid = file.readline()
+        file.close()
+        if int(checkpid) != pid:
+            raise FileNotFoundError('Checkpid = ' + checkpid + ', but should = ' + str(pid))
+
+        # Set base values
+        maxclose = 4
+        minclose = 2.6
+        startclose = 2.6
+        maxopen = 0
+        minopen = 2.4
+        startopen = 2.4
+        # Calibrate the barrier. This assumes a DAQC2 pi-plate is the controlling interface.
+        # First move to fully open.
+        print('Moving to fully open...')
+        position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+        if position > barriermin:
+            # need to open some
+            atlimit = False
+            DAQC2.setDAC(0, 0, maxopen)  # set fast open
+            DAQC2.setDOUTbit(0, 0)  # turn on power/start barriers
+            time.sleep(1)
+            while not atlimit:
+                atlimit = barrier_at_limit_check(barriermin, barriermax)
+        # Get rid of any hysteresis in the close direction
+        print('Removing close hysteresis...')
+        position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+        stoppos = position + 0.05
+        if stoppos > barriermax:
+            stoppos = barriermax
+        DAQC2.setDAC(0, 0, maxclose)  # set fast close
+        DAQC2.setDOUTbit(0, 0)  # turn on power/start barriers
+        time.sleep(1)
+        atlimit = False
+        while not atlimit:
+            atlimit = barrier_at_limit_check(barriermin, stoppos)
+        # Find closing stall voltage
+        print('Finding closing stall voltage...')
+        oldposition = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+        DAQC2.setDAC(0, 0, maxclose)  # set fast close
+        DAQC2.setDOUTbit(0, 0)  # turn on power/start barriers
+        testclose = maxclose
+        time.sleep(2)
+        atlimit = False
+        while not atlimit:
+            atlimit = barrier_at_limit_check(barriermin, barriermax)
+            position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+            #        if position > 6.5:
+            #            print ('old: '+str(oldposition)+' position: '+str(position))
+            if (position - oldposition) < 0.01:
+                # because there can be noise take a new reading and check again
+                position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+                if (position - oldposition) < 0.01:
+                    minclose = testclose
+                    atlimit = True
+                    DAQC2.clrDOUTbit(0, 0)
+            oldposition = position
+            testclose = testclose - 0.05
+            DAQC2.setDAC(0, 0, testclose)
+            time.sleep(2)
+
+        # Find minimum closing start voltage
+        print('Finding minimum closing start voltage...')
+        oldposition = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+        startclose = minclose
+        atlimit = False
+        while not atlimit:
+            atlimit = barrier_at_limit_check(barriermin, barriermax)
+            DAQC2.setDAC(0, 0, startclose)
+            DAQC2.setDOUTbit(0, 0)  # turn on power/start barriers
+            time.sleep(2)
+            position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+            if (position - oldposition) < 0.01:
+                # because there can be noise take a new reading and check again
+                position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+                if (position - oldposition) < 0.01:
+                    startclose = startclose + 0.05
+            else:
+                atlimit = True
+                DAQC2.clrDOUTbit(0, 0)
+                startclose = startclose + 0.05  # To provide a margin.
+        # Move to fully closed
+        print('Moving to fully closed...')
+        position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+        if position < barriermax:
+            # need to close some
+            atlimit = False
+            DAQC2.setDAC(0, 0, maxclose)  # set fast close
+            DAQC2.setDOUTbit(0, 0)  # turn on power/start barriers
+            time.sleep(1)
+            while not atlimit:
+                atlimit = barrier_at_limit_check(barriermin, barriermax)
+
+        # Get rid of any hysteresis in the open direction
+        print('Removing open hysteresis...')
+        position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+        stoppos = position - 0.05
+        if stoppos < barriermin:
+            stoppos = barriermin
+        DAQC2.setDAC(0, 0, maxopen)  # set fast close
+        DAQC2.setDOUTbit(0, 0)  # turn on power/start barriers
+        time.sleep(1)
+        atlimit = False
+        while not atlimit:
+            atlimit = barrier_at_limit_check(stoppos, barriermax)
+
+        # Find openning stall voltage
+        print('Finding openning stall voltage...')
+        oldposition = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+        DAQC2.setDAC(0, 0, maxopen)  # set fast close
+        DAQC2.setDOUTbit(0, 0)  # turn on power/start barriers
+        testopen = maxopen
+        time.sleep(2)
+        atlimit = False
+        while not atlimit:
+            atlimit = barrier_at_limit_check(barriermin, barriermax)
+            position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+            #        if position > 6.5:
+            #            print ('old: '+str(oldposition)+' position: '+str(position))
+            if (oldposition - position) < 0.01:
+                # because there can be noise take a new reading and check again
+                position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+                if (oldposition - position) < 0.01:
+                    minopen = testopen
+                    atlimit = True
+                    DAQC2.clrDOUTbit(0, 0)
+            oldposition = position
+            testopen = testopen + 0.05
+            DAQC2.setDAC(0, 0, testopen)
+            time.sleep(2)
+
+        # Find minimum opening start voltage
+        print('Finding minimum openning start voltage...')
+        oldposition = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+        startopen = minopen
+        atlimit = False
+        while not atlimit:
+            atlimit = barrier_at_limit_check(barriermin, barriermax)
+            DAQC2.setDAC(0, 0, startopen)
+            DAQC2.setDOUTbit(0, 0)  # turn on power/start barriers
+            time.sleep(2)
+            position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+            if (oldposition - position) < 0.01:
+                # because there can be noise take a new reading and check again
+                position = round(DAQC2.getADC(0, 0) - DAQC2.getADC(0, 1), 2)  # not stable past 2 decimals
+                if (oldposition - position) < 0.01:
+                    startopen = startopen - 0.05
+            else:
+                atlimit = True
+                DAQC2.clrDOUTbit(0, 0)
+                startopen = startopen - 0.05  # To provide a margin.
+
+        # Return control to previous trough controller
+        if ctlpid is not None:
+            file = open(pidpath, 'w')
+            file.write(str(ctlpid) + '\n')
+            file.close()
+        elif os.path.exists(pidpath):
+            os.remove(pidpath)
+        elif os.path.exists(pidpath):  # double check
+            os.remove(pidpath)
+
+        # Return the results
+        return (maxclose, minclose, startclose, maxopen, minopen, startopen)
+
     poshigh = []
     poslow = []
     balhigh = []

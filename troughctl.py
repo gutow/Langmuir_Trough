@@ -236,6 +236,24 @@ def troughctl(CTLPipe,DATAPipe):
         # Return the results
         return (maxclose, minclose, startclose, maxopen, minopen, startopen)
 
+    def calcDAC_V(speed, direction, maxclose, minclose, maxopen, minopen):
+        '''
+        :param float speed: fraction of maximum speed
+        :param int direction: -1 close, 0 don't move, 1 open
+        :param float maxclose: DAC V for maximum close speed
+        :param float minclose: DAC V for minimum close speed
+        :param float maxopen: DAC V for maximum open speed
+        :param float minopen: DAC V for minimum open speed
+
+        :return float DAC_V:
+        '''
+        DAC_V = (minclose+minopen)/2 # default to not moving
+        if direction == -1:
+            DAC_V = (maxclose-minclose)*speed + minclose
+        if direction == 1:
+            DAC_V = (maxopen - minopen)*speed + minopen
+        return DAC_V
+
     poshigh = []
     poslow = []
     balhigh = []
@@ -253,10 +271,11 @@ def troughctl(CTLPipe,DATAPipe):
     cmd_deque = deque()
 
     timedelta = 0.500  # seconds
-    openmin = 0.005 # minimum voltage allowed when opening.
+    openmin = 0.05 # minimum voltage allowed when opening.
     openlimit = openmin
     closemax = 7.78 # maximum voltage allowed when closing.
     closelimit = closemax
+    maxcloseV, mincloseV, startcloseV, maxopenV, minopenV, startopenV = motorcal(openlimit, closelimit)
     speed = 0 # 0 to 1 fraction of maximum speed.
     direction = 0 # -1 close, 0 don't move, 1 open
     run = True
@@ -342,11 +361,28 @@ def troughctl(CTLPipe,DATAPipe):
                     speed = 0
                 if (direction != -1) and (direction != 0) and (direction != 1):
                     direction = 0
-
+                DAC_V = calcDAC_V(speed,direction,maxcloseV,mincloseV,maxopenV,minopenV)
+                if (DAC_V > startopenV) and (DAC_V < startcloseV) and (direction != 0):
+                    # need a boost to start moving
+                    if speed == 1:
+                        DAQC2.setDAC(0,0,startcloseV)
+                    else:
+                        DAQC2.setDAC(0,0,startopenV)
+                    DAQC2.setDOUTbit(0, 0)
+                    time.sleep(0.25)
+                DAQC2.setDAC(0, 0, DAC_V)
             elif cmd[0] == 'Direction':
                 # set the direction
+                direction = cmd[1]
+                if (direction != -1) and (direction != 0) and (direction != 1):
+                    direction = 0
             elif cmd[0] == 'Speed':
                 # set the speed
+                speed = cmd[1]
+                if speed > 1:
+                    speed = 1
+                if speed < 0:
+                    speed = 0
             elif cmd[0] == 'MoveTo':
                 # adjust direction if necessary
                 # set the stop position

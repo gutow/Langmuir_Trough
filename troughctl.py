@@ -57,6 +57,7 @@ def troughctl(CTLPipe,DATAPipe):
     from collections import deque
     from multiprocessing import Pipe
     from piplates import DAQC2plate as DAQC2
+    from sys import exit
 
     def bundle_to_send(que_lst):
         """
@@ -154,6 +155,8 @@ def troughctl(CTLPipe,DATAPipe):
         -------
 
         """
+        import os
+        pidpath = '/tmp/troughctl.pid'
         if ctlpid is not None:
             file = open(pidpath, 'w')
             file.write(str(ctlpid) + '\n')
@@ -375,7 +378,7 @@ def troughctl(CTLPipe,DATAPipe):
     openlimit = openmin
     closemax = 7.78 # maximum voltage allowed when closing.
     closelimit = closemax
-    messages.append("Starting Motor Calibration...")
+    messages.append("")
     message = "Starting Motor Calibration..."
     DATAPipe.send([message])
     maxcloseV, mincloseV, startcloseV, maxopenV, minopenV, startopenV = motorcal(openlimit, closelimit)
@@ -557,6 +560,9 @@ def troughctl(CTLPipe,DATAPipe):
                 # shutdown trough
                 #   make sure no power to barriers
                 DAQC2.clrDOUTbit(0, 0)  # switch off power/stop barriers
+                # Close connections
+                DATAPipe.close()
+                CTLPipe.close()
                 #   give up process id
                 return_barrier_monitoring_to_prev_process(ctlpid)
                 exit()

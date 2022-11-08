@@ -44,6 +44,63 @@ def etol_call(obj, param):
     else:
         raise TypeError(str(obj) + ' must be a callable object.')
 
+def is_trough_initialized():
+    """Checks for a running Trough process and good connections to it.
+    Returns
+    -------
+    bool
+    TRUE if initialized
+    """
+    from IPython import get_ipython
+    from multiprocessing import Process
+    from multiprocessing.connection import Connection
+    user_ns = get_ipython().user_ns
+    trough_running = False
+    if "TROUGH" in user_ns:
+        # Check that it is a process
+        if isinstance(TROUGH, Process):
+            if TROUGH.is_alive():
+                if isinstance(cmdsend, Connection) and isinstance(datarcv, Connection):
+                    trough_running = True
+    return trough_running
+
+def init_trough():
+    """
+    This initializes the trough control subprocess and creates the pipes to communicate
+    with it.
+    Returns
+    -------
+    pipe
+    cmdsend: the end of the pipe to sent commands to the trough.
+
+    pipe
+    datarcv: the end of the pipe the trough uses to send back data and messages.
+
+    Process
+    TROUGH: the process handle for the trough.
+    """
+    from multiprocessing import Process, Pipe
+    from message_utils import extract_messages
+    import time
+    from sys import exit
+
+    cmdsend, cmdrcv = Pipe()
+    datasend, datarcv = Pipe()
+    TROUGH = Process(target=troughctl, args=(cmdrcv, datasend))
+    TROUGH.start()
+    time.sleep(0.2)
+    waiting = True
+    while waiting:
+        if datarcv.poll():
+            datapkg = datarcv.recv()
+            messages = extract_messages(datapkg)
+            print(str(messages))
+            if "ERROR" in messages:
+                exit()
+            if "Trough ready" in messages:
+                waiting = False
+    return cmdsend, datarcv, TROUGH
+
 def troughctl(CTLPipe,DATAPipe):
     """
     Will run as separate process taking in commands through a pipe and returning data
@@ -166,6 +223,20 @@ def troughctl(CTLPipe,DATAPipe):
         elif os.path.exists(pidpath):  # double check
             os.remove(pidpath)
         pass
+
+    def get_power_supply_volts():
+        """
+        Returns the negative and positive voltages from the power supply corrected
+        for the voltage inline voltage divider allowing measurement up to a bit more
+        than +/- 15 V.
+
+        :returns float V_neg: the negative voltage.
+        :returns float V_pos: the positive voltage.
+        """
+        V_neg = 1.3875*etol_call(DAQC2.getADC, (0,6))
+        V_pos = 1.3729*etol_call(DAQC2.getADC, (0,7))
+
+        return V_neg, V_pos
 
     def motorcal(barriermin, barriermax):
         '''
@@ -361,29 +432,48 @@ def troughctl(CTLPipe,DATAPipe):
     # Unless some other process tries to access the A-to-D this should
     # make most of the fault tolerance unnecessary.
     ctlpid = take_over_barrier_monitoring()
-
-    pos_V = deque(maxlen=5)
-    pos_std = deque(maxlen=5)
-    bal_V = deque(maxlen=5)
-    bal_std = deque(maxlen=5)
-    therm_V = deque(maxlen=5)
-    therm_std = deque(maxlen=5)
-    time_stamp = deque(maxlen=5)
+    # TODO: Should this all be wrapped in a try... so that if
+    #   anything stops this it gives up barrier monitoring?
+    pos_V = deque(maxlen=20)
+    pos_std = deque(maxlen=20)
+    bal_V = deque(maxlen=20)
+    bal_std = deque(maxlen=20)
+    therm_V = deque(maxlen=20)
+    therm_std = deque(maxlen=20)
+    time_stamp = deque(maxlen=20)
     cmd_deque = deque()
     messages = deque()
     que_lst = [time_stamp, pos_V, pos_std, bal_V, bal_std, therm_V, therm_std, messages]
-
+    que_lst_labels = ["time stamp", "position voltage", "position standard deviation",
+                      "balance voltage", "balance standard deviation", "thermistor voltage",
+                      "thermistor standard deviation", "messages"]
     timedelta = 0.500  # seconds
     openmin = 0.05 # minimum voltage allowed when opening.
     openlimit = openmin
     closemax = 7.78 # maximum voltage allowed when closing.
     closelimit = closemax
-    messages.append("")
-    message = "Starting Motor Calibration..."
-    DATAPipe.send([message])
+    # Check that power supply is on. If not we cannot do anything.
+    PS_minus, PS_plus = get_power_supply_volts()
+    if PS_minus > -10 or PS_plus < 10:
+        messages.append("ERROR")
+        messages.append("Power supply appears to be off (or malfunctioning). Try again...")
+        DATAPipe.send(bundle_to_send(que_lst))
+        #   make sure no power to barriers
+        DAQC2.clrDOUTbit(0, 0)  # switch off power/stop barriers
+        # Close connections
+        DATAPipe.close()
+        CTLPipe.close()
+        #   give up process id
+        return_barrier_monitoring_to_prev_process(ctlpid)
+        run = False
+        exit()
+    messages.append("Starting Motor Calibration. Please wait...")
+    DATAPipe.send(bundle_to_send(que_lst))
+    messages.clear()
     maxcloseV, mincloseV, startcloseV, maxopenV, minopenV, startopenV = motorcal(openlimit, closelimit)
-    message = "Trough ready"
-    DATAPipe.send([message])
+    messages.append("Trough ready")
+    DATAPipe.send(bundle_to_send(que_lst))
+    messages.clear()
     speed = 0 # 0 to 1 fraction of maximum speed.
     direction = 0 # -1 close, 0 don't move, 1 open
     run = True
@@ -398,9 +488,9 @@ def troughctl(CTLPipe,DATAPipe):
 
         starttime = time.time()
         stopat = starttime + timedelta - 0.200  # leave 200 ms for communications and control
-        loopcount +=1
-        print('Starting a data record: '+str(loopcount))
-        itcount = 0
+        #loopcount +=1
+        #print('Starting a data record: '+str(loopcount))
+        #itcount = 0
         while (time.time() < stopat):
             tempposlow = None
             tempposhigh= None
@@ -408,8 +498,8 @@ def troughctl(CTLPipe,DATAPipe):
             tempbalhigh = None
             tempthermlow = None
             tempthermhigh = None
-            itcount +=1
-            print(str(itcount)+",",end = "")
+            #itcount +=1
+            #print(str(itcount)+",",end = "")
             tempposlow = etol_call(DAQC2.getADC,(0, 1))
             temposhigh = etol_call(DAQC2.getADC,(0, 0))
             tempballow = etol_call(DAQC2.getADC,(0, 3))
@@ -442,9 +532,9 @@ def troughctl(CTLPipe,DATAPipe):
             else:
                 datagood = False
             if not datagood:
-                raise ValueError('Not getting numeric values from A-to-D!')
                 return_barrier_monitoring_to_prev_process(ctlpid)
-                exit()
+                raise ValueError('Not getting numeric values from A-to-D!')
+
         time_stamp.append((starttime + stopat) / 2)
         # position
         #print("poshigh: "+str(poshigh))
@@ -488,22 +578,22 @@ def troughctl(CTLPipe,DATAPipe):
         barrier_at_limit = barrier_at_limit_check(openlimit,closelimit)
         # TODO: Send warnings and error messages
         # Check command pipe and update command queue
-        print('Checking commands...')
+        #print('Checking commands...')
         while CTLPipe.poll():
             cmd_deque.append(CTLPipe.recv())
         # Each command is a python list.
         #    element 1: cmd name (string)
         #    element 2: single command parameter (number or string)
         # Execute commands in queue
-        print('Executing commands...')
+        #print('Executing commands...')
         while len(cmd_deque) > 0:
             cmd = cmd_deque.popleft()
             # execute the command
-            print(str(cmd))
+            #print(str(cmd))
             if cmd[0] == 'Stop':
                 DAQC2.clrDOUTbit(0, 0)  # switch off power/stop barriers
             elif cmd[0] == 'Send':
-                print('Got a "Send" command.')
+                #print('Got a "Send" command.')
                 # send current contents of the data deques
                 DATAPipe.send(bundle_to_send(que_lst))
                 # purge the sent content
@@ -514,6 +604,7 @@ def troughctl(CTLPipe,DATAPipe):
                 bal_std.clear()
                 therm_V.clear()
                 therm_std.clear()
+                messages.clear()
             elif cmd[0] == 'Start':
                 # start barriers moving using current direction and speed
                 if speed > 1:
@@ -545,6 +636,7 @@ def troughctl(CTLPipe,DATAPipe):
                 if speed < 0:
                     speed = 0
             elif cmd[0] == 'MoveTo':
+                # Move to fraction of open 0 .. 1.
                 # adjust direction if necessary
                 # set the stop position
                 # start the barriers
@@ -556,6 +648,20 @@ def troughctl(CTLPipe,DATAPipe):
                 # maintain a constant pressure
                 # not yet implemented
                 pass
+            elif cmd[0] == 'DataLabels':
+                # send data labels as a message
+                messages.append(que_lst_labels)
+                # send current contents of the data deques
+                DATAPipe.send(bundle_to_send(que_lst))
+                # purge the sent content
+                time_stamp.clear()
+                pos_V.clear()
+                pos_std.clear()
+                bal_V.clear()
+                bal_std.clear()
+                therm_V.clear()
+                therm_std.clear()
+                messages.clear()
             elif cmd[0] == 'ShutDown':
                 # shutdown trough
                 #   make sure no power to barriers
@@ -565,6 +671,7 @@ def troughctl(CTLPipe,DATAPipe):
                 CTLPipe.close()
                 #   give up process id
                 return_barrier_monitoring_to_prev_process(ctlpid)
+                run = False
                 exit()
         # Delay if have not used up all 200 ms
         used = time.time() - starttime

@@ -15,4 +15,8 @@ Raspberry Pi compatible system with a Pi-Plates DAQC2 data acquisition plate.
 * 0.1.0 First pypi compatible package version.
 
 ## Development
-
+### Ideas/Things to do
+* Switch to returning fraction open for barrier position rather than volts.
+* Function that clears all the data deques rather than having to call `.clear()`
+  on each of them separately.
+* 

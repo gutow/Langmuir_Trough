@@ -101,6 +101,8 @@ def init_trough():
                 waiting = False
     return cmdsend, datarcv, TROUGH
 
+
+
 def troughctl(CTLPipe,DATAPipe):
     """
     Will run as separate process taking in commands through a pipe and returning data
@@ -237,6 +239,25 @@ def troughctl(CTLPipe,DATAPipe):
         V_pos = 1.3729*etol_call(DAQC2.getADC, (0,7))
 
         return V_neg, V_pos
+
+    def start_barriers(speed, direction, maxcloseV, mincloseV, maxopenV,
+                       minopenV):
+        """
+        Will start the barriers including giving a little boost if running
+        voltage is below the starting voltage.
+        """
+        DAC_V = calcDAC_V(speed, direction, maxcloseV, mincloseV, maxopenV,
+                          minopenV)
+        if (DAC_V > startopenV) and (DAC_V < startcloseV) and (direction != 0):
+            # need a boost to start moving
+            if speed == 1:
+                DAQC2.setDAC(0, 0, startcloseV)
+            else:
+                DAQC2.setDAC(0, 0, startopenV)
+            DAQC2.setDOUTbit(0, 0)
+            time.sleep(0.25)
+        DAQC2.setDAC(0, 0, DAC_V)
+        pass
 
     def motorcal(barriermin, barriermax):
         '''
@@ -613,16 +634,8 @@ def troughctl(CTLPipe,DATAPipe):
                     speed = 0
                 if (direction != -1) and (direction != 0) and (direction != 1):
                     direction = 0
-                DAC_V = calcDAC_V(speed,direction,maxcloseV,mincloseV,maxopenV,minopenV)
-                if (DAC_V > startopenV) and (DAC_V < startcloseV) and (direction != 0):
-                    # need a boost to start moving
-                    if speed == 1:
-                        DAQC2.setDAC(0,0,startcloseV)
-                    else:
-                        DAQC2.setDAC(0,0,startopenV)
-                    DAQC2.setDOUTbit(0, 0)
-                    time.sleep(0.25)
-                DAQC2.setDAC(0, 0, DAC_V)
+                start_barriers(speed, direction, maxcloseV, mincloseV, maxopenV,
+                               minopenV)
             elif cmd[0] == 'Direction':
                 # set the direction
                 direction = cmd[1]
@@ -635,18 +648,42 @@ def troughctl(CTLPipe,DATAPipe):
                     speed = 1
                 if speed < 0:
                     speed = 0
+                pass
             elif cmd[0] == 'MoveTo':
                 # Move to fraction of open 0 .. 1.
-                # adjust direction if necessary
                 # set the stop position
+                to_pos = (1-cmd[1])*closemax + cmd[1]*openmin
+                # adjust direction if necessary
+                # get current position
+                position = etol_call(DAQC2.getADC,(0, 0)) - \
+                           etol_call(DAQC2.getADC,(0, 1))
+                if position > to_pos:
+                    direction = 1
+                    openlimit = to_pos
+                else:
+                    direction = -1
+                    closelimit = to_pos
                 # start the barriers
+                start_barriers(speed, direction, maxcloseV, mincloseV, maxopenV,
+                               minopenV)
                 pass
             elif cmd[0] == 'MotorCal':
                 # calibrate the voltages for starting motor and speeds
+                messages.append("Starting Motor Calibration. Please wait...")
+                DATAPipe.send(bundle_to_send(que_lst))
+                messages.clear()
+                maxcloseV, mincloseV, startcloseV, maxopenV, minopenV, startopenV = motorcal(
+                    openlimit, closelimit)
+                messages.append("Trough ready")
+                DATAPipe.send(bundle_to_send(que_lst))
+                messages.clear()
                 pass
             elif cmd[0] == 'ConstPi':
                 # maintain a constant pressure
                 # not yet implemented
+                messages.append('Constant pressure mode not yet implemented.')
+                DATAPipe.send(bundle_to_send(que_lst))
+                messages.clear()
                 pass
             elif cmd[0] == 'DataLabels':
                 # send data labels as a message

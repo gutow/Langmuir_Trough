@@ -6,7 +6,7 @@ def Monitor_Setup_Trough():
     adjusted using this interface. Calibrations of all the signals are
     performed using this interface.
 
-    Calibrations are stored in the file "calibXXXX.html" in the .Trough
+    Calibrations are stored in the calibration files in the .Trough/calibrations
     directory of the current user. The latest file is used. If none exists
     one is created using default parameters. Users should calibrate all
     signals before using the trough.
@@ -19,7 +19,7 @@ def Monitor_Setup_Trough():
     from IPython.display import display, HTML
     from IPython.display import Javascript as JS
 
-    # Boilerplate layout for long descriptions on ipywidget
+    # Boilerplate style for long descriptions on ipywidget
     longdesc = {'description_width': 'initial'}
 
     # Balance Monitoring

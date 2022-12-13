@@ -268,6 +268,7 @@ class Calibrations:
         """
         import numpy as np
         import lmfit as lmfit
+        from round_using_error.round_using_error import numbers_rndwitherr
 
         # Define the fit model, initial guesses, and constraints
         fitmod = lmfit.models.PolynomialModel(degree=order)
@@ -282,6 +283,7 @@ class Calibrations:
         for k in fit.params.keys():
             pwr = int(str(k)[-1:])
             if pwr <= order:
-                param[pwr] = fit.params[k].value
-                param_stdev[pwr] = fit.params[k].stderr
+                rounded = numbers_rndwitherr(fit.params[k].value,fit.params[k].stderr)
+                param[pwr] = rounded[0]
+                param_stdev[pwr] = rounded[1]
         return param, param_stdev

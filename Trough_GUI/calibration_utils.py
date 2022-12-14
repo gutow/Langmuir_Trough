@@ -15,20 +15,27 @@ class Calibration:
         ----------
         name: str
             calibration name.
+
         units: str
             string representation of the units the calibration yields.
+
         timestamp: float
             Unix floating point timestamp.
+
         param:list
             list of the numerical parameters for the fit yielding the
             calibration.
+
         param_stdev: list
             list of the numerical values for the estimated standard
             deviation of the parameters from the fit.
+
         cal_data_x: list
             x-data used for the calibration fit.
+
         cal_data_y: list
             y-data used for the calibration fit.
+
         fit_type: str
             string name for the fit type. Defaults to "polynomial"
         """
@@ -169,6 +176,71 @@ class Calibration:
         fit_data.appendChild(tr)
         calib_div.appendChild(fit_data)
         return calib_div.asHTML()
+
+    def cal_apply(self, data, stdev):
+        """Apply the calibration to some data.
+
+        Parameters
+        ----------
+        data: object
+            either a float or iterable of floats
+
+        stdev: object
+            either a float or iterable of floats containing the uncertainty
+            in the data
+
+        Returns
+        -------
+        object
+            the data after applying the calibration: a float or iterable of
+            floats depending on what was passed to the operation.
+
+        object
+            the standard deviation of the data after applying the
+            calibration: a float or iterable of floats depending on what was
+            passed to the operation.
+        """
+        cal_data = None
+        cal_stdev = None
+        from collections.abc import Iterable
+        from round_using_error.round_using_error import numbers_rndwitherr
+        if isinstance(data,Iterable):
+            cal_data = []
+            cal_stdev = []
+            import numpy as np
+            npdata = np.array(data)
+            npstdev = np.array(stdev)
+            # calculate the new calibrated values and errors
+            npcal_data = np.zeros(len(data))
+            npcal_stdev = np.zeros(len(data))
+            coef_n = 0
+            for j, k in zip(self.param,self.param_stdev):
+                npcal_data += j*npdata**coef_n
+                npcal_stdev += (coef_n*j*npdata**(coef_n-1)*npstdev)**2 + \
+                             (npdata**coef_n*k)**2
+                coef_n += 1
+            npcal_stdev = npcal_stdev**0.5
+            for j, k in zip(npcal_data,npcal_stdev):
+                j, k = numbers_rndwitherr(j,k)
+                cal_data.append(j)
+                cal_stdev.append(k)
+        elif isinstance(data,float):
+            # calculate the new calibrated value and error.
+            # each polynomial term contributes x^2*n*u(x)^2 +
+            # n^2*Cn^2*x^(2n-2)*u(Cn)^2 to the square of the uncertainty.
+            cal_data = 0
+            cal_stdev = 0
+            coef_n = 0
+            for j, k in zip(self.param,self.param_stdev):
+                cal_data += j*data**coef_n
+                cal_stdev += (coef_n*j*data**(coef_n-1)*stdev)**2 + \
+                             (data**coef_n*k)**2
+                coef_n += 1
+            cal_stdev = cal_stdev**0.5
+            cal_data, cal_stdev = numbers_rndwitherr(cal_data,cal_stdev)
+        else:
+            raise TypeError('Data must be a float or an interable of floats.')
+        return cal_data, cal_stdev
 
 
 class Calibrations:

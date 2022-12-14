@@ -213,31 +213,39 @@ class Calibration:
             # calculate the new calibrated values and errors
             npcal_data = np.zeros(len(data))
             npcal_stdev = np.zeros(len(data))
-            coef_n = 0
-            for j, k in zip(self.param,self.param_stdev):
-                npcal_data += j*npdata**coef_n
-                npcal_stdev += (coef_n*j*npdata**(coef_n-1)*npstdev)**2 + \
-                             (npdata**coef_n*k)**2
-                coef_n += 1
-            npcal_stdev = npcal_stdev**0.5
-            for j, k in zip(npcal_data,npcal_stdev):
-                j, k = numbers_rndwitherr(j,k)
-                cal_data.append(j)
-                cal_stdev.append(k)
+            if self.fit_type == 'polynomial':
+                coef_n = 0
+                for j, k in zip(self.param,self.param_stdev):
+                    npcal_data += j*npdata**coef_n
+                    npcal_stdev += (coef_n*j*npdata**(coef_n-1)*npstdev)**2 + \
+                                 (npdata**coef_n*k)**2
+                    coef_n += 1
+                npcal_stdev = npcal_stdev**0.5
+                for j, k in zip(npcal_data,npcal_stdev):
+                    j, k = numbers_rndwitherr(j,k)
+                    cal_data.append(j)
+                    cal_stdev.append(k)
+            else:
+                raise NotImplementedError('Only polynomial calibration '
+                                          'implemented.')
         elif isinstance(data,float):
             # calculate the new calibrated value and error.
             # each polynomial term contributes x^2*n*u(x)^2 +
             # n^2*Cn^2*x^(2n-2)*u(Cn)^2 to the square of the uncertainty.
             cal_data = 0
             cal_stdev = 0
-            coef_n = 0
-            for j, k in zip(self.param,self.param_stdev):
-                cal_data += j*data**coef_n
-                cal_stdev += (coef_n*j*data**(coef_n-1)*stdev)**2 + \
-                             (data**coef_n*k)**2
-                coef_n += 1
-            cal_stdev = cal_stdev**0.5
-            cal_data, cal_stdev = numbers_rndwitherr(cal_data,cal_stdev)
+            if self.fit_type == 'polynomial':
+                coef_n = 0
+                for j, k in zip(self.param,self.param_stdev):
+                    cal_data += j*data**coef_n
+                    cal_stdev += (coef_n*j*data**(coef_n-1)*stdev)**2 + \
+                                 (data**coef_n*k)**2
+                    coef_n += 1
+                cal_stdev = cal_stdev**0.5
+                cal_data, cal_stdev = numbers_rndwitherr(cal_data,cal_stdev)
+            else:
+                raise NotImplementedError('Only polynomial calibration '
+                                          'implemented.')
         else:
             raise TypeError('Data must be a float or an interable of floats.')
         return cal_data, cal_stdev

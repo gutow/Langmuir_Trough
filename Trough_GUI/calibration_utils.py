@@ -80,6 +80,12 @@ class Calibration:
         units = document.getElementById('units').text
         fit_type = document.getElementById('fit_type').text
         timestamp = float(document.getElementById('timestamp').text)
+        fit_eqn_str = document.getElementById('fit_eqn_str').text
+        coef_lbl_el = document.getElementById('coef_labels')
+        coef_lbls = []
+        for k in coef_lbl_el.children:
+            if k.tagName == 'td':
+                coef_lbls.append(k.text)
         coef_el = document.getElementById('coefficients')
         coef_val = []
         for k in coef_el.children:
@@ -100,7 +106,8 @@ class Calibration:
             if k.tagName == 'td':
                 cal_y.append(float(k.text))
         return Calibration(name, units, timestamp, coef_val, coef_stdev,
-                 cal_x, cal_y, fit_type=fit_type)
+                 cal_x, cal_y, fit_type=fit_type, fit_eqn_str=fit_eqn_str,
+                           fit_ceof_lbls=coef_lbls)
 
     def cal_to_html(self):
         """This routine creates an html str that would be human-readable in a

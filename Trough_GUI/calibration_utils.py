@@ -8,7 +8,10 @@ user directory `.Trough/calibrations`.
 
 class Calibration:
     def __init__(self, name, units, timestamp, param, param_stdev,
-                 cal_data_x, cal_data_y, fit_type="polynomial"):
+                 cal_data_x, cal_data_y, fit_type="polynomial",
+                 fit_eqn_str = "y = C0 + C1*x + C2*x*x + C3*x*x*x + ...",
+                 fit_ceof_lbls = ["C0", "C1", "C2", "C3", "C4", "C5", "C6",
+                                  "C7"]):
         """
         Defines a calibration of type `name`.
         Parameters
@@ -47,6 +50,11 @@ class Calibration:
         self.cal_data_x = cal_data_x
         self.cal_data_y = cal_data_y
         self.fit_type = fit_type
+        self.fit_eqn_str = fit_eqn_str
+        self.fit_coef_lbls = fit_ceof_lbls
+        if self.fit_type == "polynomial" and\
+                len(self.param) != len(self.fit_coef_lbls):
+            self.fit_coef_lbls = self.fit_coef_lbls[0:len(self.param)]
 
     @classmethod
     def cal_from_html(cls, html):
@@ -130,6 +138,11 @@ class Calibration:
         calib_info.appendChild(tr)
         calib_div.appendChild(calib_info)
 
+        p = Domel('p')
+        p.setAttribute('id','fit_eqn_str')
+        p.appendInnerHTML('Fit Equation: '+ self.fit_eqn_str)
+        calib_div.appendChild(p)
+
         parameters = Domel('table')
         parameters.setAttribute('class', 'parameters')
         parameters.setAttribute('id', 'parameters')
@@ -137,6 +150,13 @@ class Calibration:
         caption = Domel('caption')
         caption.appendInnerHTML('Parameters')
         parameters.appendChild(caption)
+        tr = Domel('tr')
+        tr.setAttribute('id', 'coef_labels')
+        innerstr = '<th>Labels</th>'
+        for k in self.fit_coef_lbls:
+            innerstr += '<td>'+str(k) + '</td>'
+        tr.appendInnerHTML(innerstr)
+        parameters.appendChild(tr)
         tr = Domel('tr')
         tr.setAttribute('id', 'coefficients')
         innerstr = '<th>Coefficients</th>'
@@ -247,7 +267,7 @@ class Calibration:
                 raise NotImplementedError('Only polynomial calibration '
                                           'implemented.')
         else:
-            raise TypeError('Data must be a float or an interable of floats.')
+            raise TypeError('Data must be a float or an iterable of floats.')
         return cal_data, cal_stdev
 
 

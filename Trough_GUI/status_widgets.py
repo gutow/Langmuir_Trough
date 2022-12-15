@@ -56,15 +56,18 @@ def update_status(raw_data:dict, calibrations):
         calibration units (`.balance.units`).
     """
     if calibrations.balance.units != 'mg':
-        raise ValueError('Expect balance to be calibrated in mg. Instead got'
+        raise ValueError('Expect balance to be calibrated in mg. Instead got '
                          + calibrations.balance.units + '.')
-    mg.value = calibrations.balance.cal_apply(raw_data['bal_raw'],0)[0]
-    surf_press.value = tare_pi-mg.value*9.80665/plate_circumference.value
+    mg.value = str(calibrations.balance.cal_apply(raw_data['bal_raw'],0)[0])
+    surf_press.value = str(tare_pi-float(mg.value)*\
+                           9.80665/plate_circumference.value)
     if calibrations.temperature.units != 'C':
         raise ValueError('Expected temperature to be calibrated in C. '
                          'Instead got ' + calibrations.temperature.units + '.')
-    degC.value = calibrations.temperature.cal_apply(raw_data['temp_raw'],0)[0]
-    Bar_Frac.value = raw_data['barr_raw']
-    Bar_Sep.value = calibrations.barriers.cal_apply(raw_data['barr_raw'],0)[0]
+    degC.value = str(calibrations.temperature.cal_apply(raw_data['temp_raw'],
+                                                      0)[0])
+    Bar_Frac.value = str(raw_data['barr_raw'])
+    Bar_Sep.value = str(calibrations.barriers.cal_apply(raw_data['barr_raw'],
+                                                      0)[0])
     # TODO rest of them
     pass

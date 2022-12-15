@@ -1,3 +1,4 @@
+from Trough_GUI.status_widgets import *
 def Monitor_Setup_Trough():
     """
     This produces a user interface in jupyter notebooks using ipywidgets. The
@@ -10,6 +11,9 @@ def Monitor_Setup_Trough():
     directory of the current user. The latest file is used. If none exists
     one is created using default parameters. Users should calibrate all
     signals before using the trough.
+
+    NOTE: some objects used here are global and created by importing from
+    status_widgets.py
     """
     from ipywidgets import Layout, Box, HBox, VBox, GridBox, Tab, Accordion, \
         Dropdown, Label, Text, Button, Checkbox, FloatText, RadioButtons, \
@@ -24,16 +28,6 @@ def Monitor_Setup_Trough():
 
     # Balance Monitoring
     balance_label = Label(value="BALANCE:")
-    mg = Text(description = "mg",
-                disabled = True,
-                style =longdesc)
-    surf_press = Text(description = "$\pi$ (mN/m)",
-                        disabled = True,
-                        style =longdesc)
-    plate_circumference = FloatText(description = "Plate circumference (mm)",
-                                    value = 21.5,
-                                    style =longdesc)
-    zero_press = Button(description = "Zero Pressure")
     Balance = HBox(children = [balance_label,VBox(children =[
         mg, surf_press]), VBox(children = [plate_circumference,zero_press])],
                    layout = Layout(border="solid"))
@@ -66,9 +60,6 @@ def Monitor_Setup_Trough():
     Cal_Bal.selected_index = None
 
     # Temperature Monitoring
-    degC = Text(description = "$^o C$",
-                disabled = True,
-                style =longdesc)
     temp_label = Label(value = "TEMPERATURE:")
     Temperature = HBox(children=[temp_label,degC],
                    layout = Layout(border="solid"))
@@ -98,33 +89,25 @@ def Monitor_Setup_Trough():
     Cal_Temp.selected_index = None
 
     # Barrier Monitoring
-    barrier_label = Label(value = "BARRIERS:")
-    Bar_Frac = Text(description = "% open", disabled = True, style = longdesc)
-    Bar_Sep = Text(description = "Separation (cm)", disabled = True,
-                   style = longdesc)
-    Bar_Area = Text(description = "Area", disabled = True, style = longdesc)
-    Bar_Area_per_Molec = Text(description = "$\mathring{A^2}$/molecule",
-                              disabled = True, style = longdesc)
-    moles_molec = FloatText(description = "moles of molecules",
-                            value = 3.00e-8, style = longdesc)
+    barrier_label = Label(value="BARRIERS:")
     Barrier = HBox(children = [barrier_label,
                                VBox(children=[Bar_Frac,Bar_Sep,Bar_Area]),
                                VBox(children=[moles_molec,
                                               Bar_Area_per_Molec])],
-                               layout = Layout(border="solid"))
+                               layout=Layout(border="solid"))
     # Manual Barrier Control
-    Barr_Units = Dropdown(description = "Units",
-                          options = ["% of max", "cm", "cm^2",
+    Barr_Units = Dropdown(description="Units",
+                          options=["% of max", "cm", "cm^2",
                                      "Angstrom^2/molec"])
     Barr_Direction = RadioButtons(options=["Open", "Close", "Move To"])
-    Barr_Target = FloatText(value = 100.0, disabled = True)
-    Barr_Speed = FloatText(description = "Speed (/min)", value = 100.0,
-                           disabled = False)
-    Barr_Start = Button(description = "Start")
-    Barr_Start.button_style = "success"
-    Barr_Stop = Button(description = "Stop")
-    Barr_Stop.button_style = "danger"
-    Move_Barrier = HBox(children =[VBox(children=[Barr_Direction, Barr_Target]),
+    Barr_Target = FloatText(value=100.0, disabled=True)
+    Barr_Speed = FloatText(description="Speed (/min)", value=100.0,
+                           disabled=False)
+    Barr_Start = Button(description="Start")
+    Barr_Start.button_style="success"
+    Barr_Stop = Button(description="Stop")
+    Barr_Stop.button_style="danger"
+    Move_Barrier = HBox(children=[VBox(children=[Barr_Direction, Barr_Target]),
                         VBox(children=[Barr_Units, Barr_Speed]),
                                    VBox(children=[Barr_Start,Barr_Stop])])
     # Barrier Calibration
@@ -168,10 +151,6 @@ def Monitor_Setup_Trough():
     Barrier_Accord.set_title(0, "Manual Barrier Control")
     Barrier_Accord.set_title(1, "Calibrate Barriers")
     Barrier_Accord.selected_index = None
-
-    # Status
-    Status = richLabel(layout = Layout(border="solid"), value =
-    '<p>Status messages will appear here.</p>')
 
     # Monitor, Control and Calibrate widget
     Mon_Ctl_Calib = VBox(children=[Balance, Cal_Bal, Temperature, Cal_Temp,

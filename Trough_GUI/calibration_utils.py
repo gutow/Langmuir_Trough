@@ -253,7 +253,10 @@ class Calibration:
                 coef_n = 0
                 for j, k in zip(self.param, self.param_stdev):
                     npcal_data += j*npdata**coef_n
-                    npcal_stdev += (coef_n*j*npdata**(coef_n-1)*npstdev)**2 + \
+                    if coef_n == 0:
+                        npcal_stdev += 0
+                    else:
+                        npcal_stdev += (coef_n*j*npdata**(coef_n-1)*npstdev)**2 + \
                                  (npdata**coef_n*k)**2
                     coef_n += 1
                 npcal_stdev = npcal_stdev**0.5
@@ -274,7 +277,10 @@ class Calibration:
                 coef_n = 0
                 for j, k in zip(self.param, self.param_stdev):
                     cal_data += j*data**coef_n
-                    cal_stdev += (coef_n*j*data**(coef_n-1)*stdev)**2 + \
+                    if coef_n == 0:
+                        cal_stdev += 0
+                    else:
+                        cal_stdev += (coef_n*j*data**(coef_n-1)*stdev)**2 + \
                                  (data**coef_n*k)**2
                     coef_n += 1
                 cal_stdev = cal_stdev**0.5
@@ -320,13 +326,13 @@ class Calibrations:
         if fullpath == '':
             # we have no calibration so will use a default.
             if name == 'balance':
-                calib = Calibration('balance', 'mg', 0, [0,
+                calib = Calibration('balance', 'mg', 0, [-1.27,
                                    -0.0192425437271595], [0, 0], [], [])
             elif name == 'barriers':
                 calib = Calibration('barriers', 'cm', 0, [4.0, 9.0], [0, 0], [],
                                     [])
             elif name == 'temperature':
-                calib = Calibration('temperature', 'C', 0, [-55.47043609619141,
+                calib = Calibration('temperature', 'C', 0, [25.012,
                                    0.00352556980215013, -7.295400905604765e-08,
                                    7.455005037772244e-13], [0, 0, 0, 0], [], [])
             else:

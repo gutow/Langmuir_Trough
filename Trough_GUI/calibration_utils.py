@@ -9,8 +9,8 @@ user directory `.Trough/calibrations`.
 class Calibration:
     def __init__(self, name, units, timestamp, param, param_stdev,
                  cal_data_x, cal_data_y, fit_type="polynomial",
-                 fit_eqn_str = "y = C0 + C1*x + C2*x*x + C3*x*x*x + ...",
-                 fit_ceof_lbls = ["C0", "C1", "C2", "C3", "C4", "C5", "C6",
+                 fit_eqn_str="y = C0 + C1*x + C2*x*x + C3*x*x*x + ...",
+                 fit_ceof_lbls=["C0", "C1", "C2", "C3", "C4", "C5", "C6",
                                   "C7"]):
         """
         Defines a calibration of type `name`.
@@ -41,6 +41,16 @@ class Calibration:
 
         fit_type: str
             string name for the fit type. Defaults to "polynomial"
+
+        fit_eqn_str: str
+            string representation of the fit equation. Defaults to
+            "y = C0 + C1*x + C2*x*x + C3*x*x*x + ..."
+
+        fit_ceof_lbls: list
+            list of string labels for the coefficients, which should
+            correlate to symbols in the fit_eqn_str. Defaults to ["C0", "C1",
+            ...]. Automatically, truncated to the actual number of
+            coefficients determined by the order of the polynomial.
         """
         self.name = name
         self.units = units
@@ -72,7 +82,6 @@ class Calibration:
             a calibration object.
         """
         from AdvancedHTMLParser import AdvancedHTMLParser as Parser
-        from datetime import datetime
 
         document = Parser()
         document.parseStr(html)
@@ -97,7 +106,7 @@ class Calibration:
             if k.tagName == 'td':
                 coef_stdev.append(float(k.text))
         cal_el = document.getElementById('calibration_data')
-        cal_x  = []
+        cal_x = []
         cal_y = []
         for k in cal_el.getElementById('cal_data_x'):
             if k.tagName == 'td':
@@ -146,8 +155,8 @@ class Calibration:
         calib_div.appendChild(calib_info)
 
         p = Domel('p')
-        p.setAttribute('id','fit_eqn_str')
-        p.appendInnerHTML('Fit Equation: '+ self.fit_eqn_str)
+        p.setAttribute('id', 'fit_eqn_str')
+        p.appendInnerHTML('Fit Equation: ' + self.fit_eqn_str)
         calib_div.appendChild(p)
 
         parameters = Domel('table')
@@ -231,7 +240,7 @@ class Calibration:
         cal_stdev = None
         from collections.abc import Iterable
         from round_using_error.round_using_error import numbers_rndwitherr
-        if isinstance(data,Iterable):
+        if isinstance(data, Iterable):
             cal_data = []
             cal_stdev = []
             import numpy as np
@@ -242,20 +251,20 @@ class Calibration:
             npcal_stdev = np.zeros(len(data))
             if self.fit_type == 'polynomial':
                 coef_n = 0
-                for j, k in zip(self.param,self.param_stdev):
+                for j, k in zip(self.param, self.param_stdev):
                     npcal_data += j*npdata**coef_n
                     npcal_stdev += (coef_n*j*npdata**(coef_n-1)*npstdev)**2 + \
                                  (npdata**coef_n*k)**2
                     coef_n += 1
                 npcal_stdev = npcal_stdev**0.5
-                for j, k in zip(npcal_data,npcal_stdev):
-                    j, k = numbers_rndwitherr(j,k)
+                for j, k in zip(npcal_data, npcal_stdev):
+                    j, k = numbers_rndwitherr(j, k)
                     cal_data.append(j)
                     cal_stdev.append(k)
             else:
                 raise NotImplementedError('Only polynomial calibration '
                                           'implemented.')
-        elif isinstance(data,float):
+        elif isinstance(data, float):
             # calculate the new calibrated value and error.
             # each polynomial term contributes x^2*n*u(x)^2 +
             # n^2*Cn^2*x^(2n-2)*u(Cn)^2 to the square of the uncertainty.
@@ -263,13 +272,13 @@ class Calibration:
             cal_stdev = 0
             if self.fit_type == 'polynomial':
                 coef_n = 0
-                for j, k in zip(self.param,self.param_stdev):
+                for j, k in zip(self.param, self.param_stdev):
                     cal_data += j*data**coef_n
                     cal_stdev += (coef_n*j*data**(coef_n-1)*stdev)**2 + \
                                  (data**coef_n*k)**2
                     coef_n += 1
                 cal_stdev = cal_stdev**0.5
-                cal_data, cal_stdev = numbers_rndwitherr(cal_data,cal_stdev)
+                cal_data, cal_stdev = numbers_rndwitherr(cal_data, cal_stdev)
             else:
                 raise NotImplementedError('Only polynomial calibration '
                                           'implemented.')
@@ -280,15 +289,50 @@ class Calibration:
 
 class Calibrations:
     def __init__(self):
-        #self.bal = self.get_bal()
-        self.bal_param_default = [0, -0.0192425437271595]
-        #self.barr = self.get_barr()
-        self.barr_param_default = [-137.10895, 0.012425222, -3.6923632e-07,
-                                   4.6662292e-12, -2.1849642e-17]
-        #self.temp = self.get_temp()
-        self.temp_param_default = [-55.47043609619141, 0.00352556980215013,
-                                   -7.295400905604765e-08,
-                                   7.455005037772244e-13]
+        self.balance = self._create_cal('balance')
+        self.barriers = self._create_cal('barriers')
+        self.temperature = self._create_cal('temperature')
+
+    def _create_cal(self, name):
+        """Utility function to that returns the latest calibration of type
+        name or a default calibration if no actual calibration is found.
+
+        Parameters
+        ----------
+        name: str
+            string name for the calibration type (current options: 'balance',
+            'barriers' or 'temperature').
+        """
+        from pathlib import Path
+        basepath = Path('~/.Trough/calibrations').expanduser()
+        fullpath = ''
+        calib = None
+        if not basepath.exists():
+            basepath.mkdir(parents=True)
+        filelist = list(basepath.glob(name + '_*.trh.cal.html'))
+        filelist.sort()
+        if len(filelist) > 0:
+            fullpath = filelist[-1:][0]
+            f = open(fullpath, 'r')
+            temphtml = f.read()
+            f.close()
+            calib = Calibration.cal_from_html(temphtml)
+        if fullpath == '':
+            # we have no calibration so will use a default.
+            if name == 'balance':
+                calib = Calibration('balance', 'g', 0, [0, -0.0192425437271595],
+                                    [0, 0], [], [])
+            elif name == 'barriers':
+                calib = Calibration('barriers', 'cm', 0, [4.0, 9.0], [0, 0], [],
+                                    [])
+            elif name == 'temperature':
+                calib = Calibration('temperature', 'C', 0, [-55.47043609619141,
+                                   0.00352556980215013, -7.295400905604765e-08,
+                                   7.455005037772244e-13], [0, 0, 0, 0], [], [])
+            else:
+                raise ValueError('Valid names are "balance", "barriers" or '
+                                 '"temperature".')
+        return calib
 
     def read_cal(self, name):
         """This routine reads in a calibration file. If it is the standard
@@ -320,7 +364,7 @@ class Calibrations:
             fullpath = filelist[-1:][0]
         else:
             fullpath = temppath
-        f = open(fullpath,'r')
+        f = open(fullpath, 'r')
         tempdoc = f.read()
         f.close()
         return Calibration.cal_from_html(tempdoc)
@@ -345,10 +389,10 @@ class Calibrations:
         from pathlib import Path
         fileext = '.trh.cal.html'
         filename = str(cal.name) + '_' + str(int(cal.timestamp))+fileext
-        fullpath = Path(dirpath,filename)
+        fullpath = Path(dirpath, filename)
         svhtml = '<!DOCTYPE html><html><body>' + cal.cal_to_html() + \
                  '</body></html>'
-        f = open(fullpath,'w')
+        f = open(fullpath, 'w')
         f.write(svhtml)
         f.close()
         pass
@@ -390,7 +434,8 @@ class Calibrations:
         for k in fit.params.keys():
             pwr = int(str(k)[-1:])
             if pwr <= order:
-                rounded = numbers_rndwitherr(fit.params[k].value,fit.params[k].stderr)
+                rounded = numbers_rndwitherr(fit.params[k].value,
+                                             fit.params[k].stderr)
                 param[pwr] = rounded[0]
                 param_stdev[pwr] = rounded[1]
         return param, param_stdev

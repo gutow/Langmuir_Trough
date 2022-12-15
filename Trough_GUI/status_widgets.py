@@ -39,25 +39,32 @@ moles_molec = FloatText(description="moles of molecules",
 Status = richLabel(layout=Layout(border="solid"), value=
 '<p>Status messages will appear here.</p>')
 
-def update_status(raw_data:dict, calib_func:dict):
+def update_status(raw_data:dict, calibrations):
     """
     Call this routine to update the contents of all the status widgets.
 
     Parameters
     ----------
     raw_data: dict
-        dictionary of latest raw data values (volts) for each
-        sensor (e.g. {'bal_raw':3.20,'barr_raw':4.55,'temp_raw':2.24})
-    It might be better to use an object which initializes itself for below:
-    calib_func: dict
-        dictionary pointing to globally accessible objects/functions that
-        return the calibration in base units of mg for the balance, % open for
-        the barriers and degC for the temperature.
+        dictionary of latest raw data values for each
+        sensor (e.g. {'bal_raw':3.20,'barr_raw':0.5,'temp_raw':2.24})
+
+    calibrations: Calibrations
+        Object containing the calibrations for the trough (currently
+        `.balance`, `.barriers` and `.temperature`). A call to
+        `.balance.cal_apply(raw_data)` will return the balance reading in the
+        calibration units (`.balance.units`).
     """
-    mg.value = calib_func['bal_cal'](raw_data['bal_raw'])
+    if calibrations.balance.units != 'mg':
+        raise ValueError('Expect balance to be calibrated in mg. Instead got'
+                         + calibrations.balance.units + '.')
+    mg.value = calibrations.balance.cal_apply(raw_data['bal_raw'],0)[0]
     surf_press.value = tare_pi-mg.value*9.80665/plate_circumference.value
-    degC.value = calib_func['temp_cal'](raw_data['temp_raw'])
+    if calibrations.temperature.units != 'C':
+        raise ValueError('Expected temperature to be calibrated in C. '
+                         'Instead got ' + calibrations.temperature.units + '.')
+    degC.value = calibrations.temperature.cal_apply(raw_data['temp_raw'],0)[0]
     Bar_Frac.value = raw_data['barr_raw']
-    Bar_Sep.value = calib_func['barr_cal'](raw_data['barr_raw'])
+    Bar_Sep.value = calibrations.barriers.cal_apply(raw_data['barr_raw'],0)[0]
     # TODO rest of them
     pass

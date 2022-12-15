@@ -320,8 +320,8 @@ class Calibrations:
         if fullpath == '':
             # we have no calibration so will use a default.
             if name == 'balance':
-                calib = Calibration('balance', 'g', 0, [0, -0.0192425437271595],
-                                    [0, 0], [], [])
+                calib = Calibration('balance', 'mg', 0, [0,
+                                   -0.0192425437271595], [0, 0], [], [])
             elif name == 'barriers':
                 calib = Calibration('barriers', 'cm', 0, [4.0, 9.0], [0, 0], [],
                                     [])
@@ -380,9 +380,11 @@ class Calibrations:
         ----------
         dirpath:
             pathlike object or string
+
         cal: Calibration
             a calibration object containing the information about the
             calibration to write to the file.
+
         kwargs:
             optional key word arguments for future adaptibility
         """
@@ -405,8 +407,10 @@ class Calibrations:
         ----------
         data_x: list
             of numerical x values.
+
         data_y: list
             of numerical y values.
+
         order: int
             the order of the polynomical used for fitting.
 
@@ -414,6 +418,7 @@ class Calibrations:
         -------
         param: list
             of fitted parameters.
+
         param_stdev: list
             of estimated standard deviation in the parameters.
         """

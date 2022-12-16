@@ -58,8 +58,11 @@ def is_trough_initialized():
     trough_running = False
     if "TROUGH" in user_ns:
         # Check that it is a process
+        TROUGH = user_ns['TROUGH']
         if isinstance(TROUGH, Process):
             if TROUGH.is_alive():
+                cmdsend = user_ns['cmdsend']
+                datarcv = user_ns['datarcv']
                 if isinstance(cmdsend, Connection) and isinstance(datarcv, Connection):
                     trough_running = True
     return trough_running
@@ -80,7 +83,7 @@ def init_trough():
     TROUGH: the process handle for the trough.
     """
     from multiprocessing import Process, Pipe
-    from message_utils import extract_messages
+    from Trough_Control.message_utils import extract_messages
     import time
     from sys import exit
 
@@ -455,8 +458,10 @@ def troughctl(CTLPipe,DATAPipe):
     ctlpid = take_over_barrier_monitoring()
     # TODO: Should this all be wrapped in a try... so that if
     #   anything stops this it gives up barrier monitoring?
+    pos_F = deque(maxlen=20)
+    pos_F_std = deque(maxlen=20)
     pos_V = deque(maxlen=20)
-    pos_std = deque(maxlen=20)
+    pos_V_std = deque(maxlen=20)
     bal_V = deque(maxlen=20)
     bal_std = deque(maxlen=20)
     therm_V = deque(maxlen=20)
@@ -464,8 +469,8 @@ def troughctl(CTLPipe,DATAPipe):
     time_stamp = deque(maxlen=20)
     cmd_deque = deque()
     messages = deque()
-    que_lst = [time_stamp, pos_V, pos_std, bal_V, bal_std, therm_V, therm_std, messages]
-    que_lst_labels = ["time stamp", "position voltage", "position standard deviation",
+    que_lst = [time_stamp, pos_F, pos_F_std, bal_V, bal_std, therm_V, therm_std, messages]
+    que_lst_labels = ["time stamp", "position fraction", "position standard deviation",
                       "balance voltage", "balance standard deviation", "thermistor voltage",
                       "thermistor standard deviation", "messages"]
     timedelta = 0.500  # seconds
@@ -568,8 +573,12 @@ def troughctl(CTLPipe,DATAPipe):
             avg = (np.sum(vals)) / ndata
             stdev = np.std(vals, ddof=1, dtype=np.float64)
             stdev_avg = stdev / np.sqrt(float(ndata))
+            pos_frac = 1.00 - (avg - openmin)/(closemax - openmin)
+            pos_frac_std = stdev_avg/(closemax - openmin)
             pos_V.append(avg)
-            pos_std.append(stdev_avg)
+            pos_V_std.append(stdev_avg)
+            pos_F.append(pos_frac)
+            pos_F_std.append(pos_frac_std)
             # balance
             ndata = len(balhigh)
             high = np.array(balhigh, dtype=np.float64)
@@ -620,7 +629,9 @@ def troughctl(CTLPipe,DATAPipe):
                 # purge the sent content
                 time_stamp.clear()
                 pos_V.clear()
-                pos_std.clear()
+                pos_V_std.clear()
+                pos_F.clear()
+                pos_F_std.clear()
                 bal_V.clear()
                 bal_std.clear()
                 therm_V.clear()
@@ -693,7 +704,7 @@ def troughctl(CTLPipe,DATAPipe):
                 # purge the sent content
                 time_stamp.clear()
                 pos_V.clear()
-                pos_std.clear()
+                pos_V_std.clear()
                 bal_V.clear()
                 bal_std.clear()
                 therm_V.clear()

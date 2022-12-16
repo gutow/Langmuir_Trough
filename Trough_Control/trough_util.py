@@ -105,8 +105,8 @@ def init_trough():
 
 def troughctl(CTLPipe,DATAPipe):
     """
-    Will run as separate process taking in commands through a pipe and returning data
-    on demand through a second pipe.
+    Will run as separate process taking in commands through a pipe and
+    returning data on demand through a second pipe.
     Iteration 1, collects data into a fifo and watches barrier position.
     :param Pipe CTLPipe: pipe commands come in on and messages go out on.
     :param Pipe DATAPipe: pipe data is sent out on
@@ -229,7 +229,7 @@ def troughctl(CTLPipe,DATAPipe):
     def get_power_supply_volts():
         """
         Returns the negative and positive voltages from the power supply corrected
-        for the voltage inline voltage divider allowing measurement up to a bit more
+        for the inline voltage divider allowing measurement up to a bit more
         than +/- 15 V.
 
         :returns float V_neg: the negative voltage.

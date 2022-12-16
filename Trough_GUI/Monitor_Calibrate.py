@@ -1,5 +1,5 @@
 from Trough_GUI.status_widgets import *
-def Monitor_Setup_Trough():
+def Monitor_Setup_Trough(calibrations):
     """
     This produces a user interface in jupyter notebooks using ipywidgets. The
     interface allows monitoring of the trough barrier positions, balance
@@ -14,6 +14,12 @@ def Monitor_Setup_Trough():
 
     NOTE: some objects used here are global and created by importing from
     status_widgets.py
+
+    Parameters
+    ----------
+    calibrations: Calibrations
+        The object containing the calibrations be used and modified. See
+        `Trough_GUI.calibration_utils`.
     """
     from ipywidgets import Layout, Box, HBox, VBox, GridBox, Tab, Accordion, \
         Dropdown, Label, Text, Button, Checkbox, FloatText, RadioButtons, \
@@ -115,11 +121,14 @@ def Monitor_Setup_Trough():
                    style=longdesc)
     Barr_Cal_Val = FloatText(description = "Measured Barrier Separation (cm)",
                             disabled = False, style = longdesc)
-    Trough_Width = FloatText(description = "Trough width (cm)", value = 9.525,
-                             disabled = False, style = longdesc)
+    Trough_Width = FloatText(description="Trough width (cm)",
+                                value=calibrations.barriers.\
+                                additional_data['trough width (cm)'],
+                                disabled = False, style = longdesc)
     Skimer_Correction = FloatText(description = "Skimmer Correction ($cm^2$)",
-                                  value = -0.5, disabled = False,
-                                  style = longdesc)
+                                value= calibrations.barriers.\
+                                additional_data['skimmer correction (cm^2)'],
+                                disabled=False, style=longdesc)
     Barr_Cal_Butt = Button(description = "Start Calibration")
     Barr_Cal_Instr = richLabel(value = '<span style="color:red;">Do Not '
                                        'adjust the trough width or skimmer '

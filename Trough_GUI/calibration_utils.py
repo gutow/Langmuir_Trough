@@ -11,7 +11,7 @@ class Calibration:
                  cal_data_x, cal_data_y, fit_type="polynomial",
                  fit_eqn_str="y = C0 + C1*x + C2*x*x + C3*x*x*x + ...",
                  fit_ceof_lbls=["C0", "C1", "C2", "C3", "C4", "C5", "C6",
-                                  "C7"]):
+                                  "C7"], additional_data = {}):
         """
         Defines a calibration of type `name`.
         Parameters
@@ -51,6 +51,11 @@ class Calibration:
             correlate to symbols in the fit_eqn_str. Defaults to ["C0", "C1",
             ...]. Automatically, truncated to the actual number of
             coefficients determined by the order of the polynomial.
+
+        additional_data:dict
+            a dictionary of key:value pairs where the keys are a short
+            descriptive string. They can contain any additional data
+            necessary for doing calculations on the data.
         """
         self.name = name
         self.units = units
@@ -65,6 +70,7 @@ class Calibration:
         if self.fit_type == "polynomial" and\
                 len(self.param) != len(self.fit_coef_lbls):
             self.fit_coef_lbls = self.fit_coef_lbls[0:len(self.param)]
+        self.additional_data = additional_data
 
     @classmethod
     def cal_from_html(cls, html):
@@ -114,9 +120,21 @@ class Calibration:
         for k in cal_el.getElementById('cal_data_y'):
             if k.tagName == 'td':
                 cal_y.append(float(k.text))
+        cal_el = document.getElementById('additional_data')
+        add_data = {}
+        if cal_el:
+            for k, j in zip(cal_el.getElementById('additional_data_keys'),
+                cal_el.getElementById('additional_data_values')):
+                key = ''
+                value = None
+                if k.tagName == 'td':
+                    key = str(k.text)
+                if j.tagName == 'td':
+                    value = str(j.text)
+                add_data[key] = value
         return Calibration(name, units, timestamp, coef_val, coef_stdev,
                  cal_x, cal_y, fit_type=fit_type, fit_eqn_str=fit_eqn_str,
-                           fit_ceof_lbls=coef_lbls)
+                           fit_ceof_lbls=coef_lbls, additional_data=add_data)
 
     def cal_to_html(self):
         """This routine creates an html str that would be human-readable in a
@@ -211,6 +229,29 @@ class Calibration:
         tr.appendInnerHTML(innerstr)
         fit_data.appendChild(tr)
         calib_div.appendChild(fit_data)
+
+        add_data = Domel('table')
+        add_data.setAttribute('class','additonal_data')
+        add_data.setAttribute('id','additional_data')
+        add_data.setAttribute('border', '1')
+        caption = Domel('caption')
+        caption.appendInnerHTML('Additional Data')
+        add_data.appendChild(caption)
+        tr = Domel('tr')
+        tr.setAttribute('id','additional_data_keys')
+        tr2 = Domel('tr')
+        tr2.setAttribute('id', 'additional_data_values')
+        innerstr = ""
+        innerstr2 = ""
+        for k in self.additional_data.keys():
+            innerstr += '<td>' + str(k) + '</td>'
+            innerstr2 += '<td>' + str(self.additional_data[k]) + '</td>'
+        if innerstr != "":
+            tr.appendInnerHTML(innerstr)
+            tr2.appendInnerHTML(innerstr2)
+            add_data.appendChild(tr)
+            add_data.appendChild(tr2)
+            calib_div.appendChild(add_data)
         return calib_div.asHTML()
 
     def cal_apply(self, data, stdev):
@@ -326,11 +367,12 @@ class Calibrations:
         if fullpath == '':
             # we have no calibration so will use a default.
             if name == 'balance':
-                calib = Calibration('balance', 'mg', 0, [0.02438,
-                                   -0.0192425437271595], [0, 0], [], [])
+                calib = Calibration('balance', 'mg', 0, [-15.875,
+                                   -12.5], [0, 0], [], [])
             elif name == 'barriers':
                 calib = Calibration('barriers', 'cm', 0, [4.0, 9.0], [0, 0], [],
-                                    [])
+                        [], additional_data={"trough width (cm)":9.525,
+                                            "skimmer correction (cm^2)":-0.5})
             elif name == 'temperature':
                 calib = Calibration('temperature', 'C', 0, [25.012,
                                    0.00352556980215013, -7.295400905604765e-08,

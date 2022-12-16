@@ -21,6 +21,12 @@ surf_press = Text(description="$\pi$ (mN/m)",
 plate_circumference = FloatText(description="Plate circumference (mm)",
                                 value=21.5,
                                 style=longdesc)
+
+def set_zero_pressure():
+    tare_pi = float(surf_press.value)
+    update_status()
+    pass
+
 zero_press = Button(description="Zero Pressure")
 
 degC = Text(description="$^o C$",
@@ -30,7 +36,7 @@ degC = Text(description="$^o C$",
 Bar_Frac = Text(description="% open", disabled=True, style=longdesc)
 Bar_Sep = Text(description="Separation (cm)", disabled=True,
                style=longdesc)
-Bar_Area = Text(description="Area", disabled=True, style=longdesc)
+Bar_Area = Text(description="Area ($cm^2$)", disabled=True, style=longdesc)
 Bar_Area_per_Molec = Text(description="$\mathring{A^2}$/molecule",
                           disabled=True, style=longdesc)
 moles_molec = FloatText(description="moles of molecules",
@@ -66,8 +72,17 @@ def update_status(raw_data:dict, calibrations):
                          'Instead got ' + calibrations.temperature.units + '.')
     degC.value = str(calibrations.temperature.cal_apply(raw_data['temp_raw'],
                                                       0)[0])
-    Bar_Frac.value = str(raw_data['barr_raw'])
-    Bar_Sep.value = str(calibrations.barriers.cal_apply(raw_data['barr_raw'],
-                                                      0)[0])
-    # TODO rest of them
+    Bar_Frac.value = str(raw_data['barr_raw']*100)
+    if calibrations.barriers.units != 'cm':
+        raise ValueError('Expected barrier separation to be calibrated in cm. '
+                         'Instead got ' + calibrations.barriers.units + '.')
+    sep_cm = calibrations.barriers.cal_apply(raw_data['barr_raw'], 0)[0]
+    area_cm_sq = sep_cm*calibrations.barriers.\
+                         additional_data["trough width (cm)"] - \
+                         calibrations.barriers.\
+                         additional_data["skimmer correction (cm^2)"]
+    area_per_molec_ang_sq = area_cm_sq*1e16/moles_molec.value/6.02214076e23
+    Bar_Sep.value = str(sep_cm)
+    Bar_Area.value = str(area_cm_sq)
+    Bar_Area_per_Molec.value = str(area_per_molec_ang_sq)
     pass

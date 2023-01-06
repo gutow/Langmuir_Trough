@@ -370,7 +370,7 @@ class Calibrations:
                 calib = Calibration('balance', 'mg', 0, [-15.875,
                                    -12.5], [0, 0], [], [])
             elif name == 'barriers':
-                calib = Calibration('barriers', 'cm', 0, [4.0, 9.0], [0, 0], [],
+                calib = Calibration('barriers', 'cm', 0, [2.5, 12.5], [0, 0], [],
                         [], additional_data={"trough width (cm)":9.525,
                                             "skimmer correction (cm^2)":-0.5})
             elif name == 'temperature':

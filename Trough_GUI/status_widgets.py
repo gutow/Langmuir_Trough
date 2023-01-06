@@ -22,12 +22,13 @@ plate_circumference = FloatText(description="Plate circumference (mm)",
                                 value=21.5,
                                 style=longdesc)
 
-def set_zero_pressure():
+def set_zero_pressure(change):
+    global tare_pi
     tare_pi = float(surf_press.value)
-    update_status()
     pass
 
 zero_press = Button(description="Zero Pressure")
+zero_press.on_click(set_zero_pressure)
 
 degC = Text(description="$^o C$",
             disabled=True,
@@ -101,7 +102,7 @@ def update_status(raw_data:dict, calibrations):
     Bar_Area_per_Molec.value = rndwitherr(area_per_molec_ang_sq,
                                                area_per_molec_ang_sq_error,
                                                lowmag=-4, highmag=4)[0]
-    status_msgs = ''
+    status_msgs = ' '
     for k in raw_data['messages']:
         status_msgs+=str(k)+'\n'
     Status.value = status_msgs

@@ -251,6 +251,7 @@ def troughctl(CTLPipe,DATAPipe):
         """
         DAC_V = calcDAC_V(speed, direction, maxcloseV, mincloseV, maxopenV,
                           minopenV)
+        # print("speed:"+str(speed)+", direction:"+str(direction)+", DAC_V:"+str(DAC_V))
         if (DAC_V > startopenV) and (DAC_V < startcloseV) and (direction != 0):
             # need a boost to start moving
             if speed == 1:
@@ -260,6 +261,7 @@ def troughctl(CTLPipe,DATAPipe):
             DAQC2.setDOUTbit(0, 0)
             time.sleep(0.25)
         DAQC2.setDAC(0, 0, DAC_V)
+        DAQC2.setDOUTbit(0, 0)
         pass
 
     def motorcal(barriermin, barriermax):
@@ -474,9 +476,9 @@ def troughctl(CTLPipe,DATAPipe):
                       "balance voltage", "balance standard deviation", "thermistor voltage",
                       "thermistor standard deviation", "messages"]
     timedelta = 0.500  # seconds
-    openmin = 0.05 # minimum voltage allowed when opening.
+    openmin = 0.02 # minimum voltage allowed when opening.
     openlimit = openmin
-    closemax = 7.78 # maximum voltage allowed when closing.
+    closemax = 7.6 # maximum voltage allowed when closing.
     closelimit = closemax
     # Check that power supply is on. If not we cannot do anything.
     PS_minus, PS_plus = get_power_supply_volts()

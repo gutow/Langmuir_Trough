@@ -57,6 +57,7 @@ Barr_Speed = FloatText(description="Speed (/min)", value=100.0,
                        disabled=False)
 def on_click_Start(change):
     from IPython import get_ipython
+    cmdsend = get_ipython().user_ns["cmdsend"]
     speed = Barr_Speed.value / 100.0
     cmdsend.send(['Speed', speed])
     if Barr_Direction.value != 'Move To':

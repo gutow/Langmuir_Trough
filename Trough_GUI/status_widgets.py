@@ -24,7 +24,7 @@ plate_circumference = FloatText(description="Plate circumference (mm)",
 
 def set_zero_pressure(change):
     global tare_pi
-    tare_pi = float(surf_press.value)
+    tare_pi = float(mg.value)
     pass
 
 zero_press = Button(description="Zero Pressure")
@@ -72,7 +72,7 @@ def update_status(raw_data:dict, calibrations):
                                                   raw_data['bal_dev'])
     mg.value = rndwitherr(mgrams,mgrams_err, lowmag=-4, highmag=4)[0]
     surf_press_err = mgrams_err*9.80665/plate_circumference.value
-    surf_press.value = rndwitherr(tare_pi-mgrams*\
+    surf_press.value = rndwitherr((tare_pi-mgrams)*\
                            9.80665/plate_circumference.value,
                            surf_press_err, lowmag=-4, highmag=4)[0]
     if calibrations.temperature.units != 'C':

@@ -375,6 +375,10 @@ class Calibrations:
                                             "skimmer correction (cm^2)":-0.5})
             elif name == 'temperature':
                 calib = Calibration('temperature', 'C', 0, [7.7, 5], [0, 0], [], [])
+            elif name == 'speed_open':
+                calib = Calibration('speed_open', 'cm/min', 0, [0, 10.1], [0, 0], [], [])
+            elif name == 'speed_close':
+                calib = Calibration('speed_close', 'cm/min', 0, [0, 6.7], [0, 0], [], [])
             else:
                 raise ValueError('Valid names are "balance", "barriers" or '
                                  '"temperature".')

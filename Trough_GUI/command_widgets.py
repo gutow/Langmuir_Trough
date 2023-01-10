@@ -13,7 +13,11 @@ longdesc = {'description_width': 'initial'}
 # Manual Barrier Control
 Barr_Target_Frac = 1.0
 def on_change_Barr_Units(change):
-    print(change)
+    from IPython import get_ipython
+    calibrations = get_ipython().user_ns["Trough_GUI"].calibrations
+    width = calibrations.barriers.additional_data["trough width (cm)"]
+    skimmer_correction = calibrations.barriers.additional_data["skimmer correction (cm^2)"]
+    moles_molec = get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec
     if change['new'] == 'cm':
         Barr_Target.min = calibrations.barriers.cal_apply(0.0,0.0)[0]
         Barr_Target.max = calibrations.barriers.cal_apply(1.0, 0.0)[0]
@@ -21,26 +25,26 @@ def on_change_Barr_Units(change):
                                                             0.0)[0]
     if change['new'] == 'cm^2':
         temptarg = calibrations.barriers.cal_apply(Barr_Target_Frac,0.0)[0]*\
-                            float(Trough_Width.value) + float(Skimer_Correction.value)
-        max = calibrations.barriers.cal_apply(1.0, 0.0)[0]*float(Trough_Width.value) +\
-                          float(Skimer_Correction.value)
-        min = calibrations.barriers.cal_apply(0.0,0.0)[0]*float(Trough_Width.value) +\
-                          float(Skimer_Correction.value)
+                            float(width) + float(skimmer_correction)
+        max = calibrations.barriers.cal_apply(1.0, 0.0)[0]*float(width) +\
+                          float(skimmer_correction)
+        min = calibrations.barriers.cal_apply(0.0,0.0)[0]*float(width) +\
+                          float(skimmer_correction)
         Barr_Target.max = max
         Barr_Target.min = min
         Barr_Target.value = temptarg
     if change['new'] == 'Angstrom^2/molec':
         temptarg = calibrations.barriers.cal_apply(Barr_Target_Frac,0.0)[0]*\
-                            float(Trough_Width.value) + \
-                            float(Skimer_Correction.value)*\
+                            float(width) + \
+                            float(skimmer_correction)*\
                             1e16/moles_molec.value/6.02214076e23
         max = calibrations.barriers.cal_apply(1.0,0.0)[0]*\
-                            float(Trough_Width.value) + \
-                            float(Skimer_Correction.value)*\
+                            float(width) + \
+                            float(skimmer_correction)*\
                             1e16/moles_molec.value/6.02214076e23
         min = calibrations.barriers.cal_apply(0.0,0.0)[0]*\
-                            float(Trough_Width.value) + \
-                            float(Skimer_Correction.value)*\
+                            float(width) + \
+                            float(skimmer_correction)*\
                             1e16/moles_molec.value/6.02214076e23
         Barr_Target.max = max
         Barr_Target.min = min
@@ -74,6 +78,7 @@ Barr_Speed = FloatText(description="Speed (/min)", value=1.0,
 def on_click_Start(change):
     from IPython import get_ipython
     cmdsend = get_ipython().user_ns["cmdsend"]
+    calibrations = get_ipython().user_ns["Trough_GUI"].calibrations
     speed = Barr_Speed.value / 100.0
     cmdsend.send(['Speed', speed])
     if Barr_Direction.value != 'Move To':
@@ -87,7 +92,7 @@ def on_click_Start(change):
     else:
         # TODO need to get cal_inv() working
         if Barr_Units.value == 'cm':
-            Barr_Target_Frac =
+            Barr_Target_Frac = calibrations.barriers.cal_inv(Barr_Target.value,0)
         pass
 
 Barr_Start = Button(description="Start")

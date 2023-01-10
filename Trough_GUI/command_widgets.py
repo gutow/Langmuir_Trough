@@ -11,15 +11,16 @@ longdesc = {'description_width': 'initial'}
 
 # Barriers
 # Manual Barrier Control
-Barr_Target_Percent = 100.0
+Barr_Target_Frac = 1.0
 def on_change_Barr_Units(change):
     print(change)
     if change['new'] == 'cm':
         Barr_Target.min = calibrations.barriers.cal_apply(0.0,0.0)[0]
         Barr_Target.max = calibrations.barriers.cal_apply(1.0, 0.0)[0]
-        Barr_Target.value = calibrations.barriers.cal_apply(Barr_Target_Percent/100,0.0)[0]
+        Barr_Target.value = calibrations.barriers.cal_apply(Barr_Target_Frac,
+                                                            0.0)[0]
     if change['new'] == 'cm^2':
-        temptarg = calibrations.barriers.cal_apply(Barr_Target_Percent/100,0.0)[0]*\
+        temptarg = calibrations.barriers.cal_apply(Barr_Target_Frac,0.0)[0]*\
                             float(Trough_Width.value) + float(Skimer_Correction.value)
         max = calibrations.barriers.cal_apply(1.0, 0.0)[0]*float(Trough_Width.value) +\
                           float(Skimer_Correction.value)
@@ -29,17 +30,31 @@ def on_change_Barr_Units(change):
         Barr_Target.min = min
         Barr_Target.value = temptarg
     if change['new'] == 'Angstrom^2/molec':
-        # TODO
+        temptarg = calibrations.barriers.cal_apply(Barr_Target_Frac,0.0)[0]*\
+                            float(Trough_Width.value) + \
+                            float(Skimer_Correction.value)*\
+                            1e16/moles_molec.value/6.02214076e23
+        max = calibrations.barriers.cal_apply(1.0,0.0)[0]*\
+                            float(Trough_Width.value) + \
+                            float(Skimer_Correction.value)*\
+                            1e16/moles_molec.value/6.02214076e23
+        min = calibrations.barriers.cal_apply(0.0,0.0)[0]*\
+                            float(Trough_Width.value) + \
+                            float(Skimer_Correction.value)*\
+                            1e16/moles_molec.value/6.02214076e23
+        Barr_Target.max = max
+        Barr_Target.min = min
+        Barr_Target.value = temptarg
         pass
+    # TODO Remove below after testing
     if change['new'] == '% of max':
         Barr_Target.min = 0.0
-        Barr_Target.max = 100.0
-        Barr_Target.value = Barr_Target_Percent
+        Barr_Target.max = 1.0
+        Barr_Target.value = Barr_Target_Frac
     pass
 
 Barr_Units = Dropdown(description="Units",
-                      options=["% of max", "cm", "cm^2",
-                                 "Angstrom^2/molec"])
+                      options=["cm", "cm^2", "Angstrom^2/molec"])
 
 Barr_Units.observe(on_change_Barr_Units, names='value')
 
@@ -52,8 +67,9 @@ def on_change_Barr_Direction(changed):
 
 Barr_Direction = RadioButtons(options=["Open", "Close", "Move To"])
 Barr_Direction.observe(on_change_Barr_Direction, names='value')
-Barr_Target = BoundedFloatText(value=Barr_Target_Percent, min=0.0, max=100.0, step=0.1, disabled=True)
-Barr_Speed = FloatText(description="Speed (/min)", value=100.0,
+Barr_Target = BoundedFloatText(value=Barr_Target_Frac, min=0.0, max=1.0,
+                               step=0.1, disabled=True)
+Barr_Speed = FloatText(description="Speed (/min)", value=1.0,
                        disabled=False)
 def on_click_Start(change):
     from IPython import get_ipython
@@ -69,7 +85,9 @@ def on_click_Start(change):
         cmdsend.send(['Direction', direction])
         cmdsend.send(['Start', ''])
     else:
-        # TODO need to get call_invert working
+        # TODO need to get cal_inv() working
+        if Barr_Units.value == 'cm':
+            Barr_Target_Frac =
         pass
 
 Barr_Start = Button(description="Start")

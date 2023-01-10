@@ -8,6 +8,7 @@ user directory `.Trough/calibrations`.
 
 class Calibration:
     def __init__(self, name, units, timestamp, param, param_stdev,
+                 param_inv, param_inv_stdev,
                  cal_data_x, cal_data_y, fit_type="polynomial",
                  fit_eqn_str="y = C0 + C1*x + C2*x*x + C3*x*x*x + ...",
                  fit_ceof_lbls=["C0", "C1", "C2", "C3", "C4", "C5", "C6",
@@ -32,7 +33,12 @@ class Calibration:
         param_stdev: list
             list of the numerical values for the estimated standard
             deviation of the parameters from the fit.
-
+        param_inv: list
+            list of the numerical values for the fit (or equation) yielding the
+            inverse of the calibration (return to the raw value).
+        param_inv_stdev: list
+            list of the numerical values for the estimated standard deviation of
+            the parameters for the inversion.
         cal_data_x: list
             x-data used for the calibration fit.
 
@@ -62,6 +68,8 @@ class Calibration:
         self.timestamp = timestamp
         self.param = param
         self.param_stdev = param_stdev
+        self.param_inv = param_inv
+        self.param_inv_stdev  = param_inv_stdev
         self.cal_data_x = cal_data_x
         self.cal_data_y = cal_data_y
         self.fit_type = fit_type
@@ -111,6 +119,16 @@ class Calibration:
         for k in stdev_el:
             if k.tagName == 'td':
                 coef_stdev.append(float(k.text))
+        inv_coef_el = document.getElementById('inv_coefficients')
+        inv_coef_val = []
+        for k in inv_coef_el.children:
+            if k.tagName == 'td':
+                inv_coef_val.append(float(k.text))
+        inv_stdev_el = document.getElementById('inv_stdev')
+        inv_coef_stdev = []
+        for k in inv_stdev_el:
+            if k.tagName == 'td':
+                inv_coef_stdev.append(float(k.text))
         cal_el = document.getElementById('calibration_data')
         cal_x = []
         cal_y = []
@@ -133,6 +151,7 @@ class Calibration:
                     value = str(j.text)
                 add_data[key] = value
         return Calibration(name, units, timestamp, coef_val, coef_stdev,
+                           inv_coef_val, inv_coef_stdev,
                  cal_x, cal_y, fit_type=fit_type, fit_eqn_str=fit_eqn_str,
                            fit_ceof_lbls=coef_lbls, additional_data=add_data)
 
@@ -207,6 +226,36 @@ class Calibration:
         parameters.appendChild(tr)
         calib_div.appendChild(parameters)
 
+        inverse = Domel('table')
+        inverse.setAttribute('class', 'inverse')
+        inverse.setAttribute('id', 'inverse')
+        inverse.setAttribute('border', '1')
+        caption = Domel('caption')
+        caption.appendInnerHTML('Inverse Parameters')
+        inverse.appendChild(caption)
+        tr = Domel('tr')
+        tr.setAttribute('id', 'coef_labels')
+        innerstr = '<th>Labels</th>'
+        for k in self.fit_coef_lbls:
+            innerstr += '<td>'+str(k) + '</td>'
+        tr.appendInnerHTML(innerstr)
+        inverse.appendChild(tr)
+        tr = Domel('tr')
+        tr.setAttribute('id', 'inv_coefficients')
+        innerstr = '<th>Coefficients</th>'
+        for k in self.param_inv:
+            innerstr += '<td>'+str(k)+'</td>'
+        tr.appendInnerHTML(innerstr)
+        inverse.appendChild(tr)
+        tr = Domel('tr')
+        tr.setAttribute('id', 'inv_stdev')
+        innerstr = '<th>Standard Deviation</th>'
+        for k in self.param_inv_stdev:
+            innerstr += '<td>'+str(k)+'</td>'
+        tr.appendInnerHTML(innerstr)
+        inverse.appendChild(tr)
+        calib_div.appendChild(inverse)
+
         fit_data = Domel('table')
         fit_data.setAttribute('class', 'calibration_data')
         fit_data.setAttribute('id', 'calibration_data')
@@ -254,7 +303,7 @@ class Calibration:
             calib_div.appendChild(add_data)
         return calib_div.asHTML()
 
-    def cal_apply(self, data, stdev):
+    def _cal_apply(self, data, stdev, inverse=False):
         """Apply the calibration to some data.
 
         Parameters
@@ -265,6 +314,10 @@ class Calibration:
         stdev: object
             either a float or iterable of floats containing the uncertainty
             in the data
+
+        inverse: keyword (default = False). Controls whether applies forward
+        (raw -> calibration in units, False) or reverse (value in units ->
+        raw, True) calibrations.
 
         Returns
         -------
@@ -277,6 +330,14 @@ class Calibration:
             calibration: a float or iterable of floats depending on what was
             passed to the operation.
         """
+        param = []
+        param_stdev = []
+        if inverse:
+            param = self.param_inv
+            param_stdev = self.param_inv_stdev
+        else:
+            param = self.param
+            param_stdev = self.param_stdev
         cal_data = None
         cal_stdev = None
         from collections.abc import Iterable
@@ -292,7 +353,7 @@ class Calibration:
             npcal_stdev = np.zeros(len(data))
             if self.fit_type == 'polynomial':
                 coef_n = 0
-                for j, k in zip(self.param, self.param_stdev):
+                for j, k in zip(param, param_stdev):
                     npcal_data += j*npdata**coef_n
                     if coef_n == 0:
                         npcal_stdev += 0
@@ -316,13 +377,13 @@ class Calibration:
             cal_stdev = 0
             if self.fit_type == 'polynomial':
                 coef_n = 0
-                for j, k in zip(self.param, self.param_stdev):
+                for j, k in zip(param, param_stdev):
                     cal_data += j*data**coef_n
                     if coef_n == 0:
                         cal_stdev += 0
                     else:
-                        cal_stdev += (coef_n*j*data**(coef_n-1)*stdev)**2 + \
-                                 (data**coef_n*k)**2
+                        cal_stdev += (coef_n*j*data**(coef_n-1)*stdev)**2\
+                                     + (data**coef_n*k)**2
                     coef_n += 1
                 cal_stdev = cal_stdev**0.5
                 cal_data, cal_stdev = numbers_rndwitherr(cal_data, cal_stdev)
@@ -333,12 +394,19 @@ class Calibration:
             raise TypeError('Data must be a float or an iterable of floats.')
         return cal_data, cal_stdev
 
+    def cal_apply(self, data, stdev):
+        return self._cal_apply(data, stdev)
+
+    def cal_inv(self, data, stdev):
+        return self._cal_apply(data, stdev, inverse=True)
 
 class Calibrations:
     def __init__(self):
         self.balance = self._create_cal('balance')
         self.barriers = self._create_cal('barriers')
         self.temperature = self._create_cal('temperature')
+        self.speed_open = self._create_cal('speed_open')
+        self.speed_close = self._create_cal('speed_close')
 
     def _create_cal(self, name):
         """Utility function to that returns the latest calibration of type
@@ -368,17 +436,21 @@ class Calibrations:
             # we have no calibration so will use a default.
             if name == 'balance':
                 calib = Calibration('balance', 'mg', 0, [-15.875,
-                                   -12.5], [0, 0], [], [])
+                                   -12.5], [0, 0], [-1.27, -0.08],[0, 0],[], [])
             elif name == 'barriers':
-                calib = Calibration('barriers', 'cm', 0, [2.5, 10.1], [0, 0], [],
-                        [], additional_data={"trough width (cm)":9.525,
-                                            "skimmer correction (cm^2)":-0.5})
+                calib = Calibration('barriers', 'cm', 0, [2.5, 10.1], [0, 0],
+                        [-0.2475, 0.099], [0, 0], [], [], additional_data={
+                        "trough width (cm)":9.525,
+                        "skimmer correction (cm^2)":-0.5})
             elif name == 'temperature':
-                calib = Calibration('temperature', 'C', 0, [7.7, 5], [0, 0], [], [])
+                calib = Calibration('temperature', 'C', 0, [7.7, 5], [0, 0],
+                                    [-1.54, 0.2], [], [], [])
             elif name == 'speed_open':
-                calib = Calibration('speed_open', 'cm/min', 0, [0, 10.1], [0, 0], [], [])
+                calib = Calibration('speed_open', 'cm/min', 0, [0, 10.1],
+                                    [0, 0], [0, 0.099], [0, 0], [], [])
             elif name == 'speed_close':
-                calib = Calibration('speed_close', 'cm/min', 0, [0, 6.7], [0, 0], [], [])
+                calib = Calibration('speed_close', 'cm/min', 0, [0, 6.7],
+                                    [0, 0], [0, 0.1493], [0, 0], [], [])
             else:
                 raise ValueError('Valid names are "balance", "barriers" or '
                                  '"temperature".')

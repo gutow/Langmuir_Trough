@@ -33,6 +33,17 @@ def _moveto_direction():
         desired_position =  desired_position/1e16*moles_molec*6.02214076e23
         return np.sign((desired_position -skimmer_correction)/width - current_position)
 
+def _set_min_max(obj, min, max):
+    """This sets the min and max trait of the widget, while accounting for the
+    current min:max settings to avoid an error of max < min or min > max."""
+    if obj.min > max:
+        obj.min = min
+        obj.max = max
+    else:
+        obj.max = max
+        obj.min = min
+    pass
+
 def on_change_Barr_Units(change):
     from IPython import get_ipython
     calibrations = get_ipython().user_ns["Trough_GUI"].calibrations
@@ -40,38 +51,34 @@ def on_change_Barr_Units(change):
     skimmer_correction = float(calibrations.barriers.additional_data["skimmer correction (cm^2)"])
     moles_molec = float(get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec.value)
     if change['new'] == 'cm':
-        Barr_Target.min = calibrations.barriers.cal_apply(0.0,0.0)[0]
-        Barr_Target.max = calibrations.barriers.cal_apply(1.0, 0.0)[0]
+        _set_min_max(Barr_Target, calibrations.barriers.cal_apply(0.0,0.0)[0],
+                     calibrations.barriers.cal_apply(1.0, 0.0)[0])
         Barr_Target.value = calibrations.barriers.cal_apply(Barr_Target_Frac,
                                                             0.0)[0]
         if Barr_Direction.value == "Open":
             tempspeed = calibrations.speed_open.cal_apply(speed,0.0)[0]
             max = calibrations.speed_open.cal_apply(1.0, 0.0)[0]
             min = calibrations.speed_open.cal_apply(0.0, 0.0)[0]
-            Barr_Speed.max = max
-            Barr_Speed.min = min
+            _set_min_max(Barr_Speed, min, max)
             Barr_Speed.value = tempspeed
         elif Barr_Direction.value == "Close":
             tempspeed = calibrations.speed_close.cal_apply(speed,0.0)[0]
             max = calibrations.speed_close.cal_apply(1.0, 0.0)[0]
             min = calibrations.speed_close.cal_apply(0.0, 0.0)[0]
-            Barr_Speed.max = max
-            Barr_Speed.min = min
+            _set_min_max(Barr_Speed, min, max)
             Barr_Speed.value = tempspeed
         else: # MoveTo case
             if _moveto_direction() == -1:
                 tempspeed = calibrations.speed_close.cal_apply(speed, 0.0)[0]
                 max = calibrations.speed_close.cal_apply(1.0, 0.0)[0]
                 min = calibrations.speed_close.cal_apply(0.0, 0.0)[0]
-                Barr_Speed.max = max
-                Barr_Speed.min = min
+                _set_min_max(Barr_Speed, min, max)
                 Barr_Speed.value = tempspeed
             elif _moveto_direction() == 1:
                 tempspeed = calibrations.speed_open.cal_apply(speed, 0.0)[0]
                 max = calibrations.speed_open.cal_apply(1.0, 0.0)[0]
                 min = calibrations.speed_open.cal_apply(0.0, 0.0)[0]
-                Barr_Speed.max = max
-                Barr_Speed.min = min
+                _set_min_max(Barr_Speed, min, max)
                 Barr_Speed.value = tempspeed
             pass
     if change['new'] == 'cm^2':
@@ -81,8 +88,7 @@ def on_change_Barr_Units(change):
                           float(skimmer_correction)
         min = calibrations.barriers.cal_apply(0.0,0.0)[0]*float(width) +\
                           float(skimmer_correction)
-        Barr_Target.max = max
-        Barr_Target.min = min
+        _set_min_max(Barr_Target, min, max)
         Barr_Target.value = temptarg
         if Barr_Direction.value == "Open":
             tempspeed = calibrations.speed_open.cal_apply(speed,0.0)[0]*float(width) + \
@@ -93,8 +99,7 @@ def on_change_Barr_Units(change):
             min = calibrations.speed_open.cal_apply(0.0, 0.0)[0] * \
                   float(width) + \
                   float(skimmer_correction)
-            Barr_Speed.max = max
-            Barr_Speed.min = min
+            _set_min_max(Barr_Speed, min, max)
             Barr_Speed.value = tempspeed
         elif Barr_Direction.value == "Close":
             tempspeed = calibrations.speed_close.cal_apply(speed,0.0)[0]*float(width) + \
@@ -105,8 +110,7 @@ def on_change_Barr_Units(change):
             min = calibrations.speed_close.cal_apply(0.0, 0.0)[0] * \
                   float(width) + \
                   float(skimmer_correction)
-            Barr_Speed.max = max
-            Barr_Speed.min = min
+            _set_min_max(Barr_Speed, min, max)
             Barr_Speed.value = tempspeed
         else: # MoveTo case
             if _moveto_direction() == -1:
@@ -118,8 +122,7 @@ def on_change_Barr_Units(change):
                 min = calibrations.speed_close.cal_apply(0.0, 0.0)[0] * \
                       float(width) + \
                       float(skimmer_correction)
-                Barr_Speed.max = max
-                Barr_Speed.min = min
+                _set_min_max(Barr_Speed, min, max)
                 Barr_Speed.value = tempspeed
             elif _moveto_direction() == 1:
                 tempspeed = calibrations.speed_open.cal_apply(speed, 0.0)[0] * float(width) + \
@@ -130,8 +133,7 @@ def on_change_Barr_Units(change):
                 min = calibrations.speed_open.cal_apply(0.0, 0.0)[0] * \
                       float(width) + \
                       float(skimmer_correction)
-                Barr_Speed.max = max
-                Barr_Speed.min = min
+                _set_min_max(Barr_Speed, min, max)
                 Barr_Speed.value = tempspeed
             pass
     if change['new'] == 'Angstrom^2/molec':
@@ -144,8 +146,7 @@ def on_change_Barr_Units(change):
         min = (calibrations.barriers.cal_apply(0.0,0.0)[0]*\
                             width +skimmer_correction)*\
                             1e16/moles_molec/6.02214076e23
-        Barr_Target.max = max
-        Barr_Target.min = min
+        _set_min_max(Barr_Target, min, max)
         Barr_Target.value = temptarg
         if Barr_Direction.value == "Open":
             tempspeed = (calibrations.speed_open.cal_apply(speed,0.0)[0]*width + \
@@ -157,8 +158,7 @@ def on_change_Barr_Units(change):
             min = (calibrations.speed_open.cal_apply(0.0, 0.0)[0] * \
                   width + skimmer_correction) * \
                   1e16 / moles_molec / 6.02214076e23
-            Barr_Speed.max = max
-            Barr_Speed.min = min
+            _set_min_max(Barr_Speed, min, max)
             Barr_Speed.value = tempspeed
         elif Barr_Direction.value == "Close":
             tempspeed = (calibrations.speed_close.cal_apply(speed,0.0)[0]*width + \
@@ -170,8 +170,7 @@ def on_change_Barr_Units(change):
             min = (calibrations.speed_close.cal_apply(0.0, 0.0)[0] * \
                   width + skimmer_correction) * \
                   1e16 / moles_molec / 6.02214076e23
-            Barr_Speed.max = max
-            Barr_Speed.min = min
+            _set_min_max(Barr_Speed, min, max)
             Barr_Speed.value = tempspeed
         else: # MoveTo case
             if _moveto_direction() == -1:
@@ -199,8 +198,7 @@ def on_change_Barr_Units(change):
                 min = (calibrations.speed_open.cal_apply(0.0, 0.0)[0] * \
                       width + skimmer_correction) * \
                       1e16 / moles_molec / 6.02214076e23
-                Barr_Speed.max = max
-                Barr_Speed.min = min
+                _set_min_max(Barr_Speed, min, max)
                 Barr_Speed.value = tempspeed
             pass
     pass
@@ -215,13 +213,14 @@ def on_change_Barr_Direction(changed):
         Barr_Target.disabled = False
     else:
         Barr_Target.disabled = True
+    on_change_Barr_Units({'new':Barr_Units.value})
     pass
 
 Barr_Direction = RadioButtons(options=["Open", "Close", "Move To"])
 Barr_Direction.observe(on_change_Barr_Direction, names='value')
-Barr_Target = BoundedFloatText(value=Barr_Target_Frac, min=0.0, max=1.0,
+Barr_Target = BoundedFloatText(value=10.0, min=0.0, max=1.0,
                                step=0.1, disabled=True)
-Barr_Speed = BoundedFloatText(description="Speed (/min)", value=speed, min = 0.0,
+Barr_Speed = BoundedFloatText(description="Speed (/min)", value=5.0, min = 0.0,
                        max = 10.0, disabled=False)
 def on_click_Start(change):
     from IPython import get_ipython

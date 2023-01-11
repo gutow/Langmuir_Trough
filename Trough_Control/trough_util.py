@@ -647,6 +647,8 @@ def troughctl(CTLPipe,DATAPipe):
                     speed = 0
                 if (direction != -1) and (direction != 0) and (direction != 1):
                     direction = 0
+                closelimit = closemax
+                openlimit = openmin
                 start_barriers(speed, direction, maxcloseV, mincloseV, maxopenV,
                                minopenV)
             elif cmd[0] == 'Direction':
@@ -665,7 +667,7 @@ def troughctl(CTLPipe,DATAPipe):
             elif cmd[0] == 'MoveTo':
                 # Move to fraction of open 0 .. 1.
                 # set the stop position
-                to_pos = (1-cmd[1])*closemax + cmd[1]*openmin
+                to_pos = (1.0-float(cmd[1]))*closemax + float(cmd[1])*openmin
                 # adjust direction if necessary
                 # get current position
                 position = etol_call(DAQC2.getADC,(0, 0)) - \

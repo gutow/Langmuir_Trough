@@ -435,8 +435,8 @@ class Calibrations:
         if fullpath == '':
             # we have no calibration so will use a default.
             if name == 'balance':
-                calib = Calibration('balance', 'mg', 0, [-15.875,
-                                   -12.5], [0, 0], [-1.27, -0.08],[0, 0],[], [])
+                calib = Calibration('balance', 'mg', 0, [-1.875,
+                                   12.5], [0, 0], [0.15, 0.08],[0, 0],[], [])
             elif name == 'barriers':
                 calib = Calibration('barriers', 'cm', 0, [2.5, 10.1], [0, 0],
                         [-0.2475, 0.099], [0, 0], [], [], additional_data={

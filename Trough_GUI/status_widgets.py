@@ -107,3 +107,49 @@ def update_status(raw_data:dict, calibrations):
         status_msgs+=str(k)+'\n'
     Status.value = status_msgs
     pass
+
+def status_updater(trough_lock, cmdsend, datarcv, cals):
+    """This is run in a separate thread and will update the status widgets
+    every 2 seconds or when it can get access to the pipes to talk to the
+    trough.
+
+    Parameters
+    ----------
+    trough_lock: threading.lock
+        When acquired this routine will talk to the trough. Releases it for
+        other processes after every update.
+
+    cmdsend: Pipe
+        End of Pipe to send commands to the Trough.
+
+    datarcv: Pipe
+        End of Pipe to receive data from the Trough.
+
+    cals: Trough_GUI.calibrations
+        Used to convert the data to user units.
+    """
+    import time
+    datapkg = []
+    run = True
+    update = 0
+    while run:
+        min_next_time = time.time() + 2.0
+        trough_lock.acquire()
+        cmdsend.send(['Send',''])
+        waiting = True
+        while waiting:
+            if datarcv.poll():
+                datapkg =datarcv.recv()
+                update_dict = {'barr_raw':datapkg[1][-1],
+                               'barr_dev':datapkg[2][-1],
+                               'bal_raw':datapkg[3][-1],
+                               'bal_dev':datapkg[4][-1],
+                               'temp_raw':datapkg[5][-1],
+                               'temp_dev':datapkg[6][-1],
+                               'messages':datapkg[7]}
+                update_status(update_dict, cals)
+                waiting = False
+        trough_lock.release()
+        if time.time()< min_next_time:
+            time.sleep(min_next_time - time.time())
+    return

@@ -218,6 +218,13 @@ def on_change_Barr_Direction(changed):
 
 Barr_Direction = RadioButtons(options=["Open", "Close", "Move To"])
 Barr_Direction.observe(on_change_Barr_Direction, names='value')
+
+def on_Barr_Target_change(change):
+    """Updates the speed settings since open and close are different."""
+    direction = _moveto_direction()
+    on_change_Barr_Units({'new': Barr_Units.value})
+    pass
+
 Barr_Target = BoundedFloatText(value=10.0, min=0.0, max=1.0,
                                step=0.1, disabled=True)
 Barr_Speed = BoundedFloatText(description="Speed (/min)", value=5.0, min = 0.0,
@@ -230,30 +237,35 @@ def on_click_Start(change):
     skimmer_correction = float(calibrations.barriers.additional_data["skimmer correction (cm^2)"])
     moles_molec = float(get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec.value)
     if Barr_Units.value == 'cm':
-        speed = calibrations.barriers.cal_inv(Barr_Speed.value,0)[0]
+        tempspeed = float(Barr_Speed.value)
         Barr_Target_Frac = calibrations.barriers.cal_inv(Barr_Target.value, 0)[0]
     elif Barr_Units.value == 'cm^2':
         tempspeed = (Barr_Speed.value - skimmer_correction)/width
-        speed = calibrations.barriers.cal_inv(tempspeed,0)[0]
         temptarg = (Barr_Target.value - skimmer_correction)/width
         Barr_Target_Frac = calibrations.barriers.cal_inv(temptarg, 0)[0]
     elif Barr_Units.value == 'Angstrom^2/molec':
         tempspeed = (Barr_Speed.value - skimmer_correction)/width/1e16*moles_molec*6.02214076e23
-        speed = calibrations.barriers.cal_inv(tempspeed,0)[0]
         temptarg = Barr_Target.value/1e16*moles_molec*6.02214076e23
         temptarg = (temptarg - skimmer_correction)/width
         Barr_Target_Frac = calibrations.barriers.cal_inv(temptarg, 0)[0]
-    cmdsend.send(['Speed', speed])
     if Barr_Direction.value != 'Move To':
         direction = 0
         if Barr_Direction.value == 'Close':
             direction = -1
+            speed = calibrations.speed_close.cal_inv(tempspeed, 0)[0]
         elif Barr_Direction.value == 'Open':
             direction = 1
+            speed = calibrations.speed_open.cal_inv(tempspeed, 0)[0]
+        cmdsend.send(['Speed', speed])
         cmdsend.send(['Direction', direction])
         cmdsend.send(['Start', ''])
     else:
         direction = _moveto_direction()
+        if direction == -1:
+            speed = calibrations.speed_close.cal_inv(tempspeed, 0)[0]
+        else:
+            speed = calibrations.speed_open.cal_inv(tempspeed, 0)[0]
+        cmdsend.send(['Speed', speed])
         cmdsend.send(['Direction', direction])
         cmdsend.send(['MoveTo', Barr_Target_Frac])
     pass

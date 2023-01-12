@@ -447,7 +447,7 @@ class Calibrations:
                                     [-1.54, 0.2], [], [], [])
             elif name == 'speed_open':
                 calib = Calibration('speed_open', 'cm/min', 0, [0, 9.85],
-                                    [0, 0], [0, 0.0.1015], [0, 0], [], [])
+                                    [0, 0], [0, 0.1015], [0, 0], [], [])
             elif name == 'speed_close':
                 calib = Calibration('speed_close', 'cm/min', 0, [0, 6.57],
                                     [0, 0], [0, 0.1523], [0, 0], [], [])

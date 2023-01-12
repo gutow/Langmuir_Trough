@@ -236,6 +236,7 @@ def on_click_Start(change):
     width = float(calibrations.barriers.additional_data["trough width (cm)"])
     skimmer_correction = float(calibrations.barriers.additional_data["skimmer correction (cm^2)"])
     moles_molec = float(get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec.value)
+    global speed
     if Barr_Units.value == 'cm':
         tempspeed = float(Barr_Speed.value)
         Barr_Target_Frac = calibrations.barriers.cal_inv(Barr_Target.value, 0)[0]

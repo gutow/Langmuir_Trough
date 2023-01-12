@@ -14,7 +14,7 @@ def Monitor_Setup_Trough(calibrations):
     signals before using the trough.
 
     NOTE: some objects used here are global and created by importing from
-    status_widgets.py
+    status_widgets.py and command_widgets.py.
 
     Parameters
     ----------

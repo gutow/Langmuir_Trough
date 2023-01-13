@@ -1,5 +1,10 @@
+import Trough_GUI.status_widgets
 from Trough_GUI.status_widgets import *
 from Trough_GUI.command_widgets import *
+from Trough_GUI import trough_lock
+from IPython import get_ipython
+cmdsend = get_ipython().user_ns["cmdsend"]
+datarcv = get_ipython().user_ns["datarcv"]
 def Monitor_Setup_Trough(calibrations):
     """
     This produces a user interface in jupyter notebooks using ipywidgets. The
@@ -109,6 +114,73 @@ def Monitor_Setup_Trough(calibrations):
                         VBox(children=[Barr_Units, Barr_Speed]),
                                    VBox(children=[Barr_Start,Barr_Stop])])
     # Barrier Calibration
+    open_steps = [{"speed":0.1, "target":0.5, "speed_data":True, "position":False},
+                   {"speed":1.0, "target":0.10, "speed_data":True, "position":True},
+                   {"speed": 0.2, "target": 0.15, "speed_data": True, "position": False},
+                   {"speed": 0.9, "target": 0.30, "speed_data": True, "position": True},
+                   {"speed": 0.3, "target": 0.35, "speed_data": True, "position": False},
+                   {"speed": 0.8, "target": 0.50, "speed_data": True, "position": True},
+                   {"speed": 0.4, "target": 0.55, "speed_data": True, "position": False},
+                   {"speed": 0.7, "target": 0.70, "speed_data": True, "position": True},
+                   {"speed": 0.5, "target": 0.85, "speed_data": True, "position": False},
+                   {"speed": 0.6, "target": 1.0, "speed_data": True, "position": True}]
+    close_steps = [{"speed":0.1, "target":0.95, "speed_data":True, "position":False},
+                   {"speed":1.0, "target":0.80, "speed_data":True, "position":True},
+                   {"speed": 0.2, "target": 0.75, "speed_data": True, "position": False},
+                   {"speed": 0.9, "target": 0.60, "speed_data": True, "position": True},
+                   {"speed": 0.3, "target": 0.55, "speed_data": True, "position": False},
+                   {"speed": 0.8, "target": 0.40, "speed_data": True, "position": True},
+                   {"speed": 0.4, "target": 0.45, "speed_data": True, "position": False},
+                   {"speed": 0.7, "target": 0.20, "speed_data": True, "position": True},
+                   {"speed": 0.5, "target": 0.10, "speed_data": True, "position": False},
+                   {"speed": 0.6, "target": 0.0, "speed_data": True, "position": True}
+                   ]
+    calibrating_barr_direction = "close"
+    calibrating_barr_step = 0
+    def on_calib_barr(change):
+        nonlocal calibrating_barr_direction
+        nonlocal calibrating_barr_step
+        steps = None
+        if Barr_Cal_Butt.description == 'Start Calibration':
+            # begin the calibration by opening the trough
+            Barr_Cal_Butt.description = 'Moving...'
+            Barr_Cal_Butt.disabled = True
+            trough_lock.acquire()
+            cmdsend.send(['Speed', 1.0])
+            cmdsend.send(['Direction', 1.0])
+            cmdsend.send(['Start', ''])
+            trough_lock.release()
+            while Trough_GUI.status_widgets.Bar_Frac.value < 100.0:
+                # We wait
+                pass
+        if Barr_Cal_Butt.description == 'Keep':
+            # we need to keep the position data
+            pass
+        if calibrating_barr_direction == 'open':
+            steps = open_steps
+        elif calibrating_barr_direction == 'close':
+            steps = close_steps
+        # Move barriers according to step and collect some data
+
+        # Update step information
+        if calibrating_barr_step == len(steps) - 1:
+            # next time we will go the other way
+            if calibrating_barr_direction == 'open':
+                calibrating_barr_direction = 'done'
+            elif calibrating_barr_direction == 'close':
+                calibrating_barr_direction = 'open'
+            calibrating_barr_step = 0
+        else:
+            calibrating_barr_step += 1
+
+        # If we are done clean up and reset the buttons
+        if calibrating_barr_direction == 'done':
+            Barr_Cal_Butt.description = 'Start Calibration'
+            calibrating_barr_direction == 'close'
+            calibrating_barr_step = 0
+            # do the fitting and save the data
+        pass
+
     Barr_Raw = Text(description = "Barrier Raw (V)", disabled = True,
                    style=longdesc)
     Barr_Cal_Val = FloatText(description = "Measured Barrier Separation (cm)",

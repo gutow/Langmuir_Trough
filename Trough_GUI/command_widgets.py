@@ -185,8 +185,7 @@ def on_change_Barr_Units(change):
                       float(width) + \
                       float(skimmer_correction) * \
                       1e16 / moles_molec / 6.02214076e23
-                Barr_Speed.max = max
-                Barr_Speed.max = min
+                _set_min_max(Barr_Speed, min, max)
                 Barr_Speed.value = tempspeed
             elif _moveto_direction() == 1:
                 tempspeed = (calibrations.speed_open.cal_apply(speed, 0.0)[0] * width + \
@@ -236,6 +235,7 @@ def on_click_Start(change):
     width = float(calibrations.barriers.additional_data["trough width (cm)"])
     skimmer_correction = float(calibrations.barriers.additional_data["skimmer correction (cm^2)"])
     moles_molec = float(get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec.value)
+    trough_lock = get_ipython().user_ns["Trough_GUI"].trough_lock
     global speed
     if Barr_Units.value == 'cm':
         tempspeed = float(Barr_Speed.value)
@@ -257,18 +257,22 @@ def on_click_Start(change):
         elif Barr_Direction.value == 'Open':
             direction = 1
             speed = calibrations.speed_open.cal_inv(tempspeed, 0)[0]
+        trough_lock.acquire()
         cmdsend.send(['Speed', speed])
         cmdsend.send(['Direction', direction])
         cmdsend.send(['Start', ''])
+        trough_lock.release()
     else:
         direction = _moveto_direction()
         if direction == -1:
             speed = calibrations.speed_close.cal_inv(tempspeed, 0)[0]
         else:
             speed = calibrations.speed_open.cal_inv(tempspeed, 0)[0]
+        trough_lock.acquire()
         cmdsend.send(['Speed', speed])
         cmdsend.send(['Direction', direction])
         cmdsend.send(['MoveTo', Barr_Target_Frac])
+        trough_lock.release()
     pass
 
 Barr_Start = Button(description="Start")
@@ -277,8 +281,11 @@ Barr_Start.on_click(on_click_Start)
 
 def on_click_Stop(change):
     from IPython import get_ipython
+    trough_lock = get_ipython().user_ns["Trough_GUI"].trough_lock
+    trough_lock.acquire()
     cmdsend = get_ipython().user_ns["cmdsend"]
     cmdsend.send(['Stop', ''])
+    trough_lock.release()
     pass
 
 Barr_Stop = Button(description="Stop")

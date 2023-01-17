@@ -5,6 +5,13 @@ from Trough_GUI import trough_lock
 from IPython import get_ipython
 cmdsend = get_ipython().user_ns["cmdsend"]
 datarcv = get_ipython().user_ns["datarcv"]
+# Places to put calibrations data
+pos_x = [] # raw value
+pos_y = [] # actual (cm separation)
+open_speed_x = [] # setting
+open_speed_y = [] # fractional speed/min
+close_speed_x = [] # setting
+close_speed_y = [] # fractional speed/min
 def Monitor_Setup_Trough(calibrations):
     """
     This produces a user interface in jupyter notebooks using ipywidgets. The
@@ -141,6 +148,7 @@ def Monitor_Setup_Trough(calibrations):
         nonlocal calibrating_barr_direction
         nonlocal calibrating_barr_step
         steps = None
+        direction = 0
         if Barr_Cal_Butt.description == 'Start Calibration':
             # begin the calibration by opening the trough
             Barr_Cal_Butt.description = 'Moving...'
@@ -155,13 +163,95 @@ def Monitor_Setup_Trough(calibrations):
                 pass
         if Barr_Cal_Butt.description == 'Keep':
             # we need to keep the position data
+            trough_lock.acquire()
+            cmdsend.send(['Send', ''])
+            waiting = True
+            while waiting:
+                if datarcv.poll():
+                    datapkg = datarcv.recv()
+                    pos_y.append(Barr_Cal_Val.value)
+                    pos_x.append(datapkg[1][-1])
+                    waiting = False
+            trough_lock.release()
             pass
         if calibrating_barr_direction == 'open':
             steps = open_steps
+            direction = 1
         elif calibrating_barr_direction == 'close':
             steps = close_steps
+            direction = -1
         # Move barriers according to step and collect some data
+        if steps[calibrating_barr_step]['speed_data']:
+            timestamp = []
+            position = []
+            positiondev = []
+            trough_lock.acquire()
+            cmdsend.send(['Direction', direction])
+            cmdsend.send(['Speed', steps[calibrating_barr_step]['speed']])
+            cmdsend.send(['MoveTo', steps[calibrating_barr_step]['target']])
+            trough_lock.release()
+            time.sleep(1.0)
+            moving = True
+            while moving:
+                trough_lock.acquire()
+                min_next_time = time.time() + 1.0
+                cmdsend.send(['Send',''])
+                waiting = True
+                while waiting:
+                    if datarcv.poll():
+                        datapkg = datarcv.recv()
+                        timestamp.append(datapkg[0])
+                        position.append(datapkg[1])
+                        positiondev.append(datapkg[2])
+                        if abs(datapkg[1][0] - datapkg[1][-1]) < \
+                            (datapkg[2][0]**2+datapkg[2][-1]**2)**0.5:
+                            moving = False
+                            trough_lock.release()
+                        waiting = False
+                if time.time() < min_next_time:
+                    trough_lock.release()
+                    time.sleep(min_next_time - time.time())
+            tempindex_start = 0
+            tempindex_end = len(position)-1
+            n_moving_end = 0
+            n_moving_start = 0
+            while n_moving_end < 3 or n_moving_start < 3:
+                if tempindex_end < 2:
+                    raise ValueError('Attempting to measure barrier speed, but '
+                                     'it was not moving. The speed setting: ' \
+                                     +str(steps[calibrating_barr_step][
+                                              'speed']))
+                if abs(position[tempindex_end] - position[tempindex_end - 1])\
+                        < \
+                            (positiondev[tempindex_end]**2 + \
+                             positiondev[tempindex_end - 1]**2)**0.5:
+                    if n_moving_end < 3:
+                        n_moving_end += 1
+                tempindex_end -= 1
+            if abs(position[tempindex_start] - position[tempindex_end + 1]) \
+                    < \
+                    (positiondev[tempindex_start] ** 2 + \
+                     positiondev[tempindex_start - 1] ** 2) ** 0.5:
+                if n_moving_start < 3:
+                    n_moving_start += 1
+            if calibrating_barr_direction == 'open':
+                open_speed_x.append(steps[calibrating_barr_step]['speed'])
+                # speed fraction per minute
+                open_speed_y.append((position[tempindex_end] - \
+                                position[tempindex_start]) / \
+                               (timestamp[tempindex_end] - \
+                                timestamp[tempindex_start])/60)
+            if calibrating_barr_direction == 'close':
+                close_speed_x.append(steps[calibrating_barr_step]['speed'])
+                # speed fraction per minute
+                close_speed_y.append((position[tempindex_end] - \
+                                position[tempindex_start]) / \
+                               (timestamp[tempindex_end] - \
+                                timestamp[tempindex_start]) / 60)
 
+        if steps[calibrating_barr_step]["position"]:
+            Barr_Cal_Butt.description = "Keep"
+            Barr_Cal_Butt.disabled = False
         # Update step information
         if calibrating_barr_step == len(steps) - 1:
             # next time we will go the other way
@@ -172,13 +262,20 @@ def Monitor_Setup_Trough(calibrations):
             calibrating_barr_step = 0
         else:
             calibrating_barr_step += 1
-
+        # TODO: do the fitting and save the data
+        print("Direction: " + str(calibrating_barr_direction))
+        print("Step: " + str(calibrating_barr_step))
+        print("Open speed Cal data. X: " + str(open_speed_x) + "Y: "
+                                          + str(open_speed_y))
+        print("Close speed Cal data. X: " + str(close_speed_x) + "Y: "
+                                          + str(close_speed_y))
+        print("Postions Cal data. X:" + str(pos_x) + "Y: " + str(pos_y))
         # If we are done clean up and reset the buttons
         if calibrating_barr_direction == 'done':
             Barr_Cal_Butt.description = 'Start Calibration'
+            Barr_Cal_Butt.disabled = False
             calibrating_barr_direction == 'close'
             calibrating_barr_step = 0
-            # do the fitting and save the data
         pass
 
     Barr_Raw = Text(description = "Barrier Raw (V)", disabled = True,

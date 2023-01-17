@@ -33,7 +33,8 @@ zero_press.on_click(set_zero_pressure)
 degC = Text(description="$^o C$",
             disabled=True,
             style=longdesc)
-
+Barr_Raw = Text(description="Barrier Raw", disabled=True,
+                style=longdesc)
 Bar_Frac = Text(description="% open", disabled=True, style=longdesc)
 Bar_Sep = Text(description="Separation (cm)", disabled=True,
                style=longdesc)
@@ -80,6 +81,8 @@ def update_status(raw_data:dict, calibrations):
                          'Instead got ' + calibrations.temperature.units + '.')
     degC.value = str(calibrations.temperature.cal_apply(raw_data['temp_raw'],
                                                       raw_data['temp_dev'])[0])
+    Barr_Raw.value = rndwitherr(raw_data['barr_raw'], raw_data['barr_dev'],
+                                     lowmag=-4, highmag=4)[0]
     Bar_Frac.value = rndwitherr(raw_data['barr_raw']*100,
                                             raw_data['barr_dev']*100,
                                      lowmag=-4, highmag=4)[0]

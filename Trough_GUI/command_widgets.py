@@ -235,7 +235,7 @@ def on_click_Start(change):
     width = float(calibrations.barriers.additional_data["trough width (cm)"])
     skimmer_correction = float(calibrations.barriers.additional_data["skimmer correction (cm^2)"])
     moles_molec = float(get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec.value)
-    trough_lock = get_ipython().user_ns["Trough_GUI"].trough_lock
+    trough_lock = get_ipython().user_ns["trough_lock"]
     global speed
     if Barr_Units.value == 'cm':
         tempspeed = float(Barr_Speed.value)
@@ -281,7 +281,7 @@ Barr_Start.on_click(on_click_Start)
 
 def on_click_Stop(change):
     from IPython import get_ipython
-    trough_lock = get_ipython().user_ns["Trough_GUI"].trough_lock
+    trough_lock = get_ipython().user_ns["trough_lock"]
     trough_lock.acquire()
     cmdsend = get_ipython().user_ns["cmdsend"]
     cmdsend.send(['Stop', ''])

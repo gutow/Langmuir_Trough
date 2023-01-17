@@ -1,10 +1,10 @@
 import Trough_GUI.status_widgets
 from Trough_GUI.status_widgets import *
 from Trough_GUI.command_widgets import *
-from Trough_GUI import trough_lock
 from IPython import get_ipython
 cmdsend = get_ipython().user_ns["cmdsend"]
 datarcv = get_ipython().user_ns["datarcv"]
+trough_lock = get_ipython().user_ns["trough_lock"]
 # Places to put calibrations data
 pos_x = [] # raw value
 pos_y = [] # actual (cm separation)
@@ -145,6 +145,7 @@ def Monitor_Setup_Trough(calibrations):
     calibrating_barr_direction = "close"
     calibrating_barr_step = 0
     def on_calib_barr(change):
+        import time
         nonlocal calibrating_barr_direction
         nonlocal calibrating_barr_step
         steps = None
@@ -158,7 +159,7 @@ def Monitor_Setup_Trough(calibrations):
             cmdsend.send(['Direction', 1.0])
             cmdsend.send(['Start', ''])
             trough_lock.release()
-            while Trough_GUI.status_widgets.Bar_Frac.value < 100.0:
+            while float(Trough_GUI.status_widgets.Bar_Frac.value) < 100.0:
                 # We wait
                 pass
         if Barr_Cal_Butt.description == 'Keep':
@@ -206,10 +207,9 @@ def Monitor_Setup_Trough(calibrations):
                         if abs(datapkg[1][0] - datapkg[1][-1]) < \
                             (datapkg[2][0]**2+datapkg[2][-1]**2)**0.5:
                             moving = False
-                            trough_lock.release()
                         waiting = False
+                trough_lock.release()
                 if time.time() < min_next_time:
-                    trough_lock.release()
                     time.sleep(min_next_time - time.time())
             tempindex_start = 0
             tempindex_end = len(position)-1
@@ -274,12 +274,10 @@ def Monitor_Setup_Trough(calibrations):
         if calibrating_barr_direction == 'done':
             Barr_Cal_Butt.description = 'Start Calibration'
             Barr_Cal_Butt.disabled = False
-            calibrating_barr_direction == 'close'
+            calibrating_barr_direction = 'close'
             calibrating_barr_step = 0
         pass
 
-    Barr_Raw = Text(description = "Barrier Raw (V)", disabled = True,
-                   style=longdesc)
     Barr_Cal_Val = FloatText(description = "Measured Barrier Separation (cm)",
                             disabled = False, style = longdesc)
     Trough_Width = FloatText(description="Trough width (cm)",
@@ -291,6 +289,7 @@ def Monitor_Setup_Trough(calibrations):
                                 additional_data['skimmer correction (cm^2)'],
                                 disabled=False, style=longdesc)
     Barr_Cal_Butt = Button(description = "Start Calibration")
+    Barr_Cal_Butt.on_click(on_calib_barr)
     Barr_Cal_Instr = richLabel(value = '<span style="color:red;">Do Not '
                                        'adjust the trough width or skimmer '
                                        'corrections without accounting for '

@@ -264,6 +264,101 @@ def troughctl(CTLPipe,DATAPipe):
         DAQC2.setDOUTbit(0, 0)
         pass
 
+    def write_motorcal(maxclose, minclose, startclose, maxopen, minopen, startopen):
+        """Write the motorcal to a file in ~/.Trough/calibrations."""
+        from AdvancedHTMLParser import AdvancedTag as Domel
+        from datetime import datetime
+        from time import time
+        from pathlib import Path
+        calib_div = Domel('div')
+        calib_title = Domel('h3')
+        calib_title.setAttribute('id','title')
+        calib_title.appendInnerHTML('Calibration of Motor')
+        calib_div.appendChild(calib_title)
+
+        time_table = Domel('table')
+        time_table.setAttribute('class','time_table')
+        time_table.setAttribute('id', 'time_table')
+        time_table.setAttribute('border', '1')
+        tr = Domel('tr')
+        tr.appendInnerHTML('<th>ISO time</th><th>Timestamp</th>')
+        time_table.append(tr)
+        tr = Domel('tr')
+        timestamp = time()
+        isotime = (datetime.fromtimestamp(timestamp)).isoformat()
+        tr.appendInnerHTML('<td>' + str(isotime) + '</td>'
+                           '<td id="timestamp">' + str(timestamp) + '</td>')
+        time_table.append(tr)
+        calib_div.append(time_table)
+
+        calib_info = Domel('table')
+        calib_info.setAttribute('class', 'calib_info')
+        calib_info.setAttribute('id', 'calib_info')
+        calib_info.setAttribute('border', '1')
+        tr = Domel('tr')
+        tr.appendInnerHTML('<th>Calibration of</th><th>Max Value</th>'
+                           '<th>Min Value</th><th>Start Value</th>')
+        calib_info.appendChild(tr)
+        tr = Domel('tr')
+        tr.appendInnerHTML('<th id = "name"> Opening </th>'
+                           '<td id = "maxopen">' + str(maxopen) + '</td>'
+                           '<td id = "minopen">' + str(minopen) + '</td>'
+                           '<td id = "startopen">' + str(startopen) + '</td>')
+        calib_info.appendChild(tr)
+        tr = Domel('tr')
+        tr.appendInnerHTML('<th id = "name"> Closing </th>'
+                           '<td id = "maxclose">' + str(maxclose) + '</td>'
+                           '<td id = "minclose">' + str(minclose) + '</td>'
+                           '<td id = "startclose">' + str(startclose) + '</td>')
+        calib_info.appendChild(tr)
+        calib_div.appendChild(calib_info)
+
+
+        fileext = '.trh.cal.html'
+        filename = 'motorcal'+fileext
+        dirpath = Path('~/.Trough/calibrations').expanduser()
+        fullpath = Path(dirpath, filename)
+        svhtml = '<!DOCTYPE html><html><body>' + calib_div.asHTML() + \
+                 '</body></html>'
+        f = open(fullpath, 'w')
+        f.write(svhtml)
+        f.close()
+        pass
+
+    def read_motorcal():
+        """Reads the motor calibration file in ~/.Trough/calibrations
+        if it exists and returns the calibration parameters."""
+        from AdvancedHTMLParser import AdvancedHTMLParser as Parser
+        from pathlib import Path
+        from os.path import exists
+
+        maxopen = 0
+        minopen = 0
+        startopen = 0
+        maxclose = 0
+        minclose = 0
+        startclose = 0
+        timestamp = 0
+
+        filepath = Path('~/.Trough/calibrations/motorcal.trh.cal.html').expanduser()
+        html = ""
+        if exists(filepath):
+            f = open(filepath, 'r')
+            html = f.read()
+            f.close()
+            document = Parser()
+            document.parseStr(html)
+            if document.getElementById('title').text.strip() != 'Calibration of Motor':
+                return maxclose, minclose, startclose, maxopen, minopen, startopen, timestamp
+            maxclose = float(document.getElementById('maxclose').text)
+            minclose = float(document.getElementById('minclose').text)
+            startclose = float(document.getElementById('startclose').text)
+            maxopen = float(document.getElementById('maxopen').text)
+            minopen = float(document.getElementById('minopen').text)
+            startopen = float(document.getElementById('startopen').text)
+            timestamp = float(document.getElementById('timestamp').text)
+        return maxclose, minclose, startclose, maxopen, minopen, startopen, timestamp
+
     def motorcal(barriermin, barriermax):
         '''
         :param float barriermin: minimum voltage for barrier (do not open more).
@@ -430,6 +525,8 @@ def troughctl(CTLPipe,DATAPipe):
                 DAQC2.clrDOUTbit(0, 0)
                 startopen = startopen - 0.05  # To provide a margin.
 
+        write_motorcal(maxclose, minclose, startclose, maxopen, minopen, startopen)
+
         # Return control to previous trough controller
         return_barrier_monitoring_to_prev_process(ctlpid)
 
@@ -495,10 +592,13 @@ def troughctl(CTLPipe,DATAPipe):
         return_barrier_monitoring_to_prev_process(ctlpid)
         run = False
         exit()
-    messages.append("Starting Motor Calibration. Please wait...")
+    messages.append("Checking Motor Calibration. Please wait...")
     DATAPipe.send(bundle_to_send(que_lst))
     messages.clear()
-    maxcloseV, mincloseV, startcloseV, maxopenV, minopenV, startopenV = motorcal(openlimit, closelimit)
+    maxcloseV, mincloseV, startcloseV, maxopenV, minopenV, startopenV, lasttime = read_motorcal()
+    # check that the calibration is 12 hours or less old
+    if lasttime < time.time() - 43200:
+        maxcloseV, mincloseV, startcloseV, maxopenV, minopenV, startopenV = motorcal(openlimit, closelimit)
     messages.append("Trough ready")
     DATAPipe.send(bundle_to_send(que_lst))
     messages.clear()

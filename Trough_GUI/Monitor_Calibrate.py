@@ -138,7 +138,7 @@ def Monitor_Setup_Trough(calibrations):
                    {"speed": 0.9, "target": 0.60, "speed_data": True, "position": True},
                    {"speed": 0.3, "target": 0.55, "speed_data": True, "position": False},
                    {"speed": 0.8, "target": 0.40, "speed_data": True, "position": True},
-                   {"speed": 0.4, "target": 0.45, "speed_data": True, "position": False},
+                   {"speed": 0.4, "target": 0.35, "speed_data": True, "position": False},
                    {"speed": 0.7, "target": 0.20, "speed_data": True, "position": True},
                    {"speed": 0.5, "target": 0.10, "speed_data": True, "position": False},
                    {"speed": 0.6, "target": 0.0, "speed_data": True, "position": True}
@@ -269,41 +269,43 @@ def Monitor_Setup_Trough(calibrations):
             _get_position()
             calibrating_barr_step += 1
         # Move barriers according to step and collect some data
-        print('Starting step: '+str(calibrating_barr_step) + " of " + str(calibrating_barr_direction))
+        if calibrating_barr_step < len(steps):
 
-        if steps[calibrating_barr_step]["position"] and steps[calibrating_barr_step]["speed"]:
-            Barr_Cal_Butt.description = "Moving..."
-            Barr_Cal_Butt.disabled = True
-            _speed_only(steps[calibrating_barr_step]["speed"],
-                        steps[calibrating_barr_step]["target"], steps)
-            Barr_Cal_Butt.description = "Keep"
-            Barr_Cal_Butt.disabled = False
-            return
-        elif steps[calibrating_barr_step]["position"]:
-            # position only
-            Barr_Cal_Butt.description = "Moving..."
-            Barr_Cal_Butt.disabled = True
-            trough_lock.acquire()
-            cmdsend.send(['Speed', steps[calibrating_barr_step]["speed"]])
-            cmdsend.send(['MoveTo', steps[calibrating_barr_step]["target"]])
-            trough_lock.release()
-            while abs(float(Barr_Raw.value) - steps[calibrating_barr_step]["target"]) < 0.01:
-                # We wait
-                pass
-            Barr_Cal_Butt.description = 'Keep'
-            Barr_Cal_Butt.disabled = False
-            return
-        elif steps[calibrating_barr_step]["speed"]:
-            # speed only
-            Barr_Cal_Butt.description = "Moving..."
-            Barr_Cal_Butt.disabled = True
-            _speed_only(steps[calibrating_barr_step]["speed"],
-                        steps[calibrating_barr_step]["target"], steps)
-            calibrating_barr_step += 1
-            on_calib_barr({"clicked":True})
+            print('Starting step: '+str(calibrating_barr_step) + " of " + str(calibrating_barr_direction))
+
+            if steps[calibrating_barr_step]["position"] and steps[calibrating_barr_step]["speed"]:
+                Barr_Cal_Butt.description = "Moving..."
+                Barr_Cal_Butt.disabled = True
+                _speed_only(steps[calibrating_barr_step]["speed"],
+                            steps[calibrating_barr_step]["target"], steps)
+                Barr_Cal_Butt.description = "Keep"
+                Barr_Cal_Butt.disabled = False
+                return
+            elif steps[calibrating_barr_step]["position"]:
+                # position only
+                Barr_Cal_Butt.description = "Moving..."
+                Barr_Cal_Butt.disabled = True
+                trough_lock.acquire()
+                cmdsend.send(['Speed', steps[calibrating_barr_step]["speed"]])
+                cmdsend.send(['MoveTo', steps[calibrating_barr_step]["target"]])
+                trough_lock.release()
+                while abs(float(Barr_Raw.value) - steps[calibrating_barr_step]["target"]) < 0.01:
+                    # We wait
+                    pass
+                Barr_Cal_Butt.description = 'Keep'
+                Barr_Cal_Butt.disabled = False
+                return
+            elif steps[calibrating_barr_step]["speed"]:
+                # speed only
+                Barr_Cal_Butt.description = "Moving..."
+                Barr_Cal_Butt.disabled = True
+                _speed_only(steps[calibrating_barr_step]["speed"],
+                            steps[calibrating_barr_step]["target"], steps)
+                calibrating_barr_step += 1
+                on_calib_barr({"clicked":True})
 
     # Update step information
-        if calibrating_barr_step >= len(steps):
+        if calibrating_barr_step > len(steps)-1:
             # next time we will go the other way
             if calibrating_barr_direction == 'open':
                 calibrating_barr_direction = 'done'
@@ -383,7 +385,7 @@ def Monitor_Setup_Trough(calibrations):
     Barrier_Accord = Accordion(children=[Move_Barrier,Barr_Cal_Box,Motor_Cal_Butt])
     Barrier_Accord.set_title(0, "Manual Barrier Control")
     Barrier_Accord.set_title(1, "Calibrate Barriers")
-    Barrier_Accord.set_title(2, "Motor Calibration")
+    Barrier_Accord.set_title(2, "Motor Calibration (automatic after 12 hrs)")
     Barrier_Accord.selected_index = None
 
     # Monitor, Control and Calibrate widget

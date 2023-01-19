@@ -66,48 +66,50 @@ def update_status(raw_data:dict, calibrations):
         will return the balance reading in the calibration units (`.balance.units`).
     """
     from round_using_error import rndwitherr
-    if calibrations.balance.units != 'mg':
-        raise ValueError('Expect balance to be calibrated in mg. Instead got '
-                         + calibrations.balance.units + '.')
-    mgrams, mgrams_err = calibrations.balance.cal_apply(raw_data['bal_raw'],
-                                                  raw_data['bal_dev'])
-    mg.value = rndwitherr(mgrams,mgrams_err, lowmag=-4, highmag=4)[0]
-    surf_press_err = mgrams_err*9.80665/plate_circumference.value
-    surf_press.value = rndwitherr((tare_pi-mgrams)*\
-                           9.80665/plate_circumference.value,
-                           surf_press_err, lowmag=-4, highmag=4)[0]
-    if calibrations.temperature.units != 'C':
-        raise ValueError('Expected temperature to be calibrated in C. '
-                         'Instead got ' + calibrations.temperature.units + '.')
-    degC.value = str(calibrations.temperature.cal_apply(raw_data['temp_raw'],
-                                                      raw_data['temp_dev'])[0])
-    Barr_Raw.value = rndwitherr(raw_data['barr_raw'], raw_data['barr_dev'],
-                                     lowmag=-4, highmag=4)[0]
-    Bar_Frac.value = rndwitherr(raw_data['barr_raw']*100,
-                                            raw_data['barr_dev']*100,
-                                     lowmag=-4, highmag=4)[0]
-    if calibrations.barriers.units != 'cm':
-        raise ValueError('Expected barrier separation to be calibrated in cm. '
-                         'Instead got ' + calibrations.barriers.units + '.')
-    sep_cm = calibrations.barriers.cal_apply(raw_data['barr_raw'],
-                                             raw_data['barr_dev'])[0]
-    area_cm_sq_error = raw_data['barr_dev']*calibrations.barriers.\
-                         additional_data["trough width (cm)"]
-    area_cm_sq = sep_cm*calibrations.barriers.\
-                         additional_data["trough width (cm)"] - \
-                         calibrations.barriers.\
-                         additional_data["skimmer correction (cm^2)"]
-    area_per_molec_ang_sq_error = area_cm_sq_error*1e16/moles_molec.value/6.02214076e23
-    area_per_molec_ang_sq = area_cm_sq*1e16/moles_molec.value/6.02214076e23
-    Bar_Sep.value = str(sep_cm)
-    Bar_Area.value = rndwitherr(area_cm_sq,area_cm_sq_error, lowmag=-4,
-                                     highmag=4)[0]
-    Bar_Area_per_Molec.value = rndwitherr(area_per_molec_ang_sq,
-                                               area_per_molec_ang_sq_error,
-                                               lowmag=-4, highmag=4)[0]
-    status_msgs = ' '
+    if "barr_raw" in raw_data.keys():
+        # Only update if there is data
+        if calibrations.balance.units != 'mg':
+            raise ValueError('Expect balance to be calibrated in mg. Instead got '
+                             + calibrations.balance.units + '.')
+        mgrams, mgrams_err = calibrations.balance.cal_apply(raw_data['bal_raw'],
+                                                      raw_data['bal_dev'])
+        mg.value = rndwitherr(mgrams,mgrams_err, lowmag=-4, highmag=4)[0]
+        surf_press_err = mgrams_err*9.80665/plate_circumference.value
+        surf_press.value = rndwitherr((tare_pi-mgrams)*\
+                               9.80665/plate_circumference.value,
+                               surf_press_err, lowmag=-4, highmag=4)[0]
+        if calibrations.temperature.units != 'C':
+            raise ValueError('Expected temperature to be calibrated in C. '
+                             'Instead got ' + calibrations.temperature.units + '.')
+        degC.value = str(calibrations.temperature.cal_apply(raw_data['temp_raw'],
+                                                          raw_data['temp_dev'])[0])
+        Barr_Raw.value = rndwitherr(raw_data['barr_raw'], raw_data['barr_dev'],
+                                         lowmag=-4, highmag=4)[0]
+        Bar_Frac.value = rndwitherr(raw_data['barr_raw']*100,
+                                                raw_data['barr_dev']*100,
+                                         lowmag=-4, highmag=4)[0]
+        if calibrations.barriers.units != 'cm':
+            raise ValueError('Expected barrier separation to be calibrated in cm. '
+                             'Instead got ' + calibrations.barriers.units + '.')
+        sep_cm = calibrations.barriers.cal_apply(raw_data['barr_raw'],
+                                                 raw_data['barr_dev'])[0]
+        area_cm_sq_error = raw_data['barr_dev']*calibrations.barriers.\
+                             additional_data["trough width (cm)"]
+        area_cm_sq = sep_cm*calibrations.barriers.\
+                             additional_data["trough width (cm)"] - \
+                             calibrations.barriers.\
+                             additional_data["skimmer correction (cm^2)"]
+        area_per_molec_ang_sq_error = area_cm_sq_error*1e16/moles_molec.value/6.02214076e23
+        area_per_molec_ang_sq = area_cm_sq*1e16/moles_molec.value/6.02214076e23
+        Bar_Sep.value = str(sep_cm)
+        Bar_Area.value = rndwitherr(area_cm_sq,area_cm_sq_error, lowmag=-4,
+                                         highmag=4)[0]
+        Bar_Area_per_Molec.value = rndwitherr(area_per_molec_ang_sq,
+                                                   area_per_molec_ang_sq_error,
+                                                   lowmag=-4, highmag=4)[0]
+    status_msgs = Status.value
     for k in raw_data['messages']:
-        status_msgs+=str(k)+'\n'
+        status_msgs+='<p>' + str(k) + '</p>'
     Status.value = status_msgs
     pass
 
@@ -143,13 +145,17 @@ def status_updater(trough_lock, cmdsend, datarcv, cals):
         while waiting:
             if datarcv.poll():
                 datapkg =datarcv.recv()
-                update_dict = {'barr_raw':datapkg[1][-1],
-                               'barr_dev':datapkg[2][-1],
-                               'bal_raw':datapkg[3][-1],
-                               'bal_dev':datapkg[4][-1],
-                               'temp_raw':datapkg[5][-1],
-                               'temp_dev':datapkg[6][-1],
-                               'messages':datapkg[7]}
+                if len(datapkg[1]) >= 1:
+                    update_dict = {'barr_raw':datapkg[1][-1],
+                                   'barr_dev':datapkg[2][-1],
+                                   'bal_raw':datapkg[3][-1],
+                                   'bal_dev':datapkg[4][-1],
+                                   'temp_raw':datapkg[5][-1],
+                                   'temp_dev':datapkg[6][-1],
+                                   'messages':datapkg[7]}
+                else:
+                    # No updated data, so just pass messages
+                    update_dict = {'messages':datapkg[7]}
                 update_status(update_dict, cals)
                 waiting = False
         trough_lock.release()

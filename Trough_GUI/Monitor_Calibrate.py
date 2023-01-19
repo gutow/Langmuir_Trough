@@ -188,8 +188,8 @@ def Monitor_Setup_Trough(calibrations):
         n_moving_end = 0
         n_moving_start = 0
         while n_moving_end < 3 or n_moving_start < 3:
-            print('tempindex_start: ' + str(tempindex_start) + " tempindex_end: " + str(tempindex_end))
-            print(position[-10:], positiondev[-10:])
+            # print('tempindex_start: ' + str(tempindex_start) + " tempindex_end: " + str(tempindex_end))
+            # print(position[-10:], positiondev[-10:])
             if tempindex_end < 2:
                 raise ValueError('Attempting to measure barrier speed, but '
                                  'it was not moving. The speed setting: ' \
@@ -303,7 +303,7 @@ def Monitor_Setup_Trough(calibrations):
             on_calib_barr({"clicked":True})
 
     # Update step information
-        if calibrating_barr_step >= len(steps) - 1:
+        if calibrating_barr_step >= len(steps):
             # next time we will go the other way
             if calibrating_barr_direction == 'open':
                 calibrating_barr_direction = 'done'
@@ -364,9 +364,26 @@ def Monitor_Setup_Trough(calibrations):
                                     HBox(children = [ Barr_Adjust_Rarely,
                                                       Barr_Adjust_Box,
                                                       Barr_Cal_Butt])])
-    Barrier_Accord = Accordion(children=[Move_Barrier,Barr_Cal_Box])
+
+    def on_click_motor_cal(change):
+        from time import sleep
+        Motor_Cal_Butt.description = "Calibrating..."
+        Motor_Cal_Butt.disabled = True
+        trough_lock.acquire()
+        cmdsend.send(["MotorCal",""])
+        trough_lock.release()
+        while "Trough ready" not in Status.value:
+            sleep(5) # we wait
+        Motor_Cal_Butt.description = "Start Motor Calibration"
+        Motor_Cal_Butt.disabled = False
+        return
+
+    Motor_Cal_Butt = Button(description = "Start Motor Calibration")
+    Motor_Cal_Butt.on_click(on_click_motor_cal)
+    Barrier_Accord = Accordion(children=[Move_Barrier,Barr_Cal_Box,Motor_Cal_Butt])
     Barrier_Accord.set_title(0, "Manual Barrier Control")
     Barrier_Accord.set_title(1, "Calibrate Barriers")
+    Barrier_Accord.set_title(2, "Motor Calibration")
     Barrier_Accord.selected_index = None
 
     # Monitor, Control and Calibrate widget

@@ -438,10 +438,13 @@ class Calibrations:
                 calib = Calibration('balance', 'mg', 0, [-1.875,
                                    12.5], [0, 0], [0.15, 0.08],[0, 0],[], [])
             elif name == 'barriers':
-                calib = Calibration('barriers', 'cm', 0, [2.45, 9.85], [0, 0],
-                        [-0.2487, 0.1015], [0, 0], [], [], additional_data={
+                calib = Calibration('barriers', 'cm', 0, [2.81, 8.2, 9, -12, 4],
+                        [0.03, 0.5, 2, 4, 2],
+                        [-0.41, 0.18, -0.017, 0.0012, -3e-5],
+                        [0.05, 0.04, 0.008, 0.0007, 2e-5], [], [], additional_data={
                         "trough width (cm)":9.525,
                         "skimmer correction (cm^2)":-0.5})
+# 𝑓𝑖𝑡=(−0.41±0.05)+(0.18±0.04)𝑥+(−0.017±0.008)𝑥2+(0.0012±0.0007)𝑥3+((−3±2)×10−5)𝑥4
             elif name == 'temperature':
                 calib = Calibration('temperature', 'C', 0, [7.7, 5], [0, 0],
                                     [-1.54, 0.2], [], [], [])

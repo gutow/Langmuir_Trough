@@ -169,17 +169,18 @@ def Monitor_Setup_Trough(calibrations):
                     timestamp += datapkg[0]
                     position += datapkg[1]
                     positiondev += datapkg[2]
-                    status_dict = {'barr_raw': datapkg[1][-1],
-                                   'barr_dev': datapkg[2][-1],
-                                   'bal_raw': datapkg[3][-1],
-                                   'bal_dev': datapkg[4][-1],
-                                   'temp_raw': datapkg[5][-1],
-                                   'temp_dev': datapkg[6][-1],
-                                   'messages': datapkg[7]}
-                    Trough_GUI.status_widgets.update_status(status_dict, calibrations)
-                    if abs(target - position[-1]) < 0.01:
-                        moving = False
-                    waiting = False
+                    if len(datapkg[0]) >= 1:
+                        status_dict = {'barr_raw': datapkg[1][-1],
+                                       'barr_dev': datapkg[2][-1],
+                                       'bal_raw': datapkg[3][-1],
+                                       'bal_dev': datapkg[4][-1],
+                                       'temp_raw': datapkg[5][-1],
+                                       'temp_dev': datapkg[6][-1],
+                                       'messages': datapkg[7]}
+                        Trough_GUI.status_widgets.update_status(status_dict, calibrations)
+                        if abs(target - position[-1]) < 0.01:
+                            moving = False
+                        waiting = False
             if time.time() < min_next_time:
                 time.sleep(min_next_time - time.time())
         trough_lock.release()
@@ -271,7 +272,7 @@ def Monitor_Setup_Trough(calibrations):
         # Move barriers according to step and collect some data
         if calibrating_barr_step < len(steps):
 
-            print('Starting step: '+str(calibrating_barr_step) + " of " + str(calibrating_barr_direction))
+            # print('Starting step: '+str(calibrating_barr_step) + " of " + str(calibrating_barr_direction))
 
             if steps[calibrating_barr_step]["position"] and steps[calibrating_barr_step]["speed"]:
                 Barr_Cal_Butt.description = "Moving..."
@@ -311,17 +312,16 @@ def Monitor_Setup_Trough(calibrations):
                 calibrating_barr_direction = 'done'
             elif calibrating_barr_direction == 'close':
                 calibrating_barr_direction = 'open'
-            calibrating_barr_step = 0
+                calibrating_barr_step = 0
+                on_calib_barr({"clicked":True})
         # TODO: do the fitting and save the data
         # print("Direction: " + str(calibrating_barr_direction))
         # print("Step: " + str(calibrating_barr_step))
         # If we are done  calculate calibrations, clean up and reset the buttons
         if calibrating_barr_direction == 'done':
-            print("Open speed Cal data. X: " + str(open_speed_x) + "Y: "
-                  + str(open_speed_y))
-            print("Close speed Cal data. X: " + str(close_speed_x) + "Y: "
-                  + str(close_speed_y))
-            print("Postions Cal data. X:" + str(pos_x) + "Y: " + str(pos_y))
+            # print("Open speed Cal data. X: " + str(open_speed_x) + "Y: "+ str(open_speed_y))
+            # print("Close speed Cal data. X: " + str(close_speed_x) + "Y: " + str(close_speed_y))
+            # print("Postions Cal data. X:" + str(pos_x) + "Y: " + str(pos_y))
             Barr_Cal_Butt.description = 'Start Calibration'
             Barr_Cal_Butt.disabled = False
             calibrating_barr_direction = 'close'

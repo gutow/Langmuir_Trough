@@ -575,7 +575,7 @@ def troughctl(CTLPipe,DATAPipe):
     timedelta = 0.500  # seconds
     openmin = 0.02 # minimum voltage allowed when opening.
     openlimit = openmin
-    closemax = 7.47 # maximum voltage allowed when closing.
+    closemax = 7.40 # maximum voltage allowed when closing.
     closelimit = closemax
     # Check that power supply is on. If not we cannot do anything.
     PS_minus, PS_plus = get_power_supply_volts()

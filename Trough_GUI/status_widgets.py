@@ -89,7 +89,10 @@ def update_status(raw_data:dict, calibrations):
         Bar_Frac.value = rndwitherr(raw_data['barr_raw']*100,
                                                 raw_data['barr_dev']*100,
                                          lowmag=-4, highmag=4)[0]
-        if calibrations.barriers.units != 'cm':
+        if calibrations.barriers_open.units != 'cm':
+            raise ValueError('Expected barrier separation to be calibrated in cm. '
+                             'Instead got ' + calibrations.barriers.units + '.')
+        if calibrations.barriers_close.units != 'cm':
             raise ValueError('Expected barrier separation to be calibrated in cm. '
                              'Instead got ' + calibrations.barriers.units + '.')
         if lastdirection < 0:

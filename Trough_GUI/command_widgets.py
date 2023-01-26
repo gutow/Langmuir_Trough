@@ -16,8 +16,8 @@ def _moveto_direction():
     calibrations = get_ipython().user_ns["Trough_GUI"].calibrations
     current_position = float(get_ipython().user_ns["Trough_GUI"].status_widgets.Bar_Sep.value)
     desired_position = float(Barr_Target.value)
-    width = float(calibrations.barriers.additional_data["trough width (cm)"])
-    skimmer_correction = float(calibrations.barriers.additional_data["skimmer correction (cm^2)"])
+    width = float(calibrations.barriers_open.additional_data["trough width (cm)"])
+    skimmer_correction = float(calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
     moles_molec = float(get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec.value)
     if Barr_Units.value == 'cm':
         return np.sign(desired_position - current_position)
@@ -41,13 +41,13 @@ def _set_min_max(obj, min, max):
 def on_change_Barr_Units(change):
     from IPython import get_ipython
     calibrations = get_ipython().user_ns["Trough_GUI"].calibrations
-    width = float(calibrations.barriers.additional_data["trough width (cm)"])
-    skimmer_correction = float(calibrations.barriers.additional_data["skimmer correction (cm^2)"])
+    width = float(calibrations.barriers_open.additional_data["trough width (cm)"])
+    skimmer_correction = float(calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
     moles_molec = float(get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec.value)
     if change['new'] == 'cm':
-        _set_min_max(Barr_Target, calibrations.barriers.cal_apply(0.0,0.0)[0],
-                     calibrations.barriers.cal_apply(1.0, 0.0)[0])
-        Barr_Target.value = calibrations.barriers.cal_apply(Barr_Target_Frac,
+        _set_min_max(Barr_Target, calibrations.barriers_open.cal_apply(0.0,0.0)[0],
+                     calibrations.barriers_open.cal_apply(1.0, 0.0)[0])
+        Barr_Target.value = calibrations.barriers_open.cal_apply(Barr_Target_Frac,
                                                             0.0)[0]
         if Barr_Direction.value == "Open":
             tempspeed = calibrations.speed_open.cal_apply(speed,0.0)[0]
@@ -76,11 +76,11 @@ def on_change_Barr_Units(change):
                 Barr_Speed.value = tempspeed
             pass
     if change['new'] == 'cm^2':
-        temptarg = calibrations.barriers.cal_apply(Barr_Target_Frac,0.0)[0]*\
+        temptarg = calibrations.barriers_open.cal_apply(Barr_Target_Frac,0.0)[0]*\
                             float(width) + float(skimmer_correction)
-        max = calibrations.barriers.cal_apply(1.0, 0.0)[0]*float(width) +\
+        max = calibrations.barriers_open.cal_apply(1.0, 0.0)[0]*float(width) +\
                           float(skimmer_correction)
-        min = calibrations.barriers.cal_apply(0.0,0.0)[0]*float(width) +\
+        min = calibrations.barriers_open.cal_apply(0.0,0.0)[0]*float(width) +\
                           float(skimmer_correction)
         _set_min_max(Barr_Target, min, max)
         Barr_Target.value = temptarg
@@ -131,13 +131,13 @@ def on_change_Barr_Units(change):
                 Barr_Speed.value = tempspeed
             pass
     if change['new'] == 'Angstrom^2/molec':
-        temptarg = (calibrations.barriers.cal_apply(Barr_Target_Frac,0.0)[0]*\
+        temptarg = (calibrations.barriers_open.cal_apply(Barr_Target_Frac,0.0)[0]*\
                             width + skimmer_correction)*\
                             1e16/moles_molec/6.02214076e23
-        max = (calibrations.barriers.cal_apply(1.0,0.0)[0]*\
+        max = (calibrations.barriers_open.cal_apply(1.0,0.0)[0]*\
                             width + skimmer_correction)*\
                             1e16/moles_molec/6.02214076e23
-        min = (calibrations.barriers.cal_apply(0.0,0.0)[0]*\
+        min = (calibrations.barriers_open.cal_apply(0.0,0.0)[0]*\
                             width +skimmer_correction)*\
                             1e16/moles_molec/6.02214076e23
         _set_min_max(Barr_Target, min, max)
@@ -224,25 +224,25 @@ Barr_Speed = BoundedFloatText(description="Speed (/min)", value=5.0, min = 0.0,
                        max = 10.0, disabled=False)
 def on_click_Start(change):
     from IPython import get_ipython
-    cmdsend = get_ipython().user_ns["cmdsend"]
+    cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
     calibrations = get_ipython().user_ns["Trough_GUI"].calibrations
-    width = float(calibrations.barriers.additional_data["trough width (cm)"])
-    skimmer_correction = float(calibrations.barriers.additional_data["skimmer correction (cm^2)"])
+    width = float(calibrations.barriers_open.additional_data["trough width (cm)"])
+    skimmer_correction = float(calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
     moles_molec = float(get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec.value)
-    trough_lock = get_ipython().user_ns["trough_lock"]
+    trough_lock = get_ipython().user_ns["Trough_Control"].trough_lock
     global speed
     if Barr_Units.value == 'cm':
         tempspeed = float(Barr_Speed.value)
-        Barr_Target_Frac = calibrations.barriers.cal_inv(Barr_Target.value, 0)[0]
+        Barr_Target_Frac = calibrations.barriers_open.cal_inv(Barr_Target.value, 0)[0]
     elif Barr_Units.value == 'cm^2':
         tempspeed = (Barr_Speed.value - skimmer_correction)/width
         temptarg = (Barr_Target.value - skimmer_correction)/width
-        Barr_Target_Frac = calibrations.barriers.cal_inv(temptarg, 0)[0]
+        Barr_Target_Frac = calibrations.barriers_open.cal_inv(temptarg, 0)[0]
     elif Barr_Units.value == 'Angstrom^2/molec':
         tempspeed = (Barr_Speed.value - skimmer_correction)/width/1e16*moles_molec*6.02214076e23
         temptarg = Barr_Target.value/1e16*moles_molec*6.02214076e23
         temptarg = (temptarg - skimmer_correction)/width
-        Barr_Target_Frac = calibrations.barriers.cal_inv(temptarg, 0)[0]
+        Barr_Target_Frac = calibrations.barriers_open.cal_inv(temptarg, 0)[0]
     if Barr_Direction.value != 'Move To':
         direction = 0
         if Barr_Direction.value == 'Close':
@@ -275,9 +275,9 @@ Barr_Start.on_click(on_click_Start)
 
 def on_click_Stop(change):
     from IPython import get_ipython
-    trough_lock = get_ipython().user_ns["trough_lock"]
+    trough_lock = get_ipython().user_ns["Trough_Control"].trough_lock
     trough_lock.acquire()
-    cmdsend = get_ipython().user_ns["cmdsend"]
+    cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
     cmdsend.send(['Stop', ''])
     trough_lock.release()
     pass

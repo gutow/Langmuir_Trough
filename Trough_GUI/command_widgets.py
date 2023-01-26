@@ -1,10 +1,4 @@
-from ipywidgets import Layout, Box, HBox, VBox, GridBox, Tab, Accordion, \
-    Dropdown, Label, Text, Button, Checkbox, FloatText, RadioButtons, \
-    BoundedIntText, BoundedFloatText
-from ipywidgets import HTML as richLabel
-from ipywidgets import HTMLMath as texLabel
-from IPython.display import display, HTML
-from IPython.display import Javascript as JS
+from ipywidgets import Dropdown, Button, RadioButtons, BoundedFloatText
 
 # Boilerplate style for long descriptions on ipywidget
 longdesc = {'description_width': 'initial'}

@@ -1,14 +1,15 @@
 """This file contains widgets that display updating trough information and
 can be used in multiple ipywidget panels within the same notebook."""
 
-from ipywidgets import Layout, Box, HBox, VBox, GridBox, Tab, Accordion, \
-    Dropdown, Label, Text, Button, Checkbox, FloatText, RadioButtons, \
-    BoundedIntText
+from ipywidgets import Layout, Text, Button, FloatText
 from ipywidgets import HTML as richLabel
-from ipywidgets import HTMLMath as texLabel
 
 # Boilerplate style for long descriptions on ipywidget
 longdesc = {'description_width': 'initial'}
+
+#  last direction barriers moved -1 closing, 0 unknown, 1 opening
+from IPython import get_ipython
+lastdirection = get_ipython().user_ns["Trough_Control"].lastdirection
 
 # Used for surface pressure. Balance zero set during calibration.
 tare_pi = 72.00
@@ -91,14 +92,26 @@ def update_status(raw_data:dict, calibrations):
         if calibrations.barriers.units != 'cm':
             raise ValueError('Expected barrier separation to be calibrated in cm. '
                              'Instead got ' + calibrations.barriers.units + '.')
-        sep_cm = calibrations.barriers.cal_apply(raw_data['barr_raw'],
-                                                 raw_data['barr_dev'])[0]
-        area_cm_sq_error = raw_data['barr_dev']*calibrations.barriers.\
-                             additional_data["trough width (cm)"]
-        area_cm_sq = sep_cm*calibrations.barriers.\
-                             additional_data["trough width (cm)"] - \
-                             calibrations.barriers.\
-                             additional_data["skimmer correction (cm^2)"]
+        if lastdirection < 0:
+            # barriers were or are closing
+            sep_cm = calibrations.barriers_close.cal_apply(raw_data['barr_raw'],
+                                                     raw_data['barr_dev'])[0]
+            area_cm_sq_error = raw_data['barr_dev'] * \
+                               calibrations.barriers_close. \
+                               additional_data["trough width (cm)"]
+            area_cm_sq = sep_cm * calibrations.barriers_close. \
+                         additional_data["trough width (cm)"] - \
+                         calibrations.barriers_close. \
+                         additional_data["skimmer correction (cm^2)"]
+        else:
+            sep_cm = calibrations.barriers_open.cal_apply(raw_data['barr_raw'],
+                                                     raw_data['barr_dev'])[0]
+            area_cm_sq_error = raw_data['barr_dev'] * calibrations. \
+                               barriers_open.additional_data[ \
+                               "trough width (cm)"]
+            area_cm_sq = sep_cm * calibrations.barriers_open.additional_data[ \
+                     "trough width (cm)"] - calibrations.barriers_open. \
+                     additional_data["skimmer correction (cm^2)"]
         area_per_molec_ang_sq_error = area_cm_sq_error*1e16/moles_molec.value/6.02214076e23
         area_per_molec_ang_sq = area_cm_sq*1e16/moles_molec.value/6.02214076e23
         Bar_Sep.value = str(sep_cm)

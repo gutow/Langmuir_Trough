@@ -403,7 +403,8 @@ class Calibration:
 class Calibrations:
     def __init__(self):
         self.balance = self._create_cal('balance')
-        self.barriers = self._create_cal('barriers')
+        self.barriers_open = self._create_cal('barriers_open')
+        self.barriers_close = self._create_cal('barriers_close')
         self.temperature = self._create_cal('temperature')
         self.speed_open = self._create_cal('speed_open')
         self.speed_close = self._create_cal('speed_close')
@@ -416,7 +417,8 @@ class Calibrations:
         ----------
         name: str
             string name for the calibration type (current options: 'balance',
-            'barriers' or 'temperature').
+            'barriers_open', 'barriers_close', 'speed_open',
+            'speed_close' or 'temperature').
         """
         from pathlib import Path
         basepath = Path('~/.Trough/calibrations').expanduser()
@@ -437,14 +439,24 @@ class Calibrations:
             if name == 'balance':
                 calib = Calibration('balance', 'mg', 0, [-1.875,
                                    12.5], [0, 0], [0.15, 0.08],[0, 0],[], [])
-            elif name == 'barriers':
-                calib = Calibration('barriers', 'cm', 0, [2.81, 8.2, 9, -12, 4],
-                        [0.03, 0.5, 2, 4, 2],
-                        [-0.41, 0.18, -0.017, 0.0012, -3e-5],
-                        [0.05, 0.04, 0.008, 0.0007, 2e-5], [], [], additional_data={
-                        "trough width (cm)":9.525,
-                        "skimmer correction (cm^2)":-0.5})
-# 𝑓𝑖𝑡=(−0.41±0.05)+(0.18±0.04)𝑥+(−0.017±0.008)𝑥2+(0.0012±0.0007)𝑥3+((−3±2)×10−5)𝑥4
+            elif name == 'barriers_open':
+                calib = Calibration('barriers_open', 'cm', 0,
+                                    [2.81, 8.2, 9, -12, 4],
+                                    [0.03, 0.5, 2, 4, 2],
+                                    [-0.41, 0.18, -0.017, 0.0012, -3e-5],
+                                    [0.05, 0.04, 0.008, 0.0007, 2e-5], [], [],
+                                    additional_data={
+                                    "trough width (cm)":9.525,
+                                    "skimmer correction (cm^2)":-0.5})
+            elif name == 'barriers_close':
+                calib = Calibration('barriers_close', 'cm', 0,
+                                    [2.81, 8.2, 9, -12, 4],
+                                    [0.03, 0.5, 2, 4, 2],
+                                    [-0.41, 0.18, -0.017, 0.0012, -3e-5],
+                                    [0.05, 0.04, 0.008, 0.0007, 2e-5], [], [],
+                                    additional_data={
+                                    "trough width (cm)": 9.525,
+                                    "skimmer correction (cm^2)": -0.5})
             elif name == 'temperature':
                 calib = Calibration('temperature', 'C', 0, [7.7, 5], [0, 0],
                                     [-1.54, 0.2], [], [], [])
@@ -455,8 +467,9 @@ class Calibrations:
                 calib = Calibration('speed_close', 'cm/min', 0, [0, 6.57],
                                     [0, 0], [0, 0.1523], [0, 0], [], [])
             else:
-                raise ValueError('Valid names are "balance", "barriers", '
-                                 '"temperature", "speed_open", or "speed_close".')
+                raise ValueError('Valid names are "balance", "barriers_open", '
+                                 '"barriers_close", "temperature", "speed_open"'
+                                 ', or "speed_close".')
         return calib
 
     def read_cal(self, name):
@@ -467,7 +480,8 @@ class Calibrations:
         Parameters
         ----------
         name: str
-            either the basename (current options: 'balance', 'barriers' or
+            either the basename (current options: 'balance', 'barriers_open',
+             'barriers_close', 'speed_open', 'speed_close' or
             'temperature') or a string representation of the path to the
             calibration file to be read. If one of the basenames is used
             this code will look for the most recent calibration of that type
@@ -511,7 +525,7 @@ class Calibrations:
             calibration to write to the file.
 
         kwargs:
-            optional key word arguments for future adaptibility
+            optional key word arguments for future adaptability
         """
         from pathlib import Path
         fileext = '.trh.cal.html'

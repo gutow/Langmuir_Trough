@@ -242,7 +242,7 @@ def on_Barr_Target_change(change):
     on_change_Barr_Units({'new': Barr_Units.value})
     pass
 
-Barr_Target = BoundedFloatText(value=10.0, min=0.0, max=1.0,
+Barr_Target = BoundedFloatText(value=1.0, min=0.0, max=1.0,
                                step=0.1, disabled=True)
 Barr_Speed = BoundedFloatText(description="Speed (/min)", value=5.0, min = 0.0,
                        max = 10.0, disabled=False)
@@ -254,6 +254,7 @@ def on_click_Start(change):
     skimmer_correction = float(calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
     moles_molec = float(get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec.value)
     trough_lock = get_ipython().user_ns["Trough_Control"].trough_lock
+    lastdirection = get_ipython().user_ns["Trough_Control"].lastdirection
     global speed
     if Barr_Units.value == 'cm':
         tempspeed = float(Barr_Speed.value)
@@ -279,6 +280,7 @@ def on_click_Start(change):
         cmdsend.send(['Speed', speed])
         cmdsend.send(['Direction', direction])
         cmdsend.send(['Start', ''])
+        lastdirection = direction
         trough_lock.release()
     else:
         direction = _moveto_direction()
@@ -290,6 +292,7 @@ def on_click_Start(change):
         cmdsend.send(['Speed', speed])
         cmdsend.send(['Direction', direction])
         cmdsend.send(['MoveTo', Barr_Target_Frac])
+        lastdirection = direction
         trough_lock.release()
     pass
 

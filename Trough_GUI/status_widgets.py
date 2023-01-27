@@ -91,7 +91,6 @@ def update_status(raw_data:dict, calibrations, lastdirection):
         if calibrations.barriers_close.units != 'cm':
             raise ValueError('Expected barrier separation to be calibrated in cm. '
                              'Instead got ' + calibrations.barriers.units + '.')
-        print(str(lastdirection.value))
         if lastdirection.value < 0:
             # barriers were or are closing
             sep_cm = calibrations.barriers_close.cal_apply(raw_data['barr_raw'],

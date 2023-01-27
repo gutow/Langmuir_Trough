@@ -20,12 +20,12 @@ def _moveto_direction():
     skimmer_correction = float(calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
     moles_molec = float(get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec.value)
     if Barr_Units.value == 'cm':
-        return np.sign(desired_position - current_position)
+        return int(np.sign(desired_position - current_position))
     elif Barr_Units.value == 'cm^2':
-        return np.sign((desired_position -skimmer_correction)/width - current_position)
+        return int(np.sign((desired_position -skimmer_correction)/width - current_position))
     elif Barr_Units.value == 'Angstrom^2/molec':
         desired_position =  desired_position/1e16*moles_molec*6.02214076e23
-        return np.sign((desired_position -skimmer_correction)/width - current_position)
+        return int(np.sign((desired_position -skimmer_correction)/width - current_position))
 
 def _set_min_max(obj, min, max):
     """This sets the min and max trait of the widget, while accounting for the

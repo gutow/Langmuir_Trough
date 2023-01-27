@@ -464,7 +464,7 @@ class Calibrations:
                 calib = Calibration('speed_open', 'cm/min', 0, [0, 9.85],
                                     [0, 0], [0, 0.1015], [0, 0], [], [])
             elif name == 'speed_close':
-                calib = Calibration('speed_close', 'cm/min', 0, [0, 6.57],
+                calib = Calibration('speed_close', 'cm/min', 0, [0.0, 6.57],
                                     [0, 0], [0, 0.1523], [0, 0], [], [])
             else:
                 raise ValueError('Valid names are "balance", "barriers_open", '

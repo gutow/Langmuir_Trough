@@ -159,9 +159,9 @@ def Monitor_Setup_Trough(calibrations):
                    {"speed": 0.7, "target": 0.25, "speed_data": True,
                     "position": True},
                    {"speed": 0.5, "target": 0.15, "speed_data": True,
-                    "position": False},
+                    "position": True},
                    {"speed": 0.5, "target": 0.05, "speed_data": True,
-                    "position": False},
+                    "position": True},
                    {"speed": 0.6, "target": 0.0, "speed_data": True,
                     "position": True}
                    ]
@@ -234,18 +234,15 @@ def Monitor_Setup_Trough(calibrations):
                 tempindex_start += 1
         if calibrating_barr_direction == 'open':
             open_speed_x.append(speed)
-            # speed fraction per minute
-            open_speed_y.append((position[tempindex_end] - \
-                                 position[tempindex_start]) / \
-                                (timestamp[tempindex_end] - \
-                                 timestamp[tempindex_start]) / 60)
+            # Can't calculate speeds until have distance calibration.
+            # Save [start_raw, end_raw, delta_time in seconds]
+            open_speed_y.append([position[tempindex_start], position[tempindex_end],
+                                (timestamp[tempindex_end] - timestamp[tempindex_start])])
         if calibrating_barr_direction == 'close':
             close_speed_x.append(speed)
             # speed fraction per minute
-            close_speed_y.append((position[tempindex_end] - \
-                                  position[tempindex_start]) / \
-                                 (timestamp[tempindex_end] - \
-                                  timestamp[tempindex_start]) / 60)
+            close_speed_y.append([position[tempindex_start], position[tempindex_end],
+                                (timestamp[tempindex_end] - timestamp[tempindex_start])])
         return
 
     def _get_position():
@@ -341,6 +338,8 @@ def Monitor_Setup_Trough(calibrations):
             elif calibrating_barr_direction == 'close':
                 calibrating_barr_direction = 'open'
                 calibrating_barr_step = 0
+                Barr_Cal_Butt.description = "Moving..."
+                Barr_Cal_Butt.disabled = True
                 on_calib_barr({"clicked":True})
 
 
@@ -373,23 +372,31 @@ def Monitor_Setup_Trough(calibrations):
             )
             calibrations.write_cal(cal_path, calibrations.barriers_close)
             # Opening Speeds
-            params, stdev = calibrations.poly_fit(open_speed_x, open_speed_y, 3)
-            inv_params, inv_stdev = calibrations.poly_fit(open_speed_y,
+            speed_cm_per_min = []
+            for k in open_speed_y:
+                start = calibrations.barriers_open.cal_apply(k[0],0)[0]
+                end = calibrations.barriers_open.cal_apply(k[1],0)[0]
+                speed_cm_per_min.append(abs(start - end)*60/k[2])
+            params, stdev = calibrations.poly_fit(open_speed_x, speed_cm_per_min, 3)
+            inv_params, inv_stdev = calibrations.poly_fit(speed_cm_per_min,
                                                           open_speed_x, 3)
             calibrations.speed_open = Trough_GUI.calibration_utils.Calibration(
                 'speed_open', 'cm/min', time.time(), params, stdev, inv_params,
-                inv_stdev, open_speed_x, open_speed_y
-            )
+                inv_stdev, open_speed_x, speed_cm_per_min)
             calibrations.write_cal(cal_path, calibrations.speed_open)
             # Closing Speeds
-            params, stdev = calibrations.poly_fit(close_speed_x, close_speed_y,
+            speed_cm_per_min = []
+            for k in close_speed_y:
+                start = calibrations.barriers_close.cal_apply(k[0],0)[0]
+                end = calibrations.barriers_close.cal_apply(k[1],0)[0]
+                speed_cm_per_min.append(abs(start - end)*60/k[2])
+            params, stdev = calibrations.poly_fit(close_speed_x, speed_cm_per_min,
                                                   3)
-            inv_params, inv_stdev = calibrations.poly_fit(close_speed_y,
+            inv_params, inv_stdev = calibrations.poly_fit(speed_cm_per_min,
                                                           close_speed_x, 3)
             calibrations.speed_close = Trough_GUI.calibration_utils.Calibration(
                 'speed_close', 'cm/min', time.time(), params, stdev, inv_params,
-                inv_stdev, close_speed_x, close_speed_y
-            )
+                inv_stdev, close_speed_x, speed_cm_per_min)
             calibrations.write_cal(cal_path, calibrations.speed_close)
 
             Barr_Cal_Butt.description = 'Start Calibration'

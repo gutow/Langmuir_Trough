@@ -121,7 +121,7 @@ def Monitor_Setup_Trough(calibrations):
     # Barrier Calibration
     open_steps = [{"speed":0.1, "target":0.5, "speed_data":True,
                    "position":True},
-                   {"speed":1.0, "target":0.10, "speed_data":True,
+                   {"speed":0.5, "target":0.10, "speed_data":True,
                     "position":True},
                    {"speed": 0.2, "target": 0.20, "speed_data": True,
                     "position": True},
@@ -139,7 +139,7 @@ def Monitor_Setup_Trough(calibrations):
                     "position": True},
                    {"speed": 0.6, "target": 0.90, "speed_data": True,
                     "position": True},
-                   {"speed": 0.5, "target": 1.0, "speed_data": True,
+                   {"speed": 1.0, "target": 1.0, "speed_data": True,
                     "position": True}
                   ]
     close_steps = [{"speed":0.1, "target":0.95, "speed_data":True,
@@ -166,7 +166,7 @@ def Monitor_Setup_Trough(calibrations):
                     "position": True}
                    ]
     calibrating_barr_direction = "close"
-    calibrating_barr_step = -1 # -1 is measure position at fully open
+    calibrating_barr_step = 0
 
     def _speed_only(speed, target, steps):
         """Collect data for a speed only step."""
@@ -285,16 +285,18 @@ def Monitor_Setup_Trough(calibrations):
             while float(Barr_Raw.value) < 1.0:
                 # We wait
                 pass
-            Barr_Cal_Butt.description = 'Keep'
-            Barr_Cal_Butt.disabled = False
-            return
+            # Barr_Cal_Butt.description = 'Keep'
+            # Barr_Cal_Butt.disabled = False
+            # return
         if calibrating_barr_direction == 'open':
             steps = open_steps
         elif calibrating_barr_direction == 'close':
             steps = close_steps
+
         if Barr_Cal_Butt.description == 'Keep':
             _get_position()
             calibrating_barr_step += 1
+
         # Move barriers according to step and collect some data
         if calibrating_barr_step < len(steps):
 
@@ -340,6 +342,7 @@ def Monitor_Setup_Trough(calibrations):
                 calibrating_barr_direction = 'open'
                 calibrating_barr_step = 0
                 on_calib_barr({"clicked":True})
+
 
         if calibrating_barr_direction == 'done':
             # fitting and save the data

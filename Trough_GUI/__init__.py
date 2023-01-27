@@ -8,6 +8,10 @@ if not Trough_Control.trough_util.is_trough_initialized():
     Trough_Control.cmdsend, Trough_Control.datarcv, \
     Trough_Control.TROUGH = Trough_Control.trough_util.init_trough()
 
+from multiprocessing import Value
+#  last direction barriers moved -1 closing, 0 unknown, 1 opening
+lastdirection = Value('i', 0)
+
 from Trough_GUI import calibration_utils, status_widgets,\
     command_widgets
 
@@ -20,5 +24,5 @@ status_update_thread = Thread(target=status_widgets.status_updater,
                                         args=(Trough_Control.trough_lock,
                                               Trough_Control.cmdsend,
                                               Trough_Control.datarcv,
-                                              calibrations,))
+                                              calibrations, lastdirection))
 status_update_thread.start()

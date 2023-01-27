@@ -7,10 +7,6 @@ from ipywidgets import HTML as richLabel
 # Boilerplate style for long descriptions on ipywidget
 longdesc = {'description_width': 'initial'}
 
-#  last direction barriers moved -1 closing, 0 unknown, 1 opening
-from IPython import get_ipython
-lastdirection = get_ipython().user_ns["Trough_Control"].lastdirection
-
 # Used for surface pressure. Balance zero set during calibration.
 tare_pi = 72.00
 mg = Text(description="mg",
@@ -48,7 +44,7 @@ moles_molec = FloatText(description="moles of molecules",
 Status = richLabel(layout=Layout(border="solid"), value=
 '<p>Status messages will appear here.</p>')
 
-def update_status(raw_data:dict, calibrations):
+def update_status(raw_data:dict, calibrations, lastdirection):
     """
     Call this routine to update the contents of all the status widgets.
 
@@ -95,7 +91,8 @@ def update_status(raw_data:dict, calibrations):
         if calibrations.barriers_close.units != 'cm':
             raise ValueError('Expected barrier separation to be calibrated in cm. '
                              'Instead got ' + calibrations.barriers.units + '.')
-        if lastdirection < 0:
+        print(str(lastdirection.value))
+        if lastdirection.value < 0:
             # barriers were or are closing
             sep_cm = calibrations.barriers_close.cal_apply(raw_data['barr_raw'],
                                                      raw_data['barr_dev'])[0]
@@ -129,7 +126,7 @@ def update_status(raw_data:dict, calibrations):
     Status.value = status_msgs
     pass
 
-def status_updater(trough_lock, cmdsend, datarcv, cals):
+def status_updater(trough_lock, cmdsend, datarcv, cals, lastdirection):
     """This is run in a separate thread and will update the status widgets
     every 2 seconds or when it can get access to the pipes to talk to the
     trough.
@@ -172,7 +169,7 @@ def status_updater(trough_lock, cmdsend, datarcv, cals):
                 else:
                     # No updated data, so just pass messages
                     update_dict = {'messages':datapkg[7]}
-                update_status(update_dict, cals)
+                update_status(update_dict, cals, lastdirection)
                 waiting = False
         trough_lock.release()
         if time.time()< min_next_time:

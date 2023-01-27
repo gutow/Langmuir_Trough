@@ -241,10 +241,10 @@ def on_Barr_Target_change(change):
     on_change_Barr_Units({'new': Barr_Units.value})
     pass
 
-Barr_Target = BoundedFloatText(value=1.0, min=0.0, max=1.0,
-                               step=0.1, disabled=True)
+Barr_Target = BoundedFloatText(value=10.0, min=0.0, max=12.6,
+                               step=0.01, disabled=True)
 Barr_Speed = BoundedFloatText(description="Speed (/min)", value=5.0, min = 0.0,
-                       max = 10.0, disabled=False)
+                       max = 10.0, step = 0.01, disabled=False)
 def on_click_Start(change):
     from IPython import get_ipython
     cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend

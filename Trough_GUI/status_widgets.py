@@ -125,7 +125,8 @@ def update_status(raw_data:dict, calibrations, lastdirection):
     Status.value = status_msgs
     pass
 
-def status_updater(trough_lock, cmdsend, datarcv, cals, lastdirection):
+def status_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
+                   run_updater, updater_running):
     """This is run in a separate thread and will update the status widgets
     every 2 seconds or when it can get access to the pipes to talk to the
     trough.
@@ -144,12 +145,21 @@ def status_updater(trough_lock, cmdsend, datarcv, cals, lastdirection):
 
     cals: Trough_GUI.calibrations
         Used to convert the data to user units.
+
+    lastdirection: multiprocessing.Value
+        Of type 'i' to indicate last direction the barriers moved.
+
+    run_updater: multiprocessing.Value
+        Of type 'c_bool'. True if this updater should keep running.
+
+    updater_running: multiprocessing.Value
+        Of type 'c_bool'. Set to True by this process when it starts
+        and set to False before exiting.
     """
     import time
-    datapkg = []
-    run = True
-    update = 0
-    while run:
+    # Set the shared I'm running flag.
+    updater_running.value = True
+    while run_updater.value:
         min_next_time = time.time() + 2.0
         trough_lock.acquire()
         cmdsend.send(['Send',''])
@@ -173,4 +183,23 @@ def status_updater(trough_lock, cmdsend, datarcv, cals, lastdirection):
         trough_lock.release()
         if time.time()< min_next_time:
             time.sleep(min_next_time - time.time())
+    # Set the shared I'm running flag to False before exiting.
+    updater_running.value = False
+    return
+
+def start_status_updater():
+    from threading import Thread
+    from IPython import get_ipython
+    Trough_Control = get_ipython().user_ns["Trough_Control"]
+    Trough_GUI = get_ipython().user_ns["Trough_GUI"]
+    Trough_GUI.run_updater.value = True
+    status_update_thread = Thread(target=status_updater,
+                                  args=(Trough_Control.trough_lock,
+                                        Trough_Control.cmdsend,
+                                        Trough_Control.datarcv,
+                                        Trough_GUI.calibrations,
+                                        Trough_GUI.lastdirection,
+                                        Trough_GUI.run_updater,
+                                        Trough_GUI.updater_running))
+    status_update_thread.start()
     return

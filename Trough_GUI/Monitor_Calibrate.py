@@ -399,6 +399,13 @@ def Monitor_Setup_Trough(calibrations):
                 inv_stdev, close_speed_x, speed_cm_per_min)
             calibrations.write_cal(cal_path, calibrations.speed_close)
 
+            # Calibrations have been updated so restart the status watcher
+            Trough_GUI.run_updater.value = False
+            while Trough_GUI.updater_running.Value:
+                # We wait
+                pass
+            Trough_GUI.start_status_updater()
+
             Barr_Cal_Butt.description = 'Start Calibration'
             Barr_Cal_Butt.disabled = False
             calibrating_barr_direction = 'close'

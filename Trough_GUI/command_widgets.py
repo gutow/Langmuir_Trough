@@ -45,21 +45,21 @@ def on_change_Barr_Units(change):
     skimmer_correction = float(calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
     moles_molec = float(get_ipython().user_ns["Trough_GUI"].status_widgets.moles_molec.value)
     if change['new'] == 'cm':
-        _set_min_max(Barr_Target, calibrations.barriers_close.cal_apply(0.0,0.0)[0],
-                     calibrations.barriers_open.cal_apply(1.0, 0.0)[0])
+        _set_min_max(Barr_Target, round(calibrations.barriers_close.cal_apply(0.0,0.0)[0], 2),
+                     round(calibrations.barriers_open.cal_apply(1.0, 0.0)[0],2))
         if Barr_Direction.value == "Open":
             Barr_Target.value = calibrations.barriers_open.cal_apply(Barr_Target_Frac, 0.0)[0]
             tempspeed = calibrations.speed_open.cal_apply(speed,0.0)[0]
             max = calibrations.speed_open.cal_apply(1.0, 0.0)[0]
             min = calibrations.speed_open.cal_apply(0.0, 0.0)[0]
-            _set_min_max(Barr_Speed, min, max)
+            _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
             Barr_Speed.value = tempspeed
         elif Barr_Direction.value == "Close":
             Barr_Target.value = calibrations.barriers_close.cal_apply(Barr_Target_Frac, 0.0)[0]
             tempspeed = calibrations.speed_close.cal_apply(speed,0.0)[0]
             max = calibrations.speed_close.cal_apply(1.0, 0.0)[0]
             min = calibrations.speed_close.cal_apply(0.0, 0.0)[0]
-            _set_min_max(Barr_Speed, min, max)
+            _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
             Barr_Speed.value = tempspeed
         else: # MoveTo case
             if _moveto_direction() == -1:
@@ -67,14 +67,14 @@ def on_change_Barr_Units(change):
                 tempspeed = calibrations.speed_close.cal_apply(speed, 0.0)[0]
                 max = calibrations.speed_close.cal_apply(1.0, 0.0)[0]
                 min = calibrations.speed_close.cal_apply(0.0, 0.0)[0]
-                _set_min_max(Barr_Speed, min, max)
+                _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
                 Barr_Speed.value = tempspeed
             elif _moveto_direction() == 1:
                 Barr_Target.value = calibrations.barriers_open.cal_apply(Barr_Target_Frac, 0.0)[0]
                 tempspeed = calibrations.speed_open.cal_apply(speed, 0.0)[0]
                 max = calibrations.speed_open.cal_apply(1.0, 0.0)[0]
                 min = calibrations.speed_open.cal_apply(0.0, 0.0)[0]
-                _set_min_max(Barr_Speed, min, max)
+                _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
                 Barr_Speed.value = tempspeed
             pass
     if change['new'] == 'cm^2':
@@ -82,7 +82,7 @@ def on_change_Barr_Units(change):
                           float(skimmer_correction)
         min = calibrations.barriers_close.cal_apply(0.0,0.0)[0]*float(width) +\
                           float(skimmer_correction)
-        _set_min_max(Barr_Target, min, max)
+        _set_min_max(Barr_Target, round(min, 2), round(max, 2))
         if Barr_Direction.value == "Open":
             temptarg = calibrations.barriers_open.cal_apply(Barr_Target_Frac, 0.0)[0] * \
                        float(width) + float(skimmer_correction)
@@ -95,7 +95,7 @@ def on_change_Barr_Units(change):
             min = calibrations.speed_open.cal_apply(0.0, 0.0)[0] * \
                   float(width) + \
                   float(skimmer_correction)
-            _set_min_max(Barr_Speed, min, max)
+            _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
             Barr_Speed.value = tempspeed
         elif Barr_Direction.value == "Close":
             temptarg = calibrations.barriers_close.cal_apply(Barr_Target_Frac, 0.0)[0] * \
@@ -109,7 +109,7 @@ def on_change_Barr_Units(change):
             min = calibrations.speed_close.cal_apply(0.0, 0.0)[0] * \
                   float(width) + \
                   float(skimmer_correction)
-            _set_min_max(Barr_Speed, min, max)
+            _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
             Barr_Speed.value = tempspeed
         else: # MoveTo case
             if _moveto_direction() == -1:
@@ -124,7 +124,7 @@ def on_change_Barr_Units(change):
                 min = calibrations.speed_close.cal_apply(0.0, 0.0)[0] * \
                       float(width) + \
                       float(skimmer_correction)
-                _set_min_max(Barr_Speed, min, max)
+                _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
                 Barr_Speed.value = tempspeed
             elif _moveto_direction() == 1:
                 temptarg = calibrations.barriers_open.cal_apply(Barr_Target_Frac, 0.0)[0] * \
@@ -138,7 +138,7 @@ def on_change_Barr_Units(change):
                 min = calibrations.speed_open.cal_apply(0.0, 0.0)[0] * \
                       float(width) + \
                       float(skimmer_correction)
-                _set_min_max(Barr_Speed, min, max)
+                _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
                 Barr_Speed.value = tempspeed
             pass
     if change['new'] == 'Angstrom^2/molec':
@@ -163,7 +163,7 @@ def on_change_Barr_Units(change):
             min = (calibrations.speed_open.cal_apply(0.0, 0.0)[0] * \
                   width + skimmer_correction) * \
                   1e16 / moles_molec / 6.02214076e23
-            _set_min_max(Barr_Speed, min, max)
+            _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
             Barr_Speed.value = tempspeed
         elif Barr_Direction.value == "Close":
             temptarg = (calibrations.barriers_close.cal_apply(Barr_Target_Frac, 0.0)[0] * \
@@ -179,7 +179,7 @@ def on_change_Barr_Units(change):
             min = (calibrations.speed_close.cal_apply(0.0, 0.0)[0] * \
                   width + skimmer_correction) * \
                   1e16 / moles_molec / 6.02214076e23
-            _set_min_max(Barr_Speed, min, max)
+            _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
             Barr_Speed.value = tempspeed
         else: # MoveTo case
             if _moveto_direction() == -1:
@@ -198,7 +198,7 @@ def on_change_Barr_Units(change):
                       float(width) + \
                       float(skimmer_correction) * \
                       1e16 / moles_molec / 6.02214076e23
-                _set_min_max(Barr_Speed, min, max)
+                _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
                 Barr_Speed.value = tempspeed
             elif _moveto_direction() == 1:
                 temptarg = (calibrations.barriers_open.cal_apply(Barr_Target_Frac, 0.0)[0] * \
@@ -214,7 +214,7 @@ def on_change_Barr_Units(change):
                 min = (calibrations.speed_open.cal_apply(0.0, 0.0)[0] * \
                       width + skimmer_correction) * \
                       1e16 / moles_molec / 6.02214076e23
-                _set_min_max(Barr_Speed, min, max)
+                _set_min_max(Barr_Speed, round(min, 2), round(max, 2))
                 Barr_Speed.value = tempspeed
             pass
     pass

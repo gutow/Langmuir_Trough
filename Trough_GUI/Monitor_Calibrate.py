@@ -199,7 +199,14 @@ def Monitor_Setup_Trough(calibrations):
                                        'temp_raw': datapkg[5][-1],
                                        'temp_dev': datapkg[6][-1],
                                        'messages': datapkg[7]}
-                        Trough_GUI.status_widgets.update_status(status_dict, calibrations)
+
+                        if calibrating_barr_direction == "open":
+                            Trough_GUI.lastdirection.value = 1
+                        else:
+                            Trough_GUI.lastdirection.value = -1
+                        Trough_GUI.status_widgets.update_status(status_dict,
+                                                                calibrations,
+                                                                Trough_GUI.lastdirection)
                         if abs(target - position[-1]) < 0.01:
                             moving = False
                         waiting = False

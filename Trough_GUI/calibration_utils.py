@@ -538,7 +538,7 @@ class Calibrations:
         f.close()
         pass
 
-    def poly_fit(self, data_x, data_y, order):
+    def poly_fit(self, data_x, data_y, order, yerr=None):
         """Does a polynomial fit of the specified order using the x and y
         values provided.
 
@@ -552,6 +552,10 @@ class Calibrations:
 
         order: int
             the order of the polynomical used for fitting.
+
+        yerr: float or iterable of float
+            absolute error(s) in the y-value. Used to weight the fit. If no
+            values are provided the assumption is equal weighting.
 
         Returns
         -------
@@ -570,8 +574,18 @@ class Calibrations:
         for k in range(0, order+1):
             fitmod.set_param_hint("c"+str(k), vary=True, value=0.0)
 
+        # Set the weighting if errors provided
+        weighting = None
+        if yerr:
+            from collections.abc import Iterable
+            if isinstance(yerr, Iterable):
+                weighting = 1/np.array(yerr)
+            else:
+                weighting = np.array(data_y)*0 + 1/yerr
+
         # Do fit
         fit = fitmod.fit(np.array(data_y), x=np.array(data_x),
+                         weights=weighting,
                          nan_policy="omit")
         param = (order+1)*[None]
         param_stdev = (order+1)*[None]

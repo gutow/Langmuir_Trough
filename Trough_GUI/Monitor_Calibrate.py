@@ -119,7 +119,7 @@ def Monitor_Setup_Trough(calibrations):
                         VBox(children=[Barr_Units, Barr_Speed]),
                                    VBox(children=[Barr_Start,Barr_Stop])])
     # Barrier Calibration
-    open_steps = [{"speed":0.1, "target":0.5, "speed_data":True,
+    open_steps = [{"speed":0.1, "target":0.05, "speed_data":True,
                    "position":True},
                    {"speed":0.5, "target":0.10, "speed_data":True,
                     "position":True},
@@ -355,9 +355,9 @@ def Monitor_Setup_Trough(calibrations):
             from pathlib import Path
             cal_path = Path('~/.Trough/calibrations').expanduser()
             # Opening Positions
-            params, stdev = calibrations.poly_fit(open_pos_x, open_pos_y, 3)
+            params, stdev = calibrations.poly_fit(open_pos_x, open_pos_y, 3, 0.1)
             inv_params, inv_stdev = calibrations.poly_fit(open_pos_y,
-                                                          open_pos_x, 3)
+                                                          open_pos_x, 3, 0.001)
             calibrations.barriers_open = Trough_GUI.calibration_utils.\
                 Calibration(
                 'barriers_open', 'cm', time.time(), params, stdev, inv_params,
@@ -367,9 +367,9 @@ def Monitor_Setup_Trough(calibrations):
             )
             calibrations.write_cal(cal_path, calibrations.barriers_open)
             # Closing Positions
-            params, stdev = calibrations.poly_fit(close_pos_x, close_pos_y, 3)
+            params, stdev = calibrations.poly_fit(close_pos_x, close_pos_y, 3, 0.1)
             inv_params, inv_stdev = calibrations.poly_fit(close_pos_y,
-                                                          close_pos_x, 3)
+                                                          close_pos_x, 3, 0.001)
             calibrations.barriers_close = Trough_GUI.calibration_utils.\
                 Calibration(
                 'barriers_close', 'cm', time.time(), params, stdev, inv_params,
@@ -384,9 +384,9 @@ def Monitor_Setup_Trough(calibrations):
                 start = calibrations.barriers_open.cal_apply(k[0],0)[0]
                 end = calibrations.barriers_open.cal_apply(k[1],0)[0]
                 speed_cm_per_min.append(abs(start - end)*60/k[2])
-            params, stdev = calibrations.poly_fit(open_speed_x, speed_cm_per_min, 3)
+            params, stdev = calibrations.poly_fit(open_speed_x, speed_cm_per_min, 3, 0.01)
             inv_params, inv_stdev = calibrations.poly_fit(speed_cm_per_min,
-                                                          open_speed_x, 3)
+                                                          open_speed_x, 3, 0.001)
             calibrations.speed_open = Trough_GUI.calibration_utils.Calibration(
                 'speed_open', 'cm/min', time.time(), params, stdev, inv_params,
                 inv_stdev, open_speed_x, speed_cm_per_min)
@@ -398,9 +398,9 @@ def Monitor_Setup_Trough(calibrations):
                 end = calibrations.barriers_close.cal_apply(k[1],0)[0]
                 speed_cm_per_min.append(abs(start - end)*60/k[2])
             params, stdev = calibrations.poly_fit(close_speed_x, speed_cm_per_min,
-                                                  3)
+                                                  3, 0.01)
             inv_params, inv_stdev = calibrations.poly_fit(speed_cm_per_min,
-                                                          close_speed_x, 3)
+                                                          close_speed_x, 3, 0.001)
             calibrations.speed_close = Trough_GUI.calibration_utils.Calibration(
                 'speed_close', 'cm/min', time.time(), params, stdev, inv_params,
                 inv_stdev, close_speed_x, speed_cm_per_min)

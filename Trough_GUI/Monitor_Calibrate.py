@@ -14,6 +14,9 @@ open_speed_x = [] # setting
 open_speed_y = [] # fractional speed/min
 close_speed_x = [] # setting
 close_speed_y = [] # fractional speed/min
+cal_bal_x = []
+cal_bal_y = []
+
 def Monitor_Setup_Trough(calibrations):
     """
     This produces a user interface in jupyter notebooks using ipywidgets. The
@@ -50,17 +53,57 @@ def Monitor_Setup_Trough(calibrations):
         mg, surf_press]), VBox(children = [plate_circumference,zero_press])],
                    layout = Layout(border="solid"))
     # Balance Calibration
+    def on_calib_bal(change):
+        if Bal_Cal_Butt.description == 'Start Calibration':
+            Bal_Cal_Butt.description = 'Keep'
+            return
+        if Bal_Cal_Butt.description == 'Keep':
+            Bal_Cal_Butt.description = 'Acquiring...'
+            trough_lock.acquire()
+            cmdsend.send(['Send', ''])
+            waiting = True
+            while waiting:
+                if datarcv.poll():
+                    datapkg = datarcv.recv()
+                    cal_bal_y.append(Bal_Cal_Mass.value)
+                    cal_bal_x.append(datapkg[3][-1])
+                    waiting = False
+            trough_lock.release()
+            Bal_Cal_Butt.description = 'Keep'
+        if len(cal_bal_x) == 6:
+            # we're done do calibrations
+            # fit and save the data
+            from pathlib import Path
+            import time
+            cal_path = Path('~/.Trough/calibrations').expanduser()
+            params, stdev = calibrations.poly_fit(cal_bal_x, cal_bal_y, 1, 0.5)
+            inv_params, inv_stdev = calibrations.poly_fit(cal_bal_y,
+                                                          cal_bal_x, 1, 0.001)
+            calibrations.balance = Trough_GUI.calibration_utils. \
+                Calibration(
+                'balance', 'mg', time.time(), params, stdev, inv_params,
+                inv_stdev, cal_bal_x, cal_bal_y)
+            calibrations.write_cal(cal_path, calibrations.balance)
+
+            # Calibrations have been updated so restart the status watcher
+            Trough_GUI.run_updater.value = False
+            while Trough_GUI.updater_running.value:
+                # We wait
+                pass
+            Trough_GUI.start_status_updater()
+
+            Bal_Cal_Butt.description = 'Start Calibration'
+        return
+
     Bal_Cal_Butt = Button(description = "Start Calibration")
-    Bal_Raw = Text(description = 'Balance Raw (V):',
-                   disabled = True,
-                   style = longdesc)
+    Bal_Cal_Butt.on_click(on_calib_bal)
     Bal_Cal_Mass = FloatText(description = 'Mass (mg):',
-                             value = 120.0,
+                             value = 100.0,
                              step=0.01,
                              disabled = False,
                              style = longdesc)
     Bal_Cal_Instr = richLabel(value = '<ol><li>Collect 5 calibration masses of'
-                                      ' 120 mg or less.</li>'
+                                      ' 100 mg or less.</li>'
                                       '<li>Click "Start Calibration".</li> '
                                       '<li>Place the'
                                       ' first mass on the balance and '
@@ -68,7 +111,7 @@ def Monitor_Setup_Trough(calibrations):
                                       '<li>When the raw reading is stable click'
                                       ' "keep".</li>'
                                       '<li>Repeat for each calibration '
-                                      'mass.</li></ol>'
+                                      'mass, plus no calibration mass.</li></ol>'
                                       'The button will revert to "Start '
                                       'Calibration" when done.')
     Bal_Cal_Box = VBox(children = [Bal_Cal_Instr,HBox(children=[Bal_Raw,

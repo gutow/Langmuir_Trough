@@ -9,6 +9,9 @@ longdesc = {'description_width': 'initial'}
 
 # Used for surface pressure. Balance zero set during calibration.
 tare_pi = 72.00
+Bal_Raw = Text(description='Balance Raw:',
+               disabled=True,
+               style=longdesc)
 mg = Text(description="mg",
           disabled=True,
           style=longdesc)
@@ -68,6 +71,8 @@ def update_status(raw_data:dict, calibrations, lastdirection):
         if calibrations.balance.units != 'mg':
             raise ValueError('Expect balance to be calibrated in mg. Instead got '
                              + calibrations.balance.units + '.')
+        Bal_Raw.value = rndwitherr(raw_data['bal_raw'], raw_data['bal_dev'],
+                                         lowmag=-4, highmag=4)[0]
         mgrams, mgrams_err = calibrations.balance.cal_apply(raw_data['bal_raw'],
                                                       raw_data['bal_dev'])
         mg.value = rndwitherr(mgrams,mgrams_err, lowmag=-4, highmag=4)[0]

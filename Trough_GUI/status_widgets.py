@@ -1,11 +1,8 @@
 """This file contains widgets that display updating trough information and
 can be used in multiple ipywidget panels within the same notebook."""
 
-from ipywidgets import Layout, Box, HBox, VBox, GridBox, Tab, Accordion, \
-    Dropdown, Label, Text, Button, Checkbox, FloatText, RadioButtons, \
-    BoundedIntText
+from ipywidgets import Layout, Text, Button, FloatText
 from ipywidgets import HTML as richLabel
-from ipywidgets import HTMLMath as texLabel
 
 # Boilerplate style for long descriptions on ipywidget
 longdesc = {'description_width': 'initial'}
@@ -47,7 +44,7 @@ moles_molec = FloatText(description="moles of molecules",
 Status = richLabel(layout=Layout(border="solid"), value=
 '<p>Status messages will appear here.</p>')
 
-def update_status(raw_data:dict, calibrations):
+def update_status(raw_data:dict, calibrations, lastdirection):
     """
     Call this routine to update the contents of all the status widgets.
 
@@ -88,17 +85,32 @@ def update_status(raw_data:dict, calibrations):
         Bar_Frac.value = rndwitherr(raw_data['barr_raw']*100,
                                                 raw_data['barr_dev']*100,
                                          lowmag=-4, highmag=4)[0]
-        if calibrations.barriers.units != 'cm':
+        if calibrations.barriers_open.units != 'cm':
             raise ValueError('Expected barrier separation to be calibrated in cm. '
                              'Instead got ' + calibrations.barriers.units + '.')
-        sep_cm = calibrations.barriers.cal_apply(raw_data['barr_raw'],
-                                                 raw_data['barr_dev'])[0]
-        area_cm_sq_error = raw_data['barr_dev']*calibrations.barriers.\
-                             additional_data["trough width (cm)"]
-        area_cm_sq = sep_cm*calibrations.barriers.\
-                             additional_data["trough width (cm)"] - \
-                             calibrations.barriers.\
-                             additional_data["skimmer correction (cm^2)"]
+        if calibrations.barriers_close.units != 'cm':
+            raise ValueError('Expected barrier separation to be calibrated in cm. '
+                             'Instead got ' + calibrations.barriers.units + '.')
+        if lastdirection.value < 0:
+            # barriers were or are closing
+            sep_cm = calibrations.barriers_close.cal_apply(raw_data['barr_raw'],
+                                                     raw_data['barr_dev'])[0]
+            area_cm_sq_error = raw_data['barr_dev'] * \
+                               float(calibrations.barriers_close. \
+                               additional_data["trough width (cm)"])
+            area_cm_sq = sep_cm * float(calibrations.barriers_close. \
+                         additional_data["trough width (cm)"]) - \
+                         float(calibrations.barriers_close. \
+                         additional_data["skimmer correction (cm^2)"])
+        else:
+            sep_cm = calibrations.barriers_open.cal_apply(raw_data['barr_raw'],
+                                                     raw_data['barr_dev'])[0]
+            area_cm_sq_error = raw_data['barr_dev'] * float(calibrations. \
+                               barriers_open.additional_data[ \
+                               "trough width (cm)"])
+            area_cm_sq = sep_cm * float(calibrations.barriers_open.additional_data[ \
+                     "trough width (cm)"]) - float(calibrations.barriers_open. \
+                     additional_data["skimmer correction (cm^2)"])
         area_per_molec_ang_sq_error = area_cm_sq_error*1e16/moles_molec.value/6.02214076e23
         area_per_molec_ang_sq = area_cm_sq*1e16/moles_molec.value/6.02214076e23
         Bar_Sep.value = str(sep_cm)
@@ -113,7 +125,8 @@ def update_status(raw_data:dict, calibrations):
     Status.value = status_msgs
     pass
 
-def status_updater(trough_lock, cmdsend, datarcv, cals):
+def status_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
+                   run_updater, updater_running):
     """This is run in a separate thread and will update the status widgets
     every 2 seconds or when it can get access to the pipes to talk to the
     trough.
@@ -132,12 +145,21 @@ def status_updater(trough_lock, cmdsend, datarcv, cals):
 
     cals: Trough_GUI.calibrations
         Used to convert the data to user units.
+
+    lastdirection: multiprocessing.Value
+        Of type 'i' to indicate last direction the barriers moved.
+
+    run_updater: multiprocessing.Value
+        Of type 'c_bool'. True if this updater should keep running.
+
+    updater_running: multiprocessing.Value
+        Of type 'c_bool'. Set to True by this process when it starts
+        and set to False before exiting.
     """
     import time
-    datapkg = []
-    run = True
-    update = 0
-    while run:
+    # Set the shared I'm running flag.
+    updater_running.value = True
+    while run_updater.value:
         min_next_time = time.time() + 2.0
         trough_lock.acquire()
         cmdsend.send(['Send',''])
@@ -156,9 +178,28 @@ def status_updater(trough_lock, cmdsend, datarcv, cals):
                 else:
                     # No updated data, so just pass messages
                     update_dict = {'messages':datapkg[7]}
-                update_status(update_dict, cals)
+                update_status(update_dict, cals, lastdirection)
                 waiting = False
         trough_lock.release()
         if time.time()< min_next_time:
             time.sleep(min_next_time - time.time())
+    # Set the shared I'm running flag to False before exiting.
+    updater_running.value = False
+    return
+
+def start_status_updater():
+    from threading import Thread
+    from IPython import get_ipython
+    Trough_Control = get_ipython().user_ns["Trough_Control"]
+    Trough_GUI = get_ipython().user_ns["Trough_GUI"]
+    Trough_GUI.run_updater.value = True
+    status_update_thread = Thread(target=status_updater,
+                                  args=(Trough_Control.trough_lock,
+                                        Trough_Control.cmdsend,
+                                        Trough_Control.datarcv,
+                                        Trough_GUI.calibrations,
+                                        Trough_GUI.lastdirection,
+                                        Trough_GUI.run_updater,
+                                        Trough_GUI.updater_running))
+    status_update_thread.start()
     return

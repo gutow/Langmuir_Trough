@@ -1,13 +1,15 @@
-import Trough_GUI.status_widgets
+import Trough_GUI
 from Trough_GUI.status_widgets import *
 from Trough_GUI.command_widgets import *
 from IPython import get_ipython
-cmdsend = get_ipython().user_ns["cmdsend"]
-datarcv = get_ipython().user_ns["datarcv"]
-trough_lock = get_ipython().user_ns["trough_lock"]
+cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
+datarcv = get_ipython().user_ns["Trough_Control"].datarcv
+trough_lock = get_ipython().user_ns["Trough_Control"].trough_lock
 # Places to put calibrations data
-pos_x = [] # raw value
-pos_y = [] # actual (cm separation)
+open_pos_x = [] # raw value
+open_pos_y = [] # actual (cm separation = [] # raw value
+close_pos_x = [] # raw value
+close_pos_y = [] # actual (cm separation)
 open_speed_x = [] # setting
 open_speed_y = [] # fractional speed/min
 close_speed_x = [] # setting
@@ -34,13 +36,10 @@ def Monitor_Setup_Trough(calibrations):
         The object containing the calibrations be used and modified. See
         `Trough_GUI.calibration_utils`.
     """
-    from ipywidgets import Layout, Box, HBox, VBox, GridBox, Tab, Accordion, \
-        Dropdown, Label, Text, Button, Checkbox, FloatText, RadioButtons, \
-        BoundedIntText, BoundedFloatText
+    from ipywidgets import Layout, HBox, VBox, Accordion, \
+        Label, Text, Button,  FloatText
     from ipywidgets import HTML as richLabel
-    from ipywidgets import HTMLMath as texLabel
-    from IPython.display import display, HTML
-    from IPython.display import Javascript as JS
+    from IPython.display import display
 
     # Boilerplate style for long descriptions on ipywidget
     longdesc = {'description_width': 'initial'}
@@ -116,35 +115,58 @@ def Monitor_Setup_Trough(calibrations):
                                               Bar_Area_per_Molec])],
                                layout=Layout(border="solid"))
 
-
-
     Move_Barrier = HBox(children=[VBox(children=[Barr_Direction, Barr_Target]),
                         VBox(children=[Barr_Units, Barr_Speed]),
                                    VBox(children=[Barr_Start,Barr_Stop])])
     # Barrier Calibration
-    open_steps = [{"speed":0.1, "target":0.5, "speed_data":True, "position":False},
-                   {"speed":1.0, "target":0.10, "speed_data":True, "position":True},
-                   {"speed": 0.2, "target": 0.15, "speed_data": True, "position": False},
-                   {"speed": 0.9, "target": 0.30, "speed_data": True, "position": True},
-                   {"speed": 0.3, "target": 0.35, "speed_data": True, "position": False},
-                   {"speed": 0.8, "target": 0.50, "speed_data": True, "position": True},
-                   {"speed": 0.4, "target": 0.55, "speed_data": True, "position": False},
-                   {"speed": 0.7, "target": 0.70, "speed_data": True, "position": True},
-                   {"speed": 0.5, "target": 0.80, "speed_data": True, "position": False},
-                   {"speed": 0.6, "target": 0.90, "speed_data": True, "position": True}]
-    close_steps = [{"speed":0.1, "target":0.95, "speed_data":True, "position":False},
-                   {"speed":1.0, "target":0.80, "speed_data":True, "position":True},
-                   {"speed": 0.2, "target": 0.75, "speed_data": True, "position": False},
-                   {"speed": 0.9, "target": 0.60, "speed_data": True, "position": True},
-                   {"speed": 0.3, "target": 0.55, "speed_data": True, "position": False},
-                   {"speed": 0.8, "target": 0.40, "speed_data": True, "position": True},
-                   {"speed": 0.4, "target": 0.35, "speed_data": True, "position": False},
-                   {"speed": 0.7, "target": 0.20, "speed_data": True, "position": True},
-                   {"speed": 0.5, "target": 0.10, "speed_data": True, "position": False},
-                   {"speed": 0.6, "target": 0.0, "speed_data": True, "position": True}
+    open_steps = [{"speed":0.1, "target":0.05, "speed_data":True,
+                   "position":True},
+                   {"speed":0.5, "target":0.10, "speed_data":True,
+                    "position":True},
+                   {"speed": 0.2, "target": 0.20, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.9, "target": 0.30, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.3, "target": 0.40, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.8, "target": 0.50, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.4, "target": 0.60, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.7, "target": 0.70, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.5, "target": 0.80, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.6, "target": 0.90, "speed_data": True,
+                    "position": True},
+                   {"speed": 1.0, "target": 1.0, "speed_data": True,
+                    "position": True}
+                  ]
+    close_steps = [{"speed":0.1, "target":0.95, "speed_data":True,
+                    "position":True},
+                   {"speed":1.0, "target":0.85, "speed_data":True,
+                    "position":True},
+                   {"speed": 0.2, "target": 0.75, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.9, "target": 0.65, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.3, "target": 0.55, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.8, "target": 0.45, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.4, "target": 0.35, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.7, "target": 0.25, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.5, "target": 0.15, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.5, "target": 0.05, "speed_data": True,
+                    "position": True},
+                   {"speed": 0.6, "target": 0.0, "speed_data": True,
+                    "position": True}
                    ]
     calibrating_barr_direction = "close"
-    calibrating_barr_step = -1 # -1 is measure position at fully open
+    calibrating_barr_step = 0
 
     def _speed_only(speed, target, steps):
         """Collect data for a speed only step."""
@@ -177,7 +199,14 @@ def Monitor_Setup_Trough(calibrations):
                                        'temp_raw': datapkg[5][-1],
                                        'temp_dev': datapkg[6][-1],
                                        'messages': datapkg[7]}
-                        Trough_GUI.status_widgets.update_status(status_dict, calibrations)
+
+                        if calibrating_barr_direction == "open":
+                            Trough_GUI.lastdirection.value = 1
+                        else:
+                            Trough_GUI.lastdirection.value = -1
+                        Trough_GUI.status_widgets.update_status(status_dict,
+                                                                calibrations,
+                                                                Trough_GUI.lastdirection)
                         if abs(target - position[-1]) < 0.01:
                             moving = False
                         waiting = False
@@ -212,18 +241,15 @@ def Monitor_Setup_Trough(calibrations):
                 tempindex_start += 1
         if calibrating_barr_direction == 'open':
             open_speed_x.append(speed)
-            # speed fraction per minute
-            open_speed_y.append((position[tempindex_end] - \
-                                 position[tempindex_start]) / \
-                                (timestamp[tempindex_end] - \
-                                 timestamp[tempindex_start]) / 60)
+            # Can't calculate speeds until have distance calibration.
+            # Save [start_raw, end_raw, delta_time in seconds]
+            open_speed_y.append([position[tempindex_start], position[tempindex_end],
+                                (timestamp[tempindex_end] - timestamp[tempindex_start])])
         if calibrating_barr_direction == 'close':
             close_speed_x.append(speed)
             # speed fraction per minute
-            close_speed_y.append((position[tempindex_end] - \
-                                  position[tempindex_start]) / \
-                                 (timestamp[tempindex_end] - \
-                                  timestamp[tempindex_start]) / 60)
+            close_speed_y.append([position[tempindex_start], position[tempindex_end],
+                                (timestamp[tempindex_end] - timestamp[tempindex_start])])
         return
 
     def _get_position():
@@ -234,8 +260,12 @@ def Monitor_Setup_Trough(calibrations):
         while waiting:
             if datarcv.poll():
                 datapkg = datarcv.recv()
-                pos_y.append(Barr_Cal_Val.value)
-                pos_x.append(datapkg[1][-1])
+                if calibrating_barr_direction == 'close':
+                    close_pos_y.append(Barr_Cal_Val.value)
+                    close_pos_x.append(datapkg[1][-1])
+                elif calibrating_barr_direction == 'open':
+                    open_pos_y.append(Barr_Cal_Val.value)
+                    open_pos_x.append(datapkg[1][-1])
                 waiting = False
         trough_lock.release()
         return
@@ -259,16 +289,18 @@ def Monitor_Setup_Trough(calibrations):
             while float(Barr_Raw.value) < 1.0:
                 # We wait
                 pass
-            Barr_Cal_Butt.description = 'Keep'
-            Barr_Cal_Butt.disabled = False
-            return
+            # Barr_Cal_Butt.description = 'Keep'
+            # Barr_Cal_Butt.disabled = False
+            # return
         if calibrating_barr_direction == 'open':
             steps = open_steps
         elif calibrating_barr_direction == 'close':
             steps = close_steps
+
         if Barr_Cal_Butt.description == 'Keep':
             _get_position()
             calibrating_barr_step += 1
+
         # Move barriers according to step and collect some data
         if calibrating_barr_step < len(steps):
 
@@ -305,7 +337,7 @@ def Monitor_Setup_Trough(calibrations):
                 calibrating_barr_step += 1
                 on_calib_barr({"clicked":True})
 
-    # Update step information
+        # Update step information
         if calibrating_barr_step > len(steps)-1:
             # next time we will go the other way
             if calibrating_barr_direction == 'open':
@@ -313,15 +345,74 @@ def Monitor_Setup_Trough(calibrations):
             elif calibrating_barr_direction == 'close':
                 calibrating_barr_direction = 'open'
                 calibrating_barr_step = 0
+                Barr_Cal_Butt.description = "Moving..."
+                Barr_Cal_Butt.disabled = True
                 on_calib_barr({"clicked":True})
-        # TODO: do the fitting and save the data
-        # print("Direction: " + str(calibrating_barr_direction))
-        # print("Step: " + str(calibrating_barr_step))
-        # If we are done  calculate calibrations, clean up and reset the buttons
+
+
         if calibrating_barr_direction == 'done':
-            # print("Open speed Cal data. X: " + str(open_speed_x) + "Y: "+ str(open_speed_y))
-            # print("Close speed Cal data. X: " + str(close_speed_x) + "Y: " + str(close_speed_y))
-            # print("Postions Cal data. X:" + str(pos_x) + "Y: " + str(pos_y))
+            # fitting and save the data
+            from pathlib import Path
+            cal_path = Path('~/.Trough/calibrations').expanduser()
+            # Opening Positions
+            params, stdev = calibrations.poly_fit(open_pos_x, open_pos_y, 3, 0.1)
+            inv_params, inv_stdev = calibrations.poly_fit(open_pos_y,
+                                                          open_pos_x, 3, 0.001)
+            calibrations.barriers_open = Trough_GUI.calibration_utils.\
+                Calibration(
+                'barriers_open', 'cm', time.time(), params, stdev, inv_params,
+                inv_stdev, open_pos_x, open_pos_y, additional_data={
+                    "trough width (cm)": float(Trough_Width.value),
+                    "skimmer correction (cm^2)": float(Skimer_Correction.value)}
+            )
+            calibrations.write_cal(cal_path, calibrations.barriers_open)
+            # Closing Positions
+            params, stdev = calibrations.poly_fit(close_pos_x, close_pos_y, 3, 0.1)
+            inv_params, inv_stdev = calibrations.poly_fit(close_pos_y,
+                                                          close_pos_x, 3, 0.001)
+            calibrations.barriers_close = Trough_GUI.calibration_utils.\
+                Calibration(
+                'barriers_close', 'cm', time.time(), params, stdev, inv_params,
+                inv_stdev, close_pos_x, close_pos_y, additional_data={
+                    "trough width (cm)": float(Trough_Width.value),
+                    "skimmer correction (cm^2)": float(Skimer_Correction.value)}
+            )
+            calibrations.write_cal(cal_path, calibrations.barriers_close)
+            # Opening Speeds
+            speed_cm_per_min = []
+            for k in open_speed_y:
+                start = calibrations.barriers_open.cal_apply(k[0],0)[0]
+                end = calibrations.barriers_open.cal_apply(k[1],0)[0]
+                speed_cm_per_min.append(abs(start - end)*60/k[2])
+            params, stdev = calibrations.poly_fit(open_speed_x, speed_cm_per_min, 3, 0.01)
+            inv_params, inv_stdev = calibrations.poly_fit(speed_cm_per_min,
+                                                          open_speed_x, 3, 0.001)
+            calibrations.speed_open = Trough_GUI.calibration_utils.Calibration(
+                'speed_open', 'cm/min', time.time(), params, stdev, inv_params,
+                inv_stdev, open_speed_x, speed_cm_per_min)
+            calibrations.write_cal(cal_path, calibrations.speed_open)
+            # Closing Speeds
+            speed_cm_per_min = []
+            for k in close_speed_y:
+                start = calibrations.barriers_close.cal_apply(k[0],0)[0]
+                end = calibrations.barriers_close.cal_apply(k[1],0)[0]
+                speed_cm_per_min.append(abs(start - end)*60/k[2])
+            params, stdev = calibrations.poly_fit(close_speed_x, speed_cm_per_min,
+                                                  3, 0.01)
+            inv_params, inv_stdev = calibrations.poly_fit(speed_cm_per_min,
+                                                          close_speed_x, 3, 0.001)
+            calibrations.speed_close = Trough_GUI.calibration_utils.Calibration(
+                'speed_close', 'cm/min', time.time(), params, stdev, inv_params,
+                inv_stdev, close_speed_x, speed_cm_per_min)
+            calibrations.write_cal(cal_path, calibrations.speed_close)
+
+            # Calibrations have been updated so restart the status watcher
+            Trough_GUI.run_updater.value = False
+            while Trough_GUI.updater_running.value:
+                # We wait
+                pass
+            Trough_GUI.start_status_updater()
+
             Barr_Cal_Butt.description = 'Start Calibration'
             Barr_Cal_Butt.disabled = False
             calibrating_barr_direction = 'close'
@@ -331,11 +422,11 @@ def Monitor_Setup_Trough(calibrations):
     Barr_Cal_Val = FloatText(description = "Measured Barrier Separation (cm)",
                             step = 0.01, disabled = False, style = longdesc)
     Trough_Width = FloatText(description="Trough width (cm)",
-                                value=calibrations.barriers.\
+                                value=calibrations.barriers_open.\
                                 additional_data['trough width (cm)'],
                                 disabled = False, style = longdesc)
     Skimer_Correction = FloatText(description = "Skimmer Correction ($cm^2$)",
-                                value= calibrations.barriers.\
+                                value= calibrations.barriers_open.\
                                 additional_data['skimmer correction (cm^2)'],
                                 disabled=False, style=longdesc)
     Barr_Cal_Butt = Button(description = "Start Calibration")

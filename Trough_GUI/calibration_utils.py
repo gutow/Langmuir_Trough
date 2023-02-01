@@ -403,7 +403,8 @@ class Calibration:
 class Calibrations:
     def __init__(self):
         self.balance = self._create_cal('balance')
-        self.barriers = self._create_cal('barriers')
+        self.barriers_open = self._create_cal('barriers_open')
+        self.barriers_close = self._create_cal('barriers_close')
         self.temperature = self._create_cal('temperature')
         self.speed_open = self._create_cal('speed_open')
         self.speed_close = self._create_cal('speed_close')
@@ -416,7 +417,8 @@ class Calibrations:
         ----------
         name: str
             string name for the calibration type (current options: 'balance',
-            'barriers' or 'temperature').
+            'barriers_open', 'barriers_close', 'speed_open',
+            'speed_close' or 'temperature').
         """
         from pathlib import Path
         basepath = Path('~/.Trough/calibrations').expanduser()
@@ -437,14 +439,24 @@ class Calibrations:
             if name == 'balance':
                 calib = Calibration('balance', 'mg', 0, [-1.875,
                                    12.5], [0, 0], [0.15, 0.08],[0, 0],[], [])
-            elif name == 'barriers':
-                calib = Calibration('barriers', 'cm', 0, [2.85, 9.9],
-                        [0.07, 0.1],
-                        [-0.289, 0.101],
-                        [0.006, 0.001], [], [], additional_data={
-                        "trough width (cm)":9.525,
-                        "skimmer correction (cm^2)":-0.5})
-# 𝑓𝑖𝑡=(−0.41±0.05)+(0.18±0.04)𝑥+(−0.017±0.008)𝑥2+(0.0012±0.0007)𝑥3+((−3±2)×10−5)𝑥4
+            elif name == 'barriers_open':
+                calib = Calibration('barriers_open', 'cm', 0,
+                                    [2.82464693, 6.69130383, 15.2853999, -21.1208151, 8.88980052],
+                                    [0.00924811, 0.14164452, 0.62535698, 0.96585892, 0.47972807],
+                                    [-0.55434678, 0.28071635, -0.03813755, 0.00318368, -9.0986e-05],
+                                    [0.01263813, 0.00817224, 0.00180902, 1.6526e-04, 5.3290e-06], [], [],
+                                    additional_data={
+                                    "trough width (cm)":9.525,
+                                    "skimmer correction (cm^2)":-0.5})
+            elif name == 'barriers_close':
+                calib = Calibration('barriers_close', 'cm', 0,
+                                    [2.83251612, 8.41377796, 8.14408400, -10.8669094, 4.00818630],
+                                    [0.00971215, 0.19059196, 0.94421041, 1.52692244, 0.78492412],
+                                    [-0.39502418, 0.17268411, -0.01457292, 0.00106258, -2.3141e-05],
+                                    [0.01786868, 0.01221316, 0.00278932, 2.6067e-04, 8.5808e-06], [], [],
+                                    additional_data={
+                                    "trough width (cm)": 9.525,
+                                    "skimmer correction (cm^2)": -0.5})
             elif name == 'temperature':
                 calib = Calibration('temperature', 'C', 0, [7.7, 5], [0, 0],
                                     [-1.54, 0.2], [], [], [])
@@ -452,11 +464,12 @@ class Calibrations:
                 calib = Calibration('speed_open', 'cm/min', 0, [0, 9.85],
                                     [0, 0], [0, 0.1015], [0, 0], [], [])
             elif name == 'speed_close':
-                calib = Calibration('speed_close', 'cm/min', 0, [0, 6.57],
+                calib = Calibration('speed_close', 'cm/min', 0, [0.0, 6.57],
                                     [0, 0], [0, 0.1523], [0, 0], [], [])
             else:
-                raise ValueError('Valid names are "balance", "barriers", '
-                                 '"temperature", "speed_open", or "speed_close".')
+                raise ValueError('Valid names are "balance", "barriers_open", '
+                                 '"barriers_close", "temperature", "speed_open"'
+                                 ', or "speed_close".')
         return calib
 
     def read_cal(self, name):
@@ -467,7 +480,8 @@ class Calibrations:
         Parameters
         ----------
         name: str
-            either the basename (current options: 'balance', 'barriers' or
+            either the basename (current options: 'balance', 'barriers_open',
+             'barriers_close', 'speed_open', 'speed_close' or
             'temperature') or a string representation of the path to the
             calibration file to be read. If one of the basenames is used
             this code will look for the most recent calibration of that type
@@ -511,7 +525,7 @@ class Calibrations:
             calibration to write to the file.
 
         kwargs:
-            optional key word arguments for future adaptibility
+            optional key word arguments for future adaptability
         """
         from pathlib import Path
         fileext = '.trh.cal.html'
@@ -524,7 +538,7 @@ class Calibrations:
         f.close()
         pass
 
-    def poly_fit(self, data_x, data_y, order):
+    def poly_fit(self, data_x, data_y, order, yerr=None):
         """Does a polynomial fit of the specified order using the x and y
         values provided.
 
@@ -538,6 +552,10 @@ class Calibrations:
 
         order: int
             the order of the polynomical used for fitting.
+
+        yerr: float or iterable of float
+            absolute error(s) in the y-value. Used to weight the fit. If no
+            values are provided the assumption is equal weighting.
 
         Returns
         -------
@@ -556,8 +574,18 @@ class Calibrations:
         for k in range(0, order+1):
             fitmod.set_param_hint("c"+str(k), vary=True, value=0.0)
 
+        # Set the weighting if errors provided
+        weighting = None
+        if yerr:
+            from collections.abc import Iterable
+            if isinstance(yerr, Iterable):
+                weighting = 1/np.array(yerr)
+            else:
+                weighting = np.array(data_y)*0 + 1/yerr
+
         # Do fit
         fit = fitmod.fit(np.array(data_y), x=np.array(data_x),
+                         weights=weighting,
                          nan_policy="omit")
         param = (order+1)*[None]
         param_stdev = (order+1)*[None]

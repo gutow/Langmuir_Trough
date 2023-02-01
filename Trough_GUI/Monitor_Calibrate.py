@@ -408,7 +408,7 @@ def Monitor_Setup_Trough(calibrations):
 
             # Calibrations have been updated so restart the status watcher
             Trough_GUI.run_updater.value = False
-            while Trough_GUI.updater_running.Value:
+            while Trough_GUI.updater_running.value:
                 # We wait
                 pass
             Trough_GUI.start_status_updater()

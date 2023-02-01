@@ -96,21 +96,21 @@ def update_status(raw_data:dict, calibrations, lastdirection):
             sep_cm = calibrations.barriers_close.cal_apply(raw_data['barr_raw'],
                                                      raw_data['barr_dev'])[0]
             area_cm_sq_error = raw_data['barr_dev'] * \
-                               calibrations.barriers_close. \
-                               additional_data["trough width (cm)"]
-            area_cm_sq = sep_cm * calibrations.barriers_close. \
-                         additional_data["trough width (cm)"] - \
-                         calibrations.barriers_close. \
-                         additional_data["skimmer correction (cm^2)"]
+                               float(calibrations.barriers_close. \
+                               additional_data["trough width (cm)"])
+            area_cm_sq = sep_cm * float(calibrations.barriers_close. \
+                         additional_data["trough width (cm)"]) - \
+                         float(calibrations.barriers_close. \
+                         additional_data["skimmer correction (cm^2)"])
         else:
             sep_cm = calibrations.barriers_open.cal_apply(raw_data['barr_raw'],
                                                      raw_data['barr_dev'])[0]
-            area_cm_sq_error = raw_data['barr_dev'] * calibrations. \
+            area_cm_sq_error = raw_data['barr_dev'] * float(calibrations. \
                                barriers_open.additional_data[ \
-                               "trough width (cm)"]
-            area_cm_sq = sep_cm * calibrations.barriers_open.additional_data[ \
-                     "trough width (cm)"] - calibrations.barriers_open. \
-                     additional_data["skimmer correction (cm^2)"]
+                               "trough width (cm)"])
+            area_cm_sq = sep_cm * float(calibrations.barriers_open.additional_data[ \
+                     "trough width (cm)"]) - float(calibrations.barriers_open. \
+                     additional_data["skimmer correction (cm^2)"])
         area_per_molec_ang_sq_error = area_cm_sq_error*1e16/moles_molec.value/6.02214076e23
         area_per_molec_ang_sq = area_cm_sq*1e16/moles_molec.value/6.02214076e23
         Bar_Sep.value = str(sep_cm)

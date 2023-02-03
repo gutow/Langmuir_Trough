@@ -16,6 +16,8 @@ close_speed_x = [] # setting
 close_speed_y = [] # fractional speed/min
 cal_bal_x = []
 cal_bal_y = []
+cal_temp_x = []
+cal_temp_y = []
 
 def Monitor_Setup_Trough(calibrations):
     """
@@ -56,6 +58,8 @@ def Monitor_Setup_Trough(calibrations):
     def on_calib_bal(change):
         if Bal_Cal_Butt.description == 'Start Calibration':
             Bal_Cal_Butt.description = 'Keep'
+            cal_bal_x = []
+            cal_bal_y = []
             return
         if Bal_Cal_Butt.description == 'Keep':
             Bal_Cal_Butt.description = 'Acquiring...'
@@ -121,16 +125,60 @@ def Monitor_Setup_Trough(calibrations):
     Cal_Bal.set_title(0,'Calibrate Balance')
     Cal_Bal.selected_index = None
 
+    # Temperature Calibration
+    def on_calib_temp(change):
+        if Temp_Cal_Butt.description == 'Start Calibration':
+            Temp_Cal_Butt.description = 'Keep'
+            cal_temp_x =[]
+            cal_temp_y = []
+            return
+        if Temp_Cal_Butt.description == 'Keep':
+            Temp_Cal_Butt.description = 'Acquiring...'
+            trough_lock.acquire()
+            cmdsend.send(['Send', ''])
+            waiting = True
+            while waiting:
+                if datarcv.poll():
+                    datapkg = datarcv.recv()
+                    cal_temp_y.append(Temp_Cal_Val.value)
+                    cal_temp_x.append(datapkg[5][-1])
+                    waiting = False
+            trough_lock.release()
+            Temp_Cal_Butt.description = 'Keep'
+        if len(cal_temp_x) == 5:
+            # we're done do calibrations
+            # fit and save the data
+            from pathlib import Path
+            import time
+            cal_path = Path('~/.Trough/calibrations').expanduser()
+            params, stdev = calibrations.poly_fit(cal_temp_x, cal_temp_y, 3, 0.1)
+            inv_params, inv_stdev = calibrations.poly_fit(cal_temp_y,
+                                                          cal_temp_x, 3, 0.001)
+            calibrations.temperature = Trough_GUI.calibration_utils. \
+                Calibration(
+                'temperature', 'C', time.time(), params, stdev, inv_params,
+                inv_stdev, cal_temp_x, cal_temp_y)
+            calibrations.write_cal(cal_path, calibrations.temperature)
+
+            # Calibrations have been updated so restart the status watcher
+            Trough_GUI.run_updater.value = False
+            while Trough_GUI.updater_running.value:
+                # We wait
+                pass
+            Trough_GUI.start_status_updater()
+
+            Temp_Cal_Butt.description = 'Start Calibration'
+        return
+
     # Temperature Monitoring
     temp_label = Label(value = "TEMPERATURE:")
     Temperature = HBox(children=[temp_label,degC],
                    layout = Layout(border="solid"))
     # Temperature Calibration
-    Temp_Raw = Text(description ="Temperature Raw (V)", disabled = True,
-                    style = longdesc)
     Temp_Cal_Val = FloatText(description = "Actual $^o C$", disabled = False,
                              step = 0.01, style = longdesc)
     Temp_Cal_Butt = Button(description = "Start Calibration")
+    Temp_Cal_Butt.on_click(on_calib_temp)
     Temp_Cal_Instr = richLabel(value = '<ol><li>Gather 5 liquid temperature '
                                        'references.</li>'
                                        '<li>Click "Start Calibration".</li>'
@@ -324,6 +372,12 @@ def Monitor_Setup_Trough(calibrations):
             # begin the calibration by opening the trough
             Barr_Cal_Butt.description = 'Moving...'
             Barr_Cal_Butt.disabled = True
+            close_pos_x = []
+            open_pos_y = []
+            close_speed_x = []
+            open_speed_x = []
+            close_speed_y = []
+            open_speed_y = []
             trough_lock.acquire()
             cmdsend.send(['Speed', 1.0])
             cmdsend.send(['Direction', 1.0])

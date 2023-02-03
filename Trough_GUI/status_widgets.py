@@ -30,6 +30,8 @@ def set_zero_pressure(change):
 zero_press = Button(description="Zero Pressure")
 zero_press.on_click(set_zero_pressure)
 
+Temp_Raw = Text(description="Temperature Raw", disabled=True,
+                style=longdesc)
 degC = Text(description="$^o C$",
             disabled=True,
             style=longdesc)
@@ -83,6 +85,8 @@ def update_status(raw_data:dict, calibrations, lastdirection):
         if calibrations.temperature.units != 'C':
             raise ValueError('Expected temperature to be calibrated in C. '
                              'Instead got ' + calibrations.temperature.units + '.')
+        Temp_Raw.value = rndwitherr(raw_data['temp_raw'], raw_data['temp_dev'],
+                                         lowmag=-4, highmag=4)[0]
         degC.value = str(calibrations.temperature.cal_apply(raw_data['temp_raw'],
                                                           raw_data['temp_dev'])[0])
         Barr_Raw.value = rndwitherr(raw_data['barr_raw'], raw_data['barr_dev'],

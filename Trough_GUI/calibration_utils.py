@@ -458,8 +458,8 @@ class Calibrations:
                                     "trough width (cm)": 9.525,
                                     "skimmer correction (cm^2)": -0.5})
             elif name == 'temperature':
-                calib = Calibration('temperature', 'C', 0, [7.7, 5], [0, 0],
-                                    [-1.54, 0.2], [], [], [])
+                calib = Calibration('temperature', 'C', 0, [-1.083, 6.555], [0, 0],
+                                    [0.9521, 0.14786], [], [], [])
             elif name == 'speed_open':
                 calib = Calibration('speed_open', 'cm/min', 0, [0, 9.85],
                                     [0, 0], [0, 0.1015], [0, 0], [], [])
@@ -585,7 +585,7 @@ class Calibrations:
 
         # Do fit
         fit = fitmod.fit(np.array(data_y), x=np.array(data_x),
-                         weights=weighting,
+                         weights=weighting, scale_covar = False,
                          nan_policy="omit")
         param = (order+1)*[None]
         param_stdev = (order+1)*[None]

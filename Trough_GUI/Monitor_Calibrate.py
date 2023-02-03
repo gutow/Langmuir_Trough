@@ -5,19 +5,6 @@ from IPython import get_ipython
 cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
 datarcv = get_ipython().user_ns["Trough_Control"].datarcv
 trough_lock = get_ipython().user_ns["Trough_Control"].trough_lock
-# Places to put calibrations data
-open_pos_x = [] # raw value
-open_pos_y = [] # actual (cm separation = [] # raw value
-close_pos_x = [] # raw value
-close_pos_y = [] # actual (cm separation)
-open_speed_x = [] # setting
-open_speed_y = [] # fractional speed/min
-close_speed_x = [] # setting
-close_speed_y = [] # fractional speed/min
-cal_bal_x = []
-cal_bal_y = []
-cal_temp_x = []
-cal_temp_y = []
 
 def Monitor_Setup_Trough(calibrations):
     """
@@ -46,6 +33,20 @@ def Monitor_Setup_Trough(calibrations):
     from ipywidgets import HTML as richLabel
     from IPython.display import display
 
+    # Places to put calibrations data
+    open_pos_x = []  # raw value
+    open_pos_y = []  # actual (cm separation = [] # raw value
+    close_pos_x = []  # raw value
+    close_pos_y = []  # actual (cm separation)
+    open_speed_x = []  # setting
+    open_speed_y = []  # fractional speed/min
+    close_speed_x = []  # setting
+    close_speed_y = []  # fractional speed/min
+    cal_bal_x = []
+    cal_bal_y = []
+    cal_temp_x = []
+    cal_temp_y = []
+
     # Boilerplate style for long descriptions on ipywidget
     longdesc = {'description_width': 'initial'}
 
@@ -56,6 +57,8 @@ def Monitor_Setup_Trough(calibrations):
                    layout = Layout(border="solid"))
     # Balance Calibration
     def on_calib_bal(change):
+        nonlocal cal_bal_x
+        nonlocal cal_bal_y
         if Bal_Cal_Butt.description == 'Start Calibration':
             Bal_Cal_Butt.description = 'Keep'
             cal_bal_x = []
@@ -127,6 +130,8 @@ def Monitor_Setup_Trough(calibrations):
 
     # Temperature Calibration
     def on_calib_temp(change):
+        nonlocal cal_temp_x
+        nonlocal cal_temp_y
         if Temp_Cal_Butt.description == 'Start Calibration':
             Temp_Cal_Butt.description = 'Keep'
             cal_temp_x =[]

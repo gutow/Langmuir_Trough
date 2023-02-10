@@ -191,7 +191,7 @@ def Run(run_name):
             x_units = 'Time (s)'
             x_min = 0
             x_max = 5
-        Trough_GUI.runs[id].livefig.update_yaxes(title = "$\Pi$ (mN/m)",
+        Trough_GUI.runs[id].livefig.update_yaxes(title = "$\Pi\,(mN/m)$",
                                                  range=[0, 60])
         Trough_GUI.runs[id].livefig.update_xaxes(title=x_units,
                                                  range=[x_min,x_max])

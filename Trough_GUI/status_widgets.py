@@ -102,9 +102,9 @@ def update_status(raw_data:dict, calibrations, lastdirection):
                              'Instead got ' + calibrations.barriers.units + '.')
         if lastdirection.value < 0:
             # barriers were or are closing
-            sep_cm = calibrations.barriers_close.cal_apply(raw_data['barr_raw'],
-                                                     raw_data['barr_dev'])[0]
-            area_cm_sq_error = raw_data['barr_dev'] * \
+            sep_cm, sep_cm_stdev = calibrations.barriers_close.cal_apply(
+                raw_data['barr_raw'],raw_data['barr_dev'])
+            area_cm_sq_error = sep_cm_stdev * \
                                float(calibrations.barriers_close. \
                                additional_data["trough width (cm)"])
             area_cm_sq = sep_cm * float(calibrations.barriers_close. \
@@ -112,9 +112,9 @@ def update_status(raw_data:dict, calibrations, lastdirection):
                          float(calibrations.barriers_close. \
                          additional_data["skimmer correction (cm^2)"])
         else:
-            sep_cm = calibrations.barriers_open.cal_apply(raw_data['barr_raw'],
-                                                     raw_data['barr_dev'])[0]
-            area_cm_sq_error = raw_data['barr_dev'] * float(calibrations. \
+            sep_cm, sep_cm_stdev = calibrations.barriers_open.cal_apply(
+                raw_data['barr_raw'],raw_data['barr_dev'])
+            area_cm_sq_error = sep_cm_stdev * float(calibrations. \
                                barriers_open.additional_data[ \
                                "trough width (cm)"])
             area_cm_sq = sep_cm * float(calibrations.barriers_open.additional_data[ \

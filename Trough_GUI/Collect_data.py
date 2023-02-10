@@ -44,9 +44,9 @@ class trough_run():
         self.speed = speed
         self.moles = moles
         self.plate_circ = plate_circ
-        self.livefig = go.FigureWidget()
+        self.livefig = go.FigureWidget(layout_template='simple_white')
         self.df = dataframe
-        # TODO load data into livefig if there is any
+        # TODO load data into livefig if there is any?
 
     @classmethod
     def from_html(self, html):
@@ -124,14 +124,23 @@ def Run(run_name):
     store_settings = Button(description="Fix Settings")
     # Run control button
     def on_run_start_stop(change):
-        # TODO take over status updating
-        # TODO Start run (show or convert to stop button)
+        # Check if we are stopping a run
         if run_start_stop.description == "Stop":
             on_stop_run()
             return
+        # TODO take over status updating
+        # First shutdown currently running updater
+        if Trough_GUI.updater_running.value:
+            Trough_GUI.run_updater.value = False
+            while Trough_GUI.updater_running.value:
+                # wait
+                pass
+        # TODO Start run
+        # Convert "Start" to "Stop" button
         run_start_stop.description = "Stop"
         run_start_stop.button_style = "danger"
         # TODO display data as collected and periodically update status widgets
+        # spawn updater thread that updates both status widgets and the figure.
         return
 
     def on_stop_run():
@@ -199,7 +208,7 @@ def Run(run_name):
         #   with fixed param and start run button.
         clear_output()
         display(HTML(headerhtmlstr))
-        Trough_GUI.runs[id].livefig.show()
+        display(Trough_GUI.runs[id].livefig)
         display(collect_control)
         return
 
@@ -214,3 +223,93 @@ def Run(run_name):
     display(top_HBox, status_Acc, settings_Acc)
 
     return
+
+def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
+                   run_updater, updater_running, run):
+    """This is run in a separate thread and will update the figure and
+    all status widgets every 2 seconds or when it can get access to the pipes
+    to talk to the trough.
+
+    Parameters
+    ----------
+    trough_lock: threading.lock
+        When acquired this routine will talk to the trough. Releases it for
+        other processes after every update.
+
+    cmdsend: Pipe
+        End of Pipe to send commands to the Trough.
+
+    datarcv: Pipe
+        End of Pipe to receive data from the Trough.
+
+    cals: Trough_GUI.calibrations
+        Used to convert the data to user units.
+
+    lastdirection: multiprocessing.Value
+        Of type 'i' to indicate last direction the barriers moved.
+
+    run_updater: multiprocessing.Value
+        Of type 'c_bool'. True if this updater should keep running.
+
+    updater_running: multiprocessing.Value
+        Of type 'c_bool'. Set to True by this process when it starts
+        and set to False before exiting.
+
+    run: trough_run
+        This object contains the live figure and the place to store the data.
+    """
+    import time
+    # Set the shared I'm running flag.
+    updater_running.value = True
+    trough_lock.acquire()
+    while run_updater.value:
+        min_next_time = time.time() + 2.0
+        cmdsend.send(['Send',''])
+        waiting = True
+        while waiting:
+            if datarcv.poll():
+                datapkg =datarcv.recv()
+                # TODO change to update figure and then call update_status
+                if len(datapkg[1]) >= 1:
+                    update_collection(datapkg, cals, lastdirection, run)
+                    update_dict = {'barr_raw':datapkg[1][-1],
+                                   'barr_dev':datapkg[2][-1],
+                                   'bal_raw':datapkg[3][-1],
+                                   'bal_dev':datapkg[4][-1],
+                                   'temp_raw':datapkg[5][-1],
+                                   'temp_dev':datapkg[6][-1],
+                                   'messages':datapkg[7]}
+                else:
+                    # No updated data, so just pass messages
+                    update_dict = {'messages':datapkg[7]}
+                update_status(update_dict, cals, lastdirection)
+                waiting = False
+        if time.time()< min_next_time:
+            time.sleep(min_next_time - time.time())
+    # Release lock and set the shared I'm running flag to False before exiting.
+    trough_lock.release()
+    updater_running.value = False
+    return
+
+def update_collection(datapkg, cals, lastdirection, run):
+    """Updates the graph and the data storage"""
+    from pandas import DataFrame
+    import numpy as np
+    # TODO do all the calculations on the new data
+    time_stamp = np.array(datapkg[0])
+    pos_raw = np.array(datapkg[1])
+    pos_raw_stdev = np.array(datapkg[2])
+    bal_raw = np.array(datapkg[3])
+    bal_raw_stdev = np.array(datapkg[4])
+    temp_raw = np.array(datapkg[5])
+    temp_raw_stdev = np.array(datapkg[6])
+    sep_cm = None
+    sep_cm_stdev = None
+    if lastdirection.value < 0:
+        sep_cm, sep_cm_stdev = cals.barriers_close.cal_apply(pos_raw,
+                                                             pos_raw_stdev)
+    else:
+        sep_cm, sep_cm_stdev = cals.barriers_close.cal_apply(pos_raw,
+                                                             pos_raw_stdev)
+    area_sqcm = sep_cm*float(cals.barriers_open.additional_data[ \
+                               "trough width (cm)"])

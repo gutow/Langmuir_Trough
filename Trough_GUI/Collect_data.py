@@ -194,6 +194,7 @@ def Run(run_name):
         trough_lock.acquire()
         direction = 0
         tempspeed = 0
+        speed = 0
         skimmer_correction = float(Trough_GUI.calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
         width = float(Trough_GUI.calibrations.barriers_open.additional_data["trough width (cm)"])
         target_speed = float(Barr_Speed.value)
@@ -208,11 +209,12 @@ def Run(run_name):
             tempspeed = (target_speed - skimmer_correction) / width / 1e16 * moles_molec * 6.02214076e23
         if direction < 0:
             target = Trough_GUI.calibrations.barriers_close.cal_inv(float(Barr_Target.value),0)[0]
-            tempspeed = Trough_GUI.calibrations.speed_close.cal_inv(tempspeed,0)[0]
+            speed = Trough_GUI.calibrations.speed_close.cal_inv(tempspeed,0)[0]
         else:
             target = Trough_GUI.calibrations.barriers_open.cal_inv(float(Barr_Target.value), 0)[0]
-            tempspeed = Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
-        cmdsend.send(['Speed', tempspeed])
+            speed = Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
+        cmdsend.send(['Speed', speed])
+        cmdsend.send(['Direction', direction])
         cmdsend.send(['MoveTo', target])
         trough_lock.release()
         # display data as collected and periodically update status widgets
@@ -234,7 +236,7 @@ def Run(run_name):
         return
 
     def on_stop_run():
-        # TODO Stop run
+        # Stop run
         Trough_GUI.run_updater.value = False
         run_start_stop.description = "Done"
         run_start_stop.button_style = ""

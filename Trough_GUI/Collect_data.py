@@ -37,7 +37,8 @@ class trough_run():
         timestamp: None or int
         """
         from plotly import graph_objects as go
-        import time, datetime
+        import time
+        from datetime import datetime
         self.id = id
         self.filename = filename
         self.title = title
@@ -147,7 +148,7 @@ def Run(run_name):
     if datafilepath.exists():
         # TODO display the data as a live plotly plot.
         return
-    # TODO Build run setup GUI
+    # Build run setup GUI
     run_title = Text(description = "Run Title",
                      value = str(run_name),
                      disabled = False)
@@ -172,6 +173,7 @@ def Run(run_name):
     # Run control button
     def on_run_start_stop(change):
         from threading import Thread
+        from numpy import sign
         # Check if we are stopping a run
         if run_start_stop.description == "Stop":
             on_stop_run()
@@ -188,9 +190,31 @@ def Run(run_name):
         Trough_GUI.run_updater.value = True
         run_start_stop.description = "Stop"
         run_start_stop.button_style = "danger"
+        # start barriers
+        trough_lock.acquire()
+        direction = 0
+        tempspeed = 0
+        skimmer_correction = float(Trough_GUI.calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
+        width = float(Trough_GUI.calibrations.barriers_open.additional_data["trough width (cm)"])
+        if Barr_Units.value == 'cm':
+            direction = int(sign(float(Barr_Target.value)-float(Bar_Sep.value)))
+            tempspeed = float(Barr_Speed.value)
+        elif Barr_Units.value == "cm^2":
+            direction = int(sign(float(Barr_Target.value)-float(Bar_Area.value)))
+            tempspeed = (Barr_Speed.value - skimmer_correction) / width
+        elif Barr_Units.value == "Angstrom^2/molec":
+            direction = int(sign(float(Barr_Target.value)-float(Bar_Area_per_Molec.value)))
+            tempspeed = (Barr_Speed.value - skimmer_correction) / width / 1e16 * moles_molec * 6.02214076e23
+        if direction < 0:
+            target = Trough_GUI.calibrations.barriers_close.cal_inv(float(Barr_Target.value),0)[0]
+        else:
+            target = Trough_GUI.calibrations.barriers_open.cal_inv(float(Barr_Target.value), 0)[0]
+        cmdsend.send(['Speed', tempspeed])
+        cmdsend.send(['MoveTo', target])
+        trough_lock.release()
         # display data as collected and periodically update status widgets
         # spawn updater thread that updates both status widgets and the figure.
-        updater = Thread(collect_data_updater, arg=(trough_lock, cmdsend,
+        updater = Thread(target=collect_data_updater, args=(trough_lock, cmdsend,
                                                     datarcv,
                                                     Trough_GUI.calibrations,
                                                     Trough_GUI.lastdirection,
@@ -208,6 +232,10 @@ def Run(run_name):
 
     def on_stop_run():
         # TODO Stop run
+        Trough_GUI.run_updater.value = False
+        run_start_stop.description = "Done"
+        run_start_stop.button_style = ""
+        run_start_stop.disabled = True
         # TODO Store data
         # TODO Display final data
         # TODO release status updating
@@ -228,14 +256,14 @@ def Run(run_name):
         # Create the collection display
         headerhtmlstr = ''
         headerhtmlstr += '<table><tr><th>Run ID</th><th>Title</th>'
-        headerhtmlstr += '<th>Storage File Name</th></tr>'
+        headerhtmlstr += '<th>Storage File Name</th>'
+        headerhtmlstr += '<th>Target (' + Barr_Units.value + ')</th>'
+        headerhtmlstr += '<th>Speed (' + Barr_Units.value + '/min)</th>'
+        headerhtmlstr += '<th>Moles</th><th>Plate Circumference (mm)</th></tr>'
         headerhtmlstr += '<tr><td>'+str(id)+ '</td>'
         headerhtmlstr += '<td>'+run_title.value+'</td>'
-        headerhtmlstr += '<td>'+run_name+'</td></tr></table>'
-        headerhtmlstr += '<table><tr><th>Target ('+Barr_Units.value + ')</th>'
-        headerhtmlstr += '<th>Speed ('+Barr_Units.value + '/min)</th>'
-        headerhtmlstr += '<th>Moles</th><th>Plate Circumference (mm)</th></tr>'
-        headerhtmlstr += '<tr><td>' +str(Barr_Target.value)+'</td>'
+        headerhtmlstr += '<td>'+run_name+'</td>'
+        headerhtmlstr += '<td>' +str(Barr_Target.value)+'</td>'
         headerhtmlstr += '<td>' + str(Barr_Speed.value)+ '</td>'
         headerhtmlstr += '<td>' + str(moles_molec.value)+ '</td>'
         headerhtmlstr += '<td>' +str(plate_circumference.value) + '</td></tr>'
@@ -254,11 +282,11 @@ def Run(run_name):
         x_min = 0
         x_max = 1
         if float(Barr_Target.value) < float(position.value):
-            x_min = float(Barr_Target.value)
-            x_max = float(position.value)
+            x_min = 0.98*float(Barr_Target.value)
+            x_max = 1.02*float(position.value)
         else:
-            x_min = float(position.value)
-            x_max = float(Barr_Target.value)
+            x_min = 0.98*float(position.value)
+            x_max = 1.02*float(Barr_Target.value)
         if float(Barr_Speed.value) == 0:
             x_units = 'Time (s)'
             x_min = 0
@@ -267,6 +295,7 @@ def Run(run_name):
                                                  range=[0, 60])
         Trough_GUI.runs[id].livefig.update_xaxes(title=x_units,
                                                  range=[x_min,x_max])
+        Trough_GUI.runs[id].livefig.add_scatter(x=[],y=[])
         # Clear output and display collection
         #   with fixed param and start run button.
         clear_output()
@@ -378,6 +407,8 @@ def update_collection(datapkg, cals, lastdirection, run):
     else:
         sep_cm, sep_cm_stdev = cals.barriers_close.cal_apply(pos_raw,
                                                              pos_raw_stdev)
+    sep_cm = np.array(sep_cm)
+    sep_cm_stdev = np.array(sep_cm_stdev)
     area_sqcm = sep_cm*float(cals.barriers_open.additional_data[ \
                                "trough width (cm)"])
     area_sqcm_stdev = sep_cm_stdev*float(cals.barriers_open.additional_data[ \
@@ -387,6 +418,8 @@ def update_collection(datapkg, cals, lastdirection, run):
     area_per_molec_ang_sq_stdev = area_sqcm_stdev * 1e16 / moles_molec.value / 6.02214076e23
     area_per_molec_ang_sq = area_sqcm * 1e16 / moles_molec.value / 6.02214076e23
     mgrams, mgrams_err = cals.balance.cal_apply(bal_raw,bal_raw_stdev)
+    mgrams = np.array(mgrams)
+    mgrams_err = np.array(mgrams_err)
     surf_press_err = mgrams_err * 9.80665 / plate_circumference.value
     surf_press_data = (Trough_GUI.status_widgets.tare_pi-mgrams)*9.80665\
                       /plate_circumference.value

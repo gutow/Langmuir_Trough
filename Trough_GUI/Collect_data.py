@@ -196,19 +196,22 @@ def Run(run_name):
         tempspeed = 0
         skimmer_correction = float(Trough_GUI.calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
         width = float(Trough_GUI.calibrations.barriers_open.additional_data["trough width (cm)"])
+        target_speed = float(Barr_Speed.value)
         if Barr_Units.value == 'cm':
             direction = int(sign(float(Barr_Target.value)-float(Bar_Sep.value)))
-            tempspeed = float(Barr_Speed.value)
+            tempspeed = target_speed
         elif Barr_Units.value == "cm^2":
             direction = int(sign(float(Barr_Target.value)-float(Bar_Area.value)))
-            tempspeed = (Barr_Speed.value - skimmer_correction) / width
+            tempspeed = (target_speed - skimmer_correction) / width
         elif Barr_Units.value == "Angstrom^2/molec":
             direction = int(sign(float(Barr_Target.value)-float(Bar_Area_per_Molec.value)))
-            tempspeed = (Barr_Speed.value - skimmer_correction) / width / 1e16 * moles_molec * 6.02214076e23
+            tempspeed = (target_speed - skimmer_correction) / width / 1e16 * moles_molec * 6.02214076e23
         if direction < 0:
             target = Trough_GUI.calibrations.barriers_close.cal_inv(float(Barr_Target.value),0)[0]
+            tempspeed = Trough_GUI.calibrations.speed_close.cal_inv(tempspeed,0)[0]
         else:
             target = Trough_GUI.calibrations.barriers_open.cal_inv(float(Barr_Target.value), 0)[0]
+            tempspeed = Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
         cmdsend.send(['Speed', tempspeed])
         cmdsend.send(['MoveTo', target])
         trough_lock.release()
@@ -238,7 +241,12 @@ def Run(run_name):
         run_start_stop.disabled = True
         # TODO Store data
         # TODO Display final data
-        # TODO release status updating
+        # release status updating and start the regular updater
+        while Trough_GUI.updater_running.value:
+            # we wait
+            pass
+        Trough_GUI.run_updater.value = True
+        Trough_GUI.start_status_updater()
         return
     run_start_stop = Button(description="Run",
                             button_style="success")
@@ -450,15 +458,19 @@ def update_collection(datapkg, cals, lastdirection, run):
     else:
         run.df = concat([run.df,newdata], ignore_index=True) # This may be
         # costly. If so make the data frame only at the end.
+        # TODO should I lock the dataframe or only make np.arrays until done.
     # update the graph
     x_data =[]
     y_data = run.df["Surface Pressure (mN/m)"]
-    if run.units == "cm":
-        x_data = run.df["Separation (cm)"]
-    if run.units == "cm^2":
-        x_data = run.df["Area (cm^2)"]
-    if run.units == "Angstrom^2/molec":
-        x_data = run.df["Area per molecule (A^2)"]
+    if run.speed == 0:
+        x_data = run.df["time_stamp"]-run.df["time_stamp"][0]
+    else:
+        if run.units == "cm":
+            x_data = run.df["Separation (cm)"]
+        if run.units == "cm^2":
+            x_data = run.df["Area (cm^2)"]
+        if run.units == "Angstrom^2/molec":
+            x_data = run.df["Area per molecule (A^2)"]
     run.livefig.data[0].x = x_data
     run.livefig.data[0].y = y_data
     return

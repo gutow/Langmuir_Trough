@@ -12,7 +12,7 @@ longdesc = {'description_width': 'initial'}
 
 class trough_run():
     def __init__(self, id, filename, title, units, target, speed, moles,
-                 plate_circ, dataframe=None):
+                 plate_circ, dataframe=None, timestamp=None):
         """Create a new run object
         Parameters
         ----------
@@ -34,8 +34,10 @@ class trough_run():
         plate_circ: float
             circumference of the Whilhelmy plate in mm.
         dataframe: None or DataFrame
+        timestamp: None or int
         """
         from plotly import graph_objects as go
+        import time, datetime
         self.id = id
         self.filename = filename
         self.title = title
@@ -46,31 +48,76 @@ class trough_run():
         self.plate_circ = plate_circ
         self.livefig = go.FigureWidget(layout_template='simple_white')
         self.df = dataframe
+        if timestamp:
+            self.timestamp = timestamp
+        else:
+            self.timestamp = time.time()
+        self.datestr = (datetime.fromtimestamp(self.timestamp)).isoformat()
         # TODO load data into livefig if there is any?
 
     @classmethod
     def from_html(self, html):
-        """Create a run from an html representation"""
-        id = None
-        filename = None
-        title = None
-        units = None
-        target = None
-        speed = None
-        moles = None
-        plate_circ = None
-        dataframe = None
-        # TODO convert html representation of a run to a run object
+        """Create a run from an html representation
+        Parameters
+        ----------
+        html: str
+            The html to be parsed to create the run object
+
+        Returns
+        -------
+        trough_run: trough_run
+            A trough_run object
+        """
+        from AdvancedHTMLParser import AdvancedHTMLParser as Parser
+        from pandas import read_html
+        # parse the document
+        document = Parser()
+        document.parseStr(html)
+        id = document.getElementById('id').text
+        filename = document.getElementById('filename').text
+        title = document.getElementById('title').text
+        units = document.getElementById('units').text
+        target = document.getElementById('target').text
+        speed = document.getElementById('speed').text
+        moles = document.getElementById('moles').text
+        plate_circ = document.getElementById('plate_circ').text
+        data_table_html = document.getElementById('run_data')
+        dataframe = read_html(data_table_html, index_col=0)[0]
+        timestamp = document.getElementById('timestamp').text
+        # return as run object
         return trough_run(id, filename, title, units, target, speed, moles,
-                 plate_circ, dataframe)
+                 plate_circ, dataframe, timestamp)
 
     def to_html(self):
         """Create an html string representing a run"""
         from AdvancedHTMLParser import AdvancedTag as Domel
-        from datetime import datetime
-        htmlstr = ""
-        # TODO create the htmlstr
-        return htmlstr
+        # create the html
+        run_div = Domel('div')
+        run_info = Domel('table')
+        run_info.setAttributes('class','run_info')
+        run_info.setAttributes('id','run_info')
+        run_info.setAttributes('border','1')
+        tr = Domel('tr')
+        tr.appendInnerHTML('<th>ID</th><th>Filename</th><th>Title</th><th>Units'
+                       '</th><th>Target</th><th>Speed</th><th>Moles</th>'
+                       '<th>Plate Circumference (mm)</th><th>Time</th><th>Time '
+                       'Stamp</th>')
+        run_info.appendChild(tr)
+        tr = Domel('tr')
+        tr.appendInnerHTML('<td id="id">'+str(self.id)+'</td>'
+                           '<td id="filename">'+str(self.filename) + '</td>'
+                           '<td id="title">'+str(self.title) + '</td>'
+                           '<td id="units">' + str(self.units)+'</td>'
+                           '<td id="target">'+str(self.target) +'</td>'
+                           '<td id="speed">'+str(self.speed)+'</td>'
+                           '<td id="moles">' + str(self.moles)+'</td>'
+                           '<td id="plate_circ">'+str(self.plate_circ) + '</td>'
+                           '<td id="datestr">'+str(self.datestr)+'</td>'
+                           '<td id="timestamp">' + str(self.timestamp)+'</td>')
+        run_info.appendChild(tr)
+        run_div.appendChild(run_info)
+        run_div.appendInnerHTML(self.df.to_html(table_id="run_data"))
+        return run_div.asHTML()
 
 def Run(run_name):
     """
@@ -124,23 +171,39 @@ def Run(run_name):
     store_settings = Button(description="Fix Settings")
     # Run control button
     def on_run_start_stop(change):
+        from threading import Thread
         # Check if we are stopping a run
         if run_start_stop.description == "Stop":
             on_stop_run()
             return
-        # TODO take over status updating
+        # take over status updating
         # First shutdown currently running updater
         if Trough_GUI.updater_running.value:
             Trough_GUI.run_updater.value = False
             while Trough_GUI.updater_running.value:
                 # wait
                 pass
-        # TODO Start run
+        # Start run
         # Convert "Start" to "Stop" button
+        Trough_GUI.run_updater.value = True
         run_start_stop.description = "Stop"
         run_start_stop.button_style = "danger"
-        # TODO display data as collected and periodically update status widgets
+        # display data as collected and periodically update status widgets
         # spawn updater thread that updates both status widgets and the figure.
+        updater = Thread(collect_data_updater, arg=(trough_lock, cmdsend,
+                                                    datarcv,
+                                                    Trough_GUI.calibrations,
+                                                    Trough_GUI.lastdirection,
+                                                    Trough_GUI.run_updater,
+                                                    Trough_GUI.updater_running,
+                                                    Trough_GUI.runs[-1]))
+        updater.start()
+        # TODO need to stop when target reached, but cannot do here as need
+        #  to exit this code so that other user interface code can run. Do I
+        #  need another watcher thread? Also want the option with speed = 0,
+        #  where it never stops until the user pushes the button. I think
+        #  collect_data_updater needs to take care of this. May need target
+        #  value and speed.
         return
 
     def on_stop_run():
@@ -227,14 +290,16 @@ def Run(run_name):
 def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
                    run_updater, updater_running, run):
     """This is run in a separate thread and will update the figure and
-    all status widgets every 2 seconds or when it can get access to the pipes
-    to talk to the trough.
+    all status widgets at an interval of 2 seconds or a little longer. While
+    this is running nothing else will be able to talk to the trough.
 
     Parameters
     ----------
     trough_lock: threading.lock
-        When acquired this routine will talk to the trough. Releases it for
-        other processes after every update.
+        When acquired this routine will talk to the trough. It is not
+        released until the routine exits to avoid any data loss. It does
+        call the status_widgets updater as often as it can while collecting
+        the data.
 
     cmdsend: Pipe
         End of Pipe to send commands to the Trough.
@@ -262,6 +327,7 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
     # Set the shared I'm running flag.
     updater_running.value = True
     trough_lock.acquire()
+    # TODO decide how to determine if target reached. If so exit.
     while run_updater.value:
         min_next_time = time.time() + 2.0
         cmdsend.send(['Send',''])
@@ -269,7 +335,7 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
         while waiting:
             if datarcv.poll():
                 datapkg =datarcv.recv()
-                # TODO change to update figure and then call update_status
+                # update figure and then call update_status
                 if len(datapkg[1]) >= 1:
                     update_collection(datapkg, cals, lastdirection, run)
                     update_dict = {'barr_raw':datapkg[1][-1],
@@ -282,7 +348,8 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
                 else:
                     # No updated data, so just pass messages
                     update_dict = {'messages':datapkg[7]}
-                update_status(update_dict, cals, lastdirection)
+                Trough_GUI.status_widgets.update_status(update_dict, cals,
+                                                        lastdirection)
                 waiting = False
         if time.time()< min_next_time:
             time.sleep(min_next_time - time.time())
@@ -293,9 +360,9 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
 
 def update_collection(datapkg, cals, lastdirection, run):
     """Updates the graph and the data storage"""
-    from pandas import DataFrame
+    from pandas import DataFrame, concat
     import numpy as np
-    # TODO do all the calculations on the new data
+    # do all the calculations on the new data
     time_stamp = np.array(datapkg[0])
     pos_raw = np.array(datapkg[1])
     pos_raw_stdev = np.array(datapkg[2])
@@ -313,3 +380,52 @@ def update_collection(datapkg, cals, lastdirection, run):
                                                              pos_raw_stdev)
     area_sqcm = sep_cm*float(cals.barriers_open.additional_data[ \
                                "trough width (cm)"])
+    area_sqcm_stdev = sep_cm_stdev*float(cals.barriers_open.additional_data[ \
+                               "trough width (cm)"])
+
+
+    area_per_molec_ang_sq_stdev = area_sqcm_stdev * 1e16 / moles_molec.value / 6.02214076e23
+    area_per_molec_ang_sq = area_sqcm * 1e16 / moles_molec.value / 6.02214076e23
+    mgrams, mgrams_err = cals.balance.cal_apply(bal_raw,bal_raw_stdev)
+    surf_press_err = mgrams_err * 9.80665 / plate_circumference.value
+    surf_press_data = (Trough_GUI.status_widgets.tare_pi-mgrams)*9.80665\
+                      /plate_circumference.value
+    tempC, tempC_stdev = cals.temperature.cal_apply(temp_raw, temp_raw_stdev)
+
+    # add data to the dataframe
+    newdata = DataFrame({"time_stamp":time_stamp,
+                         "position_raw": pos_raw,
+                         "postion_raw_stdev":pos_raw_stdev,
+                         "balance_raw":bal_raw,
+                         "balance_raw_stdev":bal_raw_stdev,
+                         "temperature_raw":temp_raw,
+                         "temperature_raw_stdev":temp_raw_stdev,
+                         "Separation (cm)":sep_cm,
+                         "Separation stdev":sep_cm_stdev,
+                         "Area (cm^2)":area_sqcm,
+                         "Area stdev":area_sqcm_stdev,
+                         "Area per molecule (A^2)":area_per_molec_ang_sq,
+                         "Area per molec stdev": area_per_molec_ang_sq_stdev,
+                         "mg":mgrams,
+                         "mg stdev":mgrams_err,
+                         "Surface Pressure (mN/m)":surf_press_data,
+                         "Surface Pressure stdev":surf_press_err,
+                         "Deg C":tempC,
+                         "Deg C stdev":tempC_stdev})
+    if not isinstance(run.df, DataFrame):
+        run.df = newdata.copy()
+    else:
+        run.df = concat([run.df,newdata], ignore_index=True) # This may be
+        # costly. If so make the data frame only at the end.
+    # update the graph
+    x_data =[]
+    y_data = run.df["Surface Pressure (mN/m)"]
+    if run.units == "cm":
+        x_data = run.df["Separation (cm)"]
+    if run.units == "cm^2":
+        x_data = run.df["Area (cm^2)"]
+    if run.units == "Angstrom^2/molec":
+        x_data = run.df["Area per molecule (A^2)"]
+    run.livefig.data[0].x = x_data
+    run.livefig.data[0].y = y_data
+    return

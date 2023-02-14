@@ -281,6 +281,9 @@ def Run(run_name):
         headerhtmlstr += '<td>' + str(moles_molec.value)+ '</td>'
         headerhtmlstr += '<td>' +str(plate_circumference.value) + '</td></tr>'
         headerhtmlstr += '</table>'
+        run_start_stop.description = "Run"
+        run_start_stop.disabled = False
+        run_start_stop.button_style = "success"
         collect_control1 = HBox([surf_press, run_start_stop])
         position = None
         if Barr_Units.value == 'cm':
@@ -379,7 +382,7 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
                 datapkg =datarcv.recv()
                 # update figure and then call update_status
                 if len(datapkg[1]) >= 1:
-                    update_collection(datapkg, cals, lastdirection, run_updater, run)
+                    update_collection(datapkg, cals, lastdirection, run)
                     update_dict = {'barr_raw':datapkg[1][-1],
                                    'barr_dev':datapkg[2][-1],
                                    'bal_raw':datapkg[3][-1],
@@ -400,7 +403,7 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
     updater_running.value = False
     return
 
-def update_collection(datapkg, cals, lastdirection, run_updater, run):
+def update_collection(datapkg, cals, lastdirection, run):
     """Updates the graph and the data storage"""
     from pandas import DataFrame, concat
     import numpy as np

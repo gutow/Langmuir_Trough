@@ -1,6 +1,7 @@
 import Trough_GUI
 from Trough_GUI.status_widgets import Bar_Sep,Bar_Area,Bar_Area_per_Molec, \
     degC, surf_press, zero_press, plate_circumference, moles_molec
+from ipywidgets import Button
 from Trough_GUI.command_widgets import Barr_Units, Barr_Speed, Barr_Target
 from IPython import get_ipython
 cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
@@ -120,6 +121,90 @@ class trough_run():
         run_div.appendInnerHTML(self.df.to_html(table_id="run_data"))
         return run_div.asHTML()
 
+def on_run_start_stop(change):
+    from threading import Thread
+    from numpy import sign
+    # Check if we are stopping a run
+    if run_start_stop.description == "Stop":
+        on_stop_run()
+        return
+    # take over status updating
+    # First shutdown currently running updater
+    if Trough_GUI.updater_running.value:
+        Trough_GUI.run_updater.value = False
+        while Trough_GUI.updater_running.value:
+            # wait
+            pass
+    # Start run
+    # Convert "Start" to "Stop" button
+    Trough_GUI.run_updater.value = True
+    run_start_stop.description = "Stop"
+    run_start_stop.button_style = "danger"
+    # start barriers
+    trough_lock.acquire()
+    direction = 0
+    tempspeed = 0
+    speed = 0
+    skimmer_correction = float(Trough_GUI.calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
+    width = float(Trough_GUI.calibrations.barriers_open.additional_data["trough width (cm)"])
+    target_speed = float(Barr_Speed.value)
+    if Barr_Units.value == 'cm':
+        direction = int(sign(float(Barr_Target.value)-float(Bar_Sep.value)))
+        tempspeed = target_speed
+    elif Barr_Units.value == "cm^2":
+        direction = int(sign(float(Barr_Target.value)-float(Bar_Area.value)))
+        tempspeed = (target_speed - skimmer_correction) / width
+    elif Barr_Units.value == "Angstrom^2/molec":
+        direction = int(sign(float(Barr_Target.value)-float(Bar_Area_per_Molec.value)))
+        tempspeed = (target_speed - skimmer_correction) / width / 1e16 * moles_molec * 6.02214076e23
+    if direction < 0:
+        target = Trough_GUI.calibrations.barriers_close.cal_inv(float(Barr_Target.value),0)[0]
+        speed = Trough_GUI.calibrations.speed_close.cal_inv(tempspeed,0)[0]
+    else:
+        target = Trough_GUI.calibrations.barriers_open.cal_inv(float(Barr_Target.value), 0)[0]
+        speed = Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
+    cmdsend.send(['Speed', speed])
+    cmdsend.send(['Direction', direction])
+    cmdsend.send(['MoveTo', target])
+    trough_lock.release()
+    # display data as collected and periodically update status widgets
+    # spawn updater thread that updates both status widgets and the figure.
+    updater = Thread(target=collect_data_updater, args=(trough_lock, cmdsend,
+                                                datarcv,
+                                                Trough_GUI.calibrations,
+                                                Trough_GUI.lastdirection,
+                                                Trough_GUI.run_updater,
+                                                Trough_GUI.updater_running,
+                                                Trough_GUI.runs[-1]))
+    updater.start()
+    # TODO need to stop when target reached, but cannot do here as need
+    #  to exit this code so that other user interface code can run. Do I
+    #  need another watcher thread? Also want the option with speed = 0,
+    #  where it never stops until the user pushes the button. I think
+    #  collect_data_updater needs to take care of this. May need target
+    #  value and speed.
+    return
+
+def on_stop_run():
+    # Stop run
+    Trough_GUI.run_updater.value = False
+    run_start_stop.description = "Done"
+    run_start_stop.button_style = ""
+    run_start_stop.disabled = True
+    # TODO Store data
+    # TODO Display final data
+    # release status updating and start the regular updater
+    while Trough_GUI.updater_running.value:
+        # we wait
+        pass
+    Trough_GUI.run_updater.value = True
+    Trough_GUI.start_status_updater()
+    return
+
+run_start_stop = Button(description="Run",
+                        button_style="success")
+run_start_stop.on_click(on_run_start_stop)
+
 def Run(run_name):
     """
     This routine creates a GUI for initializing, starting, collecting and
@@ -170,89 +255,7 @@ def Run(run_name):
     settings_HBox1 = HBox([zero_press, plate_circumference, moles_molec])
     settings_HBox2 = HBox([Barr_Units, Barr_Speed])
     store_settings = Button(description="Fix Settings")
-    # Run control button
-    def on_run_start_stop(change):
-        from threading import Thread
-        from numpy import sign
-        # Check if we are stopping a run
-        if run_start_stop.description == "Stop":
-            on_stop_run()
-            return
-        # take over status updating
-        # First shutdown currently running updater
-        if Trough_GUI.updater_running.value:
-            Trough_GUI.run_updater.value = False
-            while Trough_GUI.updater_running.value:
-                # wait
-                pass
-        # Start run
-        # Convert "Start" to "Stop" button
-        Trough_GUI.run_updater.value = True
-        run_start_stop.description = "Stop"
-        run_start_stop.button_style = "danger"
-        # start barriers
-        trough_lock.acquire()
-        direction = 0
-        tempspeed = 0
-        speed = 0
-        skimmer_correction = float(Trough_GUI.calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
-        width = float(Trough_GUI.calibrations.barriers_open.additional_data["trough width (cm)"])
-        target_speed = float(Barr_Speed.value)
-        if Barr_Units.value == 'cm':
-            direction = int(sign(float(Barr_Target.value)-float(Bar_Sep.value)))
-            tempspeed = target_speed
-        elif Barr_Units.value == "cm^2":
-            direction = int(sign(float(Barr_Target.value)-float(Bar_Area.value)))
-            tempspeed = (target_speed - skimmer_correction) / width
-        elif Barr_Units.value == "Angstrom^2/molec":
-            direction = int(sign(float(Barr_Target.value)-float(Bar_Area_per_Molec.value)))
-            tempspeed = (target_speed - skimmer_correction) / width / 1e16 * moles_molec * 6.02214076e23
-        if direction < 0:
-            target = Trough_GUI.calibrations.barriers_close.cal_inv(float(Barr_Target.value),0)[0]
-            speed = Trough_GUI.calibrations.speed_close.cal_inv(tempspeed,0)[0]
-        else:
-            target = Trough_GUI.calibrations.barriers_open.cal_inv(float(Barr_Target.value), 0)[0]
-            speed = Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
-        cmdsend.send(['Speed', speed])
-        cmdsend.send(['Direction', direction])
-        cmdsend.send(['MoveTo', target])
-        trough_lock.release()
-        # display data as collected and periodically update status widgets
-        # spawn updater thread that updates both status widgets and the figure.
-        updater = Thread(target=collect_data_updater, args=(trough_lock, cmdsend,
-                                                    datarcv,
-                                                    Trough_GUI.calibrations,
-                                                    Trough_GUI.lastdirection,
-                                                    Trough_GUI.run_updater,
-                                                    Trough_GUI.updater_running,
-                                                    Trough_GUI.runs[-1]))
-        updater.start()
-        # TODO need to stop when target reached, but cannot do here as need
-        #  to exit this code so that other user interface code can run. Do I
-        #  need another watcher thread? Also want the option with speed = 0,
-        #  where it never stops until the user pushes the button. I think
-        #  collect_data_updater needs to take care of this. May need target
-        #  value and speed.
-        return
 
-    def on_stop_run():
-        # Stop run
-        Trough_GUI.run_updater.value = False
-        run_start_stop.description = "Done"
-        run_start_stop.button_style = ""
-        run_start_stop.disabled = True
-        # TODO Store data
-        # TODO Display final data
-        # release status updating and start the regular updater
-        while Trough_GUI.updater_running.value:
-            # we wait
-            pass
-        Trough_GUI.run_updater.value = True
-        Trough_GUI.start_status_updater()
-        return
-    run_start_stop = Button(description="Run",
-                            button_style="success")
-    run_start_stop.on_click(on_run_start_stop)
     def on_store_settings(change):
         from IPython.display import HTML, clear_output
         # create the run object
@@ -376,7 +379,7 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
                 datapkg =datarcv.recv()
                 # update figure and then call update_status
                 if len(datapkg[1]) >= 1:
-                    update_collection(datapkg, cals, lastdirection, run)
+                    update_collection(datapkg, cals, lastdirection, run_updater, run)
                     update_dict = {'barr_raw':datapkg[1][-1],
                                    'barr_dev':datapkg[2][-1],
                                    'bal_raw':datapkg[3][-1],
@@ -397,7 +400,7 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
     updater_running.value = False
     return
 
-def update_collection(datapkg, cals, lastdirection, run):
+def update_collection(datapkg, cals, lastdirection, run_updater, run):
     """Updates the graph and the data storage"""
     from pandas import DataFrame, concat
     import numpy as np
@@ -464,15 +467,29 @@ def update_collection(datapkg, cals, lastdirection, run):
     # update the graph
     x_data =[]
     y_data = run.df["Surface Pressure (mN/m)"]
+    lastpos = None
+    initpos = None
     if run.speed == 0:
         x_data = run.df["time_stamp"]-run.df["time_stamp"][0]
     else:
         if run.units == "cm":
             x_data = run.df["Separation (cm)"]
+            lastpos = run.df["Separation (cm)"][len(run.df["Separation (cm)"])-1]
+            initpos = run.df["Separation (cm)"][0]
         if run.units == "cm^2":
             x_data = run.df["Area (cm^2)"]
+            lastpos = run.df["Area (cm^2)"][len(run.df["Area (cm^2)"])-1]
+            initpos = run.df["Area (cm^2)"][0]
         if run.units == "Angstrom^2/molec":
             x_data = run.df["Area per molecule (A^2)"]
+            lastpos = run.df["Area per molecule (A^2)"][len(run.df["Area per molecule (A^2)"])-1]
+            initpos = run.df["Area per molecule (A^2)"][0]
     run.livefig.data[0].x = x_data
     run.livefig.data[0].y = y_data
+    if (lastpos < initpos) and (lastpos <= run.target):
+        # Stop collecting
+        run_start_stop.click()
+    if (lastpos > initpos) and (lastpos >= run.target):
+        # Stop collecting
+        run_start_stop.click()
     return

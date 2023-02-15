@@ -1,8 +1,4 @@
-import Trough_GUI
-from Trough_GUI.status_widgets import Bar_Sep,Bar_Area,Bar_Area_per_Molec, \
-    degC, surf_press, zero_press, plate_circumference, moles_molec
 from ipywidgets import Button
-from Trough_GUI.command_widgets import Barr_Units, Barr_Speed, Barr_Target
 from IPython import get_ipython
 cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
 datarcv = get_ipython().user_ns["Trough_Control"].datarcv
@@ -124,6 +120,15 @@ class trough_run():
 def on_run_start_stop(change):
     from threading import Thread
     from numpy import sign
+    from IPython import get_ipython
+    Trough_GUI = get_ipython().user_ns["Trough_GUI"]
+    Bar_Sep = Trough_GUI.status_widgets.Bar_Sep
+    Bar_Area = Trough_GUI.status_widgets.Bar_Area
+    Bar_Area_per_Molec = Trough_GUI.status_widgets.Bar_Area_per_Molec
+    moles_molec = Trough_GUI.status_widgets.moles_molec
+    Barr_Units = Trough_GUI.command_widgets.Barr_Units
+    Barr_Speed = Trough_GUI.command_widgets.Barr_Speed
+    Barr_Target = Trough_GUI.command_widgets.Barr_Target
     # Check if we are stopping a run
     if run_start_stop.description == "Stop":
         on_stop_run()
@@ -177,28 +182,30 @@ def on_run_start_stop(change):
                                                 Trough_GUI.updater_running,
                                                 Trough_GUI.runs[-1]))
     updater.start()
-    # TODO need to stop when target reached, but cannot do here as need
-    #  to exit this code so that other user interface code can run. Do I
-    #  need another watcher thread? Also want the option with speed = 0,
-    #  where it never stops until the user pushes the button. I think
-    #  collect_data_updater needs to take care of this. May need target
-    #  value and speed.
     return
 
-def on_stop_run():
-    # Stop run
-    Trough_GUI.run_updater.value = False
+def end_of_run():
+    from IPython import get_ipython
+    Trough_GUI = get_ipython().user_ns["Trough_GUI"]
+    # update the stop button
     run_start_stop.description = "Done"
     run_start_stop.button_style = ""
     run_start_stop.disabled = True
     # TODO Store data
     # TODO Display final data
-    # release status updating and start the regular updater
-    while Trough_GUI.updater_running.value:
-        # we wait
-        pass
-    Trough_GUI.run_updater.value = True
-    Trough_GUI.start_status_updater()
+    # start background updating
+    if not Trough_GUI.updater_running.value:
+        Trough_GUI.run_updater.value = True
+        Trough_GUI.start_status_updater()
+    return
+
+def on_stop_run():
+    from IPython import get_ipython
+    Trough_GUI = get_ipython().user_ns["Trough_GUI"]
+    # Stop run
+    if Trough_GUI.updater_running.value:
+        Trough_GUI.run_updater.value = False
+    # when collection stops it will call end_of_run above.
     return
 
 run_start_stop = Button(description="Run",
@@ -222,10 +229,21 @@ def Run(run_name):
     from ipywidgets import Text, Dropdown, HBox, VBox, Accordion, Label, Button
     from IPython.display import display
     from IPython import get_ipython
-    user_ns = get_ipython().user_ns
+    Trough_GUI = get_ipython().user_ns["Trough_GUI"]
+    Bar_Sep = Trough_GUI.status_widgets.Bar_Sep
+    Bar_Area = Trough_GUI.status_widgets.Bar_Area
+    Bar_Area_per_Molec = Trough_GUI.status_widgets.Bar_Area_per_Molec
+    degC = Trough_GUI.status_widgets.degC
+    surf_press = Trough_GUI.status_widgets.surf_press
+    zero_press = Trough_GUI.status_widgets.zero_press
+    plate_circumference = Trough_GUI.status_widgets.plate_circumference
+    moles_molec = Trough_GUI.status_widgets.moles_molec
+    Barr_Units = Trough_GUI.command_widgets.Barr_Units
+    Barr_Speed = Trough_GUI.command_widgets.Barr_Speed
+    Barr_Target = Trough_GUI.command_widgets.Barr_Target
     name_to_run = {}
     completed_runs = []
-    for k in user_ns["Trough_GUI"].runs:
+    for k in Trough_GUI.runs:
         name_to_run[k.title]= k
         completed_runs.append(k.title)
     # TODO Check if run completed, if so reload data, display and exit
@@ -254,7 +272,7 @@ def Run(run_name):
     # Displayed settings widgets
     settings_HBox1 = HBox([zero_press, plate_circumference, moles_molec])
     settings_HBox2 = HBox([Barr_Units, Barr_Speed])
-    store_settings = Button(description="Fix Settings")
+    store_settings = Button(description="Store Settings")
 
     def on_store_settings(change):
         from IPython.display import HTML, clear_output
@@ -369,8 +387,11 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
         This object contains the live figure and the place to store the data.
     """
     import time
+    from IPython import get_ipython
+    Trough_GUI = get_ipython().user_ns["Trough_GUI"]
     # Set the shared I'm running flag.
     updater_running.value = True
+    print("collect_data_updater started")
     trough_lock.acquire()
     # TODO decide how to determine if target reached. If so exit.
     while run_updater.value:
@@ -382,7 +403,7 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
                 datapkg =datarcv.recv()
                 # update figure and then call update_status
                 if len(datapkg[1]) >= 1:
-                    update_collection(datapkg, cals, lastdirection, run)
+                    update_collection(datapkg, cals, lastdirection, run_updater, updater_running, run)
                     update_dict = {'barr_raw':datapkg[1][-1],
                                    'barr_dev':datapkg[2][-1],
                                    'bal_raw':datapkg[3][-1],
@@ -399,14 +420,22 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
         if time.time()< min_next_time:
             time.sleep(min_next_time - time.time())
     # Release lock and set the shared I'm running flag to False before exiting.
+    print("collect_data_updater releasing lock")
     trough_lock.release()
     updater_running.value = False
+    Trough_GUI.Collect_data.end_of_run()
+    print("collect_data_updater done")
     return
 
-def update_collection(datapkg, cals, lastdirection, run):
+def update_collection(datapkg, cals, lastdirection, run_updater, updater_running, run):
     """Updates the graph and the data storage"""
     from pandas import DataFrame, concat
     import numpy as np
+    from IPython import get_ipython
+    Trough_GUI = get_ipython().user_ns["Trough_GUI"]
+    plate_circumference = Trough_GUI.status_widgets.plate_circumference
+    moles_molec = Trough_GUI.status_widgets.moles_molec
+    on_stop_run = Trough_GUI.Collect_data.on_stop_run
     # do all the calculations on the new data
     time_stamp = np.array(datapkg[0])
     pos_raw = np.array(datapkg[1])
@@ -491,8 +520,8 @@ def update_collection(datapkg, cals, lastdirection, run):
     run.livefig.data[0].y = y_data
     if (lastpos < initpos) and (lastpos <= run.target):
         # Stop collecting
-        run_start_stop.click()
+        run_updater.value = False
     if (lastpos > initpos) and (lastpos >= run.target):
         # Stop collecting
-        run_start_stop.click()
+        run_updater.value = False
     return

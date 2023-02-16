@@ -51,7 +51,23 @@ class trough_run():
         else:
             self.timestamp = time.time()
         self.datestr = (datetime.fromtimestamp(self.timestamp)).isoformat()
-        # TODO load data into livefig if there is any?
+        # load data into livefig if there is any?
+        if len(self.df) > 0:
+            x_data = []
+            self.livefig.update_yaxes(title = "$\Pi\,(mN/m)$")
+            if self.speed > 0:
+                if self.units == 'cm':
+                    x_data = self.df['Separation (cm)']
+                    self.livefig.update_xaxes(title="Separation (cm)")
+                if self.units == 'cm^2':
+                    x_data = self.df['Area (cm^2)']
+                    self.livefig.update_xaxes(title="$Area\,(cm^2)$")
+                if self.units == 'Angstrom^2/molec':
+                    x_data = self.df['Area per molecule (A^2)']
+                    self.livefig.update_xaxes(title="$Area per molecule ({\overset{\circ}{A}}^2)$")
+            else:
+                x_data = self.df['time_stamp']-self.df['time_stamp'][0]
+            self.livefig.add_scatter(y=self.df['Surface Pressure (mN/m)'], x=x_data)
 
     @classmethod
     def from_html(self, html):
@@ -71,20 +87,43 @@ class trough_run():
         # parse the document
         document = Parser()
         document.parseStr(html)
-        id = document.getElementById('id').text
+        id = int(document.getElementById('id').text)
         filename = document.getElementById('filename').text
         title = document.getElementById('title').text
         units = document.getElementById('units').text
-        target = document.getElementById('target').text
-        speed = document.getElementById('speed').text
-        moles = document.getElementById('moles').text
-        plate_circ = document.getElementById('plate_circ').text
-        data_table_html = document.getElementById('run_data')
-        dataframe = read_html(data_table_html, index_col=0)[0]
-        timestamp = document.getElementById('timestamp').text
+        target = float(document.getElementById('target').text)
+        speed = float(document.getElementById('speed').text)
+        moles = float(document.getElementById('moles').text)
+        plate_circ = float(document.getElementById('plate_circ').text)
+        dataframe = read_html(html, index_col=0, attrs = {'id': 'run_data'})[0]
+        timestamp = float(document.getElementById('timestamp').text)
         # return as run object
         return trough_run(id, filename, title, units, target, speed, moles,
                  plate_circ, dataframe, timestamp)
+
+    def run_caption(self):
+        """Returns an html table with info about the run to use as a caption"""
+        caption = ''
+        caption += '<table><tr><th>Run ID</th><th>Title</th>'
+        caption += '<th>Storage File Name</th>'
+        caption += '<th>Target (' + str(self.units) + ')</th>'
+        caption += '<th>Speed (' + str(self.units) + '/min)</th>'
+        caption += '<th>Moles</th><th>Plate Circumference (mm)</th></tr>'
+        caption += '<tr><td>' + str(self.id) + '</td>'
+        caption += '<td>' + str(self.title) + '</td>'
+        caption += '<td>' + str(self.filename) + '</td>'
+        caption += '<td>' + str(self.target) + '</td>'
+        caption += '<td>' + str(self.speed) + '</td>'
+        caption += '<td>' + str(self.moles) + '</td>'
+        caption += '<td>' + str(self.plate_circ) + '</td></tr>'
+        caption += '</table>'
+        return caption
+
+    def __repr__(self):
+        from IPython.display import HTML, display
+        display(self.livefig)
+        display(HTML(self.run_caption()))
+        return ''
 
     def to_html(self):
         """Create an html string representing a run"""
@@ -315,20 +354,7 @@ def Run(run_name):
                                           float(moles_molec.value),
                                           float(plate_circumference.value)))
         # Create the collection display
-        headerhtmlstr = ''
-        headerhtmlstr += '<table><tr><th>Run ID</th><th>Title</th>'
-        headerhtmlstr += '<th>Storage File Name</th>'
-        headerhtmlstr += '<th>Target (' + Barr_Units.value + ')</th>'
-        headerhtmlstr += '<th>Speed (' + Barr_Units.value + '/min)</th>'
-        headerhtmlstr += '<th>Moles</th><th>Plate Circumference (mm)</th></tr>'
-        headerhtmlstr += '<tr><td>'+str(id)+ '</td>'
-        headerhtmlstr += '<td>'+run_title.value+'</td>'
-        headerhtmlstr += '<td>'+run_name+'</td>'
-        headerhtmlstr += '<td>' +str(Barr_Target.value)+'</td>'
-        headerhtmlstr += '<td>' + str(Barr_Speed.value)+ '</td>'
-        headerhtmlstr += '<td>' + str(moles_molec.value)+ '</td>'
-        headerhtmlstr += '<td>' +str(plate_circumference.value) + '</td></tr>'
-        headerhtmlstr += '</table>'
+        headerhtmlstr = Trough_GUI.runs[id].run_caption()
         run_start_stop.description = "Run"
         run_start_stop.disabled = False
         run_start_stop.button_style = "success"
@@ -354,7 +380,7 @@ def Run(run_name):
         if float(Barr_Speed.value) == 0:
             x_units = 'Time (s)'
             x_min = 0
-            x_max = 5
+            x_max = 600 # 10 minutes
         Trough_GUI.runs[id].livefig.update_yaxes(title = "$\Pi\,(mN/m)$",
                                                  range=[0, 60])
         Trough_GUI.runs[id].livefig.update_xaxes(title=x_units,
@@ -364,8 +390,8 @@ def Run(run_name):
         #   with fixed param and start run button.
         clear_output()
         display(HTML(headerhtmlstr))
-        display(Trough_GUI.runs[id].livefig)
         display(collect_control)
+        display(Trough_GUI.runs[id].livefig)
         return
 
     store_settings.on_click(on_store_settings)

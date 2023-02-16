@@ -89,12 +89,13 @@ class trough_run():
     def to_html(self):
         """Create an html string representing a run"""
         from AdvancedHTMLParser import AdvancedTag as Domel
+        from AdvancedHTMLParser import AdvancedHTMLParser as Parser
         # create the html
         run_div = Domel('div')
         run_info = Domel('table')
-        run_info.setAttributes('class','run_info')
-        run_info.setAttributes('id','run_info')
-        run_info.setAttributes('border','1')
+        run_info.setAttribute('class','run_info')
+        run_info.setAttribute('id','run_info')
+        run_info.setAttribute('border','1')
         tr = Domel('tr')
         tr.appendInnerHTML('<th>ID</th><th>Filename</th><th>Title</th><th>Units'
                        '</th><th>Target</th><th>Speed</th><th>Moles</th>'
@@ -114,8 +115,36 @@ class trough_run():
                            '<td id="timestamp">' + str(self.timestamp)+'</td>')
         run_info.appendChild(tr)
         run_div.appendChild(run_info)
-        run_div.appendInnerHTML(self.df.to_html(table_id="run_data"))
+        dfstr = self.df.to_html(table_id="run_data")
+        run_div.appendInnerHTML('<!--placeholder to avoid bug that strips table tag-->\n'+dfstr+'\n<!--avoid tag loss-->\n')
         return run_div.asHTML()
+
+    def write_run(self, dirpath, **kwargs):
+        """
+        Writes a calibration file with the base filename `run.filename + int(
+        cal.timestamp)` into the directory specified. Currently only produces
+        an html file that is also human-readable. Other file formats may be
+        available in the future through the use of key word arguments.
+
+        Parameters
+        ----------
+        dirpath:
+            pathlike object or string. Empty string means the current working
+            directory.
+
+        kwargs:
+            optional key word arguments for future adaptability
+        """
+        from pathlib import Path
+        fileext = '.trh.run.html'
+        filename = str(self.filename) + '_' + str(int(self.timestamp))+fileext
+        fullpath = Path(dirpath, filename)
+        svhtml = '<!DOCTYPE html><html><body>' + self.to_html() + \
+                 '</body></html>'
+        f = open(fullpath, 'w')
+        f.write(svhtml)
+        f.close()
+        pass
 
 def on_run_start_stop(change):
     from threading import Thread
@@ -192,6 +221,7 @@ def end_of_run():
     run_start_stop.button_style = ""
     run_start_stop.disabled = True
     # TODO Store data
+    Trough_GUI.runs[-1].write_run('')
     # TODO Display final data
     # start background updating
     if not Trough_GUI.updater_running.value:
@@ -391,9 +421,7 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
     Trough_GUI = get_ipython().user_ns["Trough_GUI"]
     # Set the shared I'm running flag.
     updater_running.value = True
-    print("collect_data_updater started")
     trough_lock.acquire()
-    # TODO decide how to determine if target reached. If so exit.
     while run_updater.value:
         min_next_time = time.time() + 2.0
         cmdsend.send(['Send',''])
@@ -420,11 +448,9 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
         if time.time()< min_next_time:
             time.sleep(min_next_time - time.time())
     # Release lock and set the shared I'm running flag to False before exiting.
-    print("collect_data_updater releasing lock")
     trough_lock.release()
     updater_running.value = False
     Trough_GUI.Collect_data.end_of_run()
-    print("collect_data_updater done")
     return
 
 def update_collection(datapkg, cals, lastdirection, run_updater, updater_running, run):

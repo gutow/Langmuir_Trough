@@ -177,12 +177,16 @@ class trough_run():
             optional key word arguments for future adaptability
         """
         from pathlib import Path
+        from warnings import warn
         fileext = '.trh.run.html'
         filename = str(self.filename) + fileext
         fullpath = Path(dirpath, filename)
         if fullpath.exists():
             if self.filename.split("_")[-1].isnumeric():
                 split = self.filename.split("_")
+                if int(split[-1]) == self.timestamp:
+                    warn("Run file not written as it already exists.")
+                    return
                 basename = ''
                 for k in range(0,len(split)-1):
                     basename += split[k] +"_"

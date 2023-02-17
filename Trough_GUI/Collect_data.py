@@ -160,8 +160,10 @@ class trough_run():
 
     def write_run(self, dirpath, **kwargs):
         """
-        Writes a calibration file with the base filename `run.filename + int(
-        cal.timestamp)` into the directory specified. Currently only produces
+        Writes a run file with the base filename `run.filename` into the
+        directory specified. If a file with the current name exists
+        attempts to make the name unique by appending self.timestamp
+        to the filename. Currently only produces
         an html file that is also human-readable. Other file formats may be
         available in the future through the use of key word arguments.
 
@@ -176,14 +178,24 @@ class trough_run():
         """
         from pathlib import Path
         fileext = '.trh.run.html'
-        filename = str(self.filename) + '_' + str(int(self.timestamp))+fileext
+        filename = str(self.filename) + fileext
         fullpath = Path(dirpath, filename)
+        if fullpath.exists():
+            if self.filename.split("_")[-1].isnumeric():
+                split = self.filename.split("_")
+                basename = ''
+                for k in range(0,len(split)-1):
+                    basename += split[k] +"_"
+                filename = basename + str(int(self.timestamp))
+            self.filename = filename
+            self.write_run(dirpath)
+            return
         svhtml = '<!DOCTYPE html><html><body>' + self.to_html() + \
                  '</body></html>'
         f = open(fullpath, 'w')
         f.write(svhtml)
         f.close()
-        pass
+        return
 
 def on_run_start_stop(change):
     from threading import Thread

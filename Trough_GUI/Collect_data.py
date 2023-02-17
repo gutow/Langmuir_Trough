@@ -52,22 +52,23 @@ class trough_run():
             self.timestamp = time.time()
         self.datestr = (datetime.fromtimestamp(self.timestamp)).isoformat()
         # load data into livefig if there is any?
-        if len(self.df) > 0:
-            x_data = []
-            self.livefig.update_yaxes(title = "$\Pi\,(mN/m)$")
-            if self.speed > 0:
-                if self.units == 'cm':
-                    x_data = self.df['Separation (cm)']
-                    self.livefig.update_xaxes(title="Separation (cm)")
-                if self.units == 'cm^2':
-                    x_data = self.df['Area (cm^2)']
-                    self.livefig.update_xaxes(title="$Area\,(cm^2)$")
-                if self.units == 'Angstrom^2/molec':
-                    x_data = self.df['Area per molecule (A^2)']
-                    self.livefig.update_xaxes(title="$Area per molecule ({\overset{\circ}{A}}^2)$")
-            else:
-                x_data = self.df['time_stamp']-self.df['time_stamp'][0]
-            self.livefig.add_scatter(y=self.df['Surface Pressure (mN/m)'], x=x_data)
+        if self.df is not None:
+            if len(self.df) > 0:
+                x_data = []
+                self.livefig.update_yaxes(title = "$\Pi\,(mN/m)$")
+                if self.speed > 0:
+                    if self.units == 'cm':
+                        x_data = self.df['Separation (cm)']
+                        self.livefig.update_xaxes(title="Separation (cm)")
+                    if self.units == 'cm^2':
+                        x_data = self.df['Area (cm^2)']
+                        self.livefig.update_xaxes(title="$Area\,(cm^2)$")
+                    if self.units == 'Angstrom^2/molec':
+                        x_data = self.df['Area per molecule (A^2)']
+                        self.livefig.update_xaxes(title="$Area per molecule ({\overset{\circ}{A}}^2)$")
+                else:
+                    x_data = self.df['time_stamp']-self.df['time_stamp'][0]
+                self.livefig.add_scatter(y=self.df['Surface Pressure (mN/m)'], x=x_data)
 
     @classmethod
     def from_html(self, html):
@@ -179,18 +180,21 @@ class trough_run():
         from pathlib import Path
         from warnings import warn
         fileext = '.trh.run.html'
-        filename = str(self.filename) + fileext
+        filename = str(self.filename)
         fullpath = Path(dirpath, filename)
         if fullpath.exists():
-            if self.filename.split("_")[-1].isnumeric():
-                split = self.filename.split("_")
+            basename = self.filename
+            for k in Path(self.filename).suffixes:
+                basename = basename.replace(k, '')
+            if basename.split("_")[-1].isnumeric():
+                split = basename.split("_")
                 if int(split[-1]) == self.timestamp:
                     warn("Run file not written as it already exists.")
                     return
                 basename = ''
                 for k in range(0,len(split)-1):
                     basename += split[k] +"_"
-                filename = basename + str(int(self.timestamp))
+            filename = basename + str(int(self.timestamp)) + fileext
             self.filename = filename
             self.write_run(dirpath)
             return
@@ -270,15 +274,20 @@ def on_run_start_stop(change):
 
 def end_of_run():
     from IPython import get_ipython
+    from IPython.display import display, clear_output
     Trough_GUI = get_ipython().user_ns["Trough_GUI"]
     # update the stop button
     run_start_stop.description = "Done"
     run_start_stop.button_style = ""
     run_start_stop.disabled = True
-    # TODO Store data
+    # Store data
     Trough_GUI.runs[-1].write_run('')
-    # TODO Display final data
+    # Display final data
+    clear_output()
+    print('displaying the figure...')
+    display(Trough_GUI.runs[-1].livefig)
     # start background updating
+    print('starting the background updating...')
     if not Trough_GUI.updater_running.value:
         Trough_GUI.run_updater.value = True
         Trough_GUI.start_status_updater()
@@ -308,7 +317,8 @@ def Run(run_name):
     run_name: str or Path
     This should generally be the name for the file the data will be stored in
     without a file type extension. Recommend a naming scheme that produces
-    Unique filenames, such as `Trough_run_<username>_<timestamp>`.
+    Unique filenames, such as `Trough_run_<username>_<timestamp>`. The file
+    name will be `run_name.trh.run.html`.
     """
     from pathlib import Path
     from ipywidgets import Text, Dropdown, HBox, VBox, Accordion, Label, Button
@@ -332,9 +342,14 @@ def Run(run_name):
         name_to_run[k.title]= k
         completed_runs.append(k.title)
     # TODO Check if run completed, if so reload data, display and exit
-    datafilepath = Path.cwd()/Path(str(run_name) + '.html') # or should it be gz
+    datafilepath = Path.cwd()/Path(str(run_name) + '.trh.run.html') # or should it be gz
     if datafilepath.exists():
-        # TODO display the data as a live plotly plot.
+        # display the data as a live plotly plot.
+        f = open(datafilepath,'r')
+        html = f.read()
+        f.close()
+        Trough_GUI.runs.append(Trough_GUI.Collect_data.trough_run.from_html(html))
+        display(Trough_GUI.runs[-1])
         return
     # Build run setup GUI
     run_title = Text(description = "Run Title",
@@ -363,7 +378,7 @@ def Run(run_name):
         from IPython.display import HTML, clear_output
         # create the run object
         id = len(Trough_GUI.runs)
-        Trough_GUI.runs.append(trough_run(id,run_name, run_title.value,
+        Trough_GUI.runs.append(trough_run(id,run_name+'.trh.run.html', run_title.value,
                                           Barr_Units.value,
                                           float(Barr_Target.value),
                                           float(Barr_Speed.value),
@@ -405,9 +420,9 @@ def Run(run_name):
         # Clear output and display collection
         #   with fixed param and start run button.
         clear_output()
-        display(HTML(headerhtmlstr))
-        display(collect_control)
         display(Trough_GUI.runs[id].livefig)
+        display(collect_control)
+        display(HTML(headerhtmlstr))
         return
 
     store_settings.on_click(on_store_settings)

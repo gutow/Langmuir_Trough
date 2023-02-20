@@ -341,7 +341,8 @@ def Run(run_name):
     for k in Trough_GUI.runs:
         name_to_run[k.title]= k
         completed_runs.append(k.title)
-    # TODO Check if run completed, if so reload data, display and exit
+    # Check if run completed, if so reload data, display and exit
+    # TODO figure out how to handle ID# if loaded into different index
     datafilepath = Path.cwd()/Path(str(run_name) + '.trh.run.html') # or should it be gz
     if datafilepath.exists():
         # display the data as a live plotly plot.

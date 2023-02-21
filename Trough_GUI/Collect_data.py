@@ -258,6 +258,8 @@ def on_run_start_stop(change):
         speed = Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
     cmdsend.send(['Speed', speed])
     cmdsend.send(['Direction', direction])
+    # TODO in cm^2 case target does not seem to get set correctly. It
+    #  cruised on by.
     cmdsend.send(['MoveTo', target])
     trough_lock.release()
     # display data as collected and periodically update status widgets
@@ -282,15 +284,13 @@ def end_of_run():
     run_start_stop.disabled = True
     # Store data
     Trough_GUI.runs[-1].write_run('')
-    # Display final data
-    clear_output()
-    print('displaying the figure...')
-    display(Trough_GUI.runs[-1].livefig)
     # start background updating
-    print('starting the background updating...')
     if not Trough_GUI.updater_running.value:
         Trough_GUI.run_updater.value = True
         Trough_GUI.start_status_updater()
+    # because we are on a different thread we cannot use a
+    #  an IPython.display call to change the output. However,
+    #  the IPython.clear_output() call does work.
     return
 
 def on_stop_run():
@@ -519,7 +519,6 @@ def update_collection(datapkg, cals, lastdirection, run_updater, updater_running
     Trough_GUI = get_ipython().user_ns["Trough_GUI"]
     plate_circumference = Trough_GUI.status_widgets.plate_circumference
     moles_molec = Trough_GUI.status_widgets.moles_molec
-    on_stop_run = Trough_GUI.Collect_data.on_stop_run
     # do all the calculations on the new data
     time_stamp = np.array(datapkg[0])
     pos_raw = np.array(datapkg[1])

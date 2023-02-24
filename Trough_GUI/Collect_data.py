@@ -36,6 +36,7 @@ class trough_run():
         from plotly import graph_objects as go
         import time
         from datetime import datetime
+        from ipywidgets import Button
         self.id = id
         self.filename = filename
         self.title = title
@@ -46,6 +47,8 @@ class trough_run():
         self.plate_circ = plate_circ
         self.livefig = go.FigureWidget(layout_template='simple_white')
         self.df = dataframe
+        # TODO should the run-start-stop button be specific to a run?
+        #  this would avoid cross-talk between new and completed runs.
         if timestamp:
             self.timestamp = timestamp
         else:
@@ -243,7 +246,6 @@ def on_run_start_stop(change):
     skimmer_correction = float(Trough_GUI.calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
     width = float(Trough_GUI.calibrations.barriers_open.additional_data["trough width (cm)"])
     target_speed = float(Barr_Speed.value)
-    # TODO calculate target for each set of units
     if Barr_Units.value == 'cm':
         direction = int(sign(float(Barr_Target.value)-float(Bar_Sep.value)))
         tempspeed = target_speed
@@ -266,8 +268,6 @@ def on_run_start_stop(change):
         speed = Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
     cmdsend.send(['Speed', speed])
     cmdsend.send(['Direction', direction])
-    # TODO in cm^2 case target does not seem to get set correctly. It
-    #  cruised on by.
     cmdsend.send(['MoveTo', target])
     trough_lock.release()
     # display data as collected and periodically update status widgets
@@ -400,15 +400,17 @@ def Run(run_name):
         run_start_stop.button_style = "success"
         collect_control1 = HBox([surf_press, run_start_stop])
         position = None
+        x_units = Barr_Units.value
         if Barr_Units.value == 'cm':
             position = Bar_Sep
         elif Barr_Units.value == 'cm^2':
             position = Bar_Area
+            x_units = "$cm^2$"
         elif Barr_Units.value == 'Angstrom^2/molec':
             position = Bar_Area_per_Molec
+            x_units = "$Area per molecule ({\overset{\circ}{A}}^2)$"
         collect_control2 = HBox([degC, position])
         collect_control = VBox([collect_control1, collect_control2])
-        x_units = Barr_Units.value
         x_min = 0
         x_max = 1
         if float(Barr_Target.value) < float(position.value):

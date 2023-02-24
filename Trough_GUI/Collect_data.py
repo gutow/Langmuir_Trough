@@ -209,6 +209,7 @@ def on_run_start_stop(change):
     from threading import Thread
     from numpy import sign
     from IPython import get_ipython
+    from Trough_GUI.conversions import sqcm_to_cm, angpermolec_to_sqcm
     Trough_GUI = get_ipython().user_ns["Trough_GUI"]
     Bar_Sep = Trough_GUI.status_widgets.Bar_Sep
     Bar_Area = Trough_GUI.status_widgets.Bar_Area
@@ -237,24 +238,31 @@ def on_run_start_stop(change):
     trough_lock.acquire()
     direction = 0
     tempspeed = 0
+    temp_targ = 0
     speed = 0
     skimmer_correction = float(Trough_GUI.calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
     width = float(Trough_GUI.calibrations.barriers_open.additional_data["trough width (cm)"])
     target_speed = float(Barr_Speed.value)
+    # TODO calculate target for each set of units
     if Barr_Units.value == 'cm':
         direction = int(sign(float(Barr_Target.value)-float(Bar_Sep.value)))
         tempspeed = target_speed
+        temp_targ = float(Barr_Target.value)
     elif Barr_Units.value == "cm^2":
         direction = int(sign(float(Barr_Target.value)-float(Bar_Area.value)))
         tempspeed = (target_speed - skimmer_correction) / width
+        temp_targ = sqcm_to_cm(float(Barr_Target.value),0, Trough_GUI.calibrations)[0]
     elif Barr_Units.value == "Angstrom^2/molec":
         direction = int(sign(float(Barr_Target.value)-float(Bar_Area_per_Molec.value)))
-        tempspeed = (target_speed - skimmer_correction) / width / 1e16 * moles_molec * 6.02214076e23
+        tempspeed = (target_speed - skimmer_correction) / width / 1e16 * float(moles_molec.value) * 6.02214076e23
+        sqcm, sqcmerr = angpermolec_to_sqcm(float(Barr_Target.value), 0, float(moles_molec.value))
+        temp_targ = sqcm_to_cm(*angpermolec_to_sqcm(float(Barr_Target.value), 0, float(moles_molec.value)),
+                               Trough_GUI.calibrations)[0]
     if direction < 0:
-        target = Trough_GUI.calibrations.barriers_close.cal_inv(float(Barr_Target.value),0)[0]
+        target = Trough_GUI.calibrations.barriers_close.cal_inv(float(temp_targ),0)[0]
         speed = Trough_GUI.calibrations.speed_close.cal_inv(tempspeed,0)[0]
     else:
-        target = Trough_GUI.calibrations.barriers_open.cal_inv(float(Barr_Target.value), 0)[0]
+        target = Trough_GUI.calibrations.barriers_open.cal_inv(float(temp_targ), 0)[0]
         speed = Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
     cmdsend.send(['Speed', speed])
     cmdsend.send(['Direction', direction])

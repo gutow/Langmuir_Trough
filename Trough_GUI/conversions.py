@@ -8,20 +8,37 @@
 def cm_to_sqcm(value, err, cals):
     """convert barrier separation in cm to trough area in sqcm"""
     from round_using_error import numbers_rndwitherr
-    # TODO
-    raise NotImplementedError
+    sqcm_err = err * float(cals.barriers_open.additional_data[ \
+                     "trough width (cm)"])
+    sqcm = value * float(cals.barriers_open.additional_data[ \
+                     "trough width (cm)"]) - float(cals.barriers_open. \
+                     additional_data["skimmer correction (cm^2)"])
+    return numbers_rndwitherr(sqcm, sqcm_err)
 
 def sqcm_to_cm(value, err, cals):
     """convert trough area in sqcm to barrier separation in cm"""
     from round_using_error import numbers_rndwitherr
-    # TODO
-    raise NotImplementedError
+    cm_err = err / float(cals.barriers_open.additional_data[ \
+                     "trough width (cm)"])
+    cm = (value + float(cals.barriers_open. \
+                        additional_data["skimmer correction (cm^2)"])) \
+                        / float(cals.barriers_open.additional_data[ \
+                        "trough width (cm)"])
+    return numbers_rndwitherr(cm, cm_err)
 
 def sqcm_to_angpermolec(value, err, moles):
     """convert trough area in sqcm to square angstroms per molecules"""
     from round_using_error import numbers_rndwitherr
-    # TODO
-    raise NotImplementedError
+    ang_err = err * 1e16 / moles / 6.02214076e23
+    ang_per_molec = value * 1e16 / moles / 6.02214076e23
+    return numbers_rndwitherr(ang_per_molec, ang_err)
+
+def angpermolec_to_sqcm(value, err, moles):
+    """convert trough area in sqcm to square angstroms per molecules"""
+    from round_using_error import numbers_rndwitherr
+    sqcm_err = err / 1e16 * moles * 6.02214076e23
+    sqcm = value / 1e16 * moles * 6.02214076e23
+    return numbers_rndwitherr(sqcm, sqcm_err)
 
 def mg_to_mNperm(value, err, pi_tare, plate_circ):
     """convert balance measurement in mg to milliNewtons per meter"""

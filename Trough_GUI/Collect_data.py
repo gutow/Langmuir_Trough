@@ -45,8 +45,6 @@ class trough_run():
         self.plate_circ = plate_circ
         self.livefig = go.FigureWidget(layout_template='simple_white')
         self.df = dataframe
-        # TODO should the run-start-stop button be specific to a run?
-        #  this would avoid cross-talk between new and completed runs.
         # Empty holder for the collection control parts, which can be
         #  cleared at the end of a run.
         self.collect_control = None
@@ -277,7 +275,7 @@ class trough_run():
             x_units = "$cm^2$"
         elif Barr_Units.value == 'Angstrom^2/molec':
             position = Bar_Area_per_Molec
-            x_units = "$Area per molecule ({\overset{\circ}{A}}^2)$"
+            x_units = "$Area\,per\,molecule\,({\overset{\circ}{A}}^2)$"
         collect_control2 = HBox([degC, position])
         self.collect_control = VBox([collect_control1, collect_control2])
         x_min = 0
@@ -300,11 +298,10 @@ class trough_run():
         return
 
     def close_collect_control(self):
-        """This makes `self.collect_control` into an empty VBox so that the
-        display will show nothing. This also minimizes the objects maintained on
-        the Python side."""
-        from ipywidgets import VBox
-        self.collect_control = VBox([])
+        """This closes `self.collect_control` which also minimizes
+        the objects maintained on the Python side."""
+        self.collect_control.close()
+        self.collect_control = None
         return
 
     def __repr__(self):

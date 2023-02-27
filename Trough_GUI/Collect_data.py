@@ -1,4 +1,3 @@
-from ipywidgets import Button
 from IPython import get_ipython
 cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
 datarcv = get_ipython().user_ns["Trough_Control"].datarcv
@@ -30,13 +29,12 @@ class trough_run():
             moles of molecules initially spread in the trough.
         plate_circ: float
             circumference of the Whilhelmy plate in mm.
-        dataframe: None or DataFrame
-        timestamp: None or int
+        dataframe: DataFrame or None
+        timestamp: float or None
         """
         from plotly import graph_objects as go
         import time
         from datetime import datetime
-        from ipywidgets import Button
         self.id = id
         self.filename = filename
         self.title = title
@@ -49,6 +47,9 @@ class trough_run():
         self.df = dataframe
         # TODO should the run-start-stop button be specific to a run?
         #  this would avoid cross-talk between new and completed runs.
+        # Empty holder for the collection control parts, which can be
+        #  cleared at the end of a run.
+        self.collect_control = None
         if timestamp:
             self.timestamp = timestamp
         else:
@@ -123,6 +124,189 @@ class trough_run():
         caption += '</table>'
         return caption
 
+    def _end_of_run(self):
+        from IPython import get_ipython
+        Trough_GUI = get_ipython().user_ns["Trough_GUI"]
+        # This hides the control stuff
+        self.close_collect_control()
+        # Store data
+        self.write_run('')
+        # start background updating
+        if not Trough_GUI.updater_running.value:
+            Trough_GUI.run_updater.value = True
+            Trough_GUI.start_status_updater()
+        return
+
+    def init_collect_control(self):
+        """This initializes the collection control widgets and VBox that
+        contains them. The VBox may be accessed as `self.collect_control`"""
+        from ipywidgets import Button, HBox, VBox
+        from IPython import get_ipython
+        Trough_GUI = get_ipython().user_ns["Trough_GUI"]
+        Bar_Sep = Trough_GUI.status_widgets.Bar_Sep
+        Bar_Area = Trough_GUI.status_widgets.Bar_Area
+        Bar_Area_per_Molec = Trough_GUI.status_widgets.Bar_Area_per_Molec
+        degC = Trough_GUI.status_widgets.degC
+        surf_press = Trough_GUI.status_widgets.surf_press
+        Barr_Units = Trough_GUI.command_widgets.Barr_Units
+        Barr_Speed = Trough_GUI.command_widgets.Barr_Speed
+        Barr_Target = Trough_GUI.command_widgets.Barr_Target
+
+        run_start_stop = Button(description="Run",
+                                button_style="success")
+
+        def _on_run_start_stop(change):
+            from threading import Thread
+            from numpy import sign
+            from IPython import get_ipython
+            from Trough_GUI.conversions import sqcm_to_cm, angpermolec_to_sqcm
+            Trough_GUI = get_ipython().user_ns["Trough_GUI"]
+            Bar_Sep = Trough_GUI.status_widgets.Bar_Sep
+            Bar_Area = Trough_GUI.status_widgets.Bar_Area
+            Bar_Area_per_Molec = Trough_GUI.status_widgets.Bar_Area_per_Molec
+            moles_molec = Trough_GUI.status_widgets.moles_molec
+            Barr_Units = Trough_GUI.command_widgets.Barr_Units
+            Barr_Speed = Trough_GUI.command_widgets.Barr_Speed
+            Barr_Target = Trough_GUI.command_widgets.Barr_Target
+            # Check if we are stopping a run
+            if run_start_stop.description == "Stop":
+                _on_stop_run()
+                return
+            # take over status updating
+            # First shutdown currently running updater
+            if Trough_GUI.updater_running.value:
+                Trough_GUI.run_updater.value = False
+                while Trough_GUI.updater_running.value:
+                    # wait
+                    pass
+            # Start run
+            # Convert "Start" to "Stop" button
+            Trough_GUI.run_updater.value = True
+            run_start_stop.description = "Stop"
+            run_start_stop.button_style = "danger"
+            # start barriers
+            trough_lock.acquire()
+            direction = 0
+            tempspeed = 0
+            temp_targ = 0
+            speed = 0
+            skimmer_correction = float(
+                Trough_GUI.calibrations.barriers_open.additional_data[
+                    "skimmer correction (cm^2)"])
+            width = float(Trough_GUI.calibrations.barriers_open.additional_data[
+                              "trough width (cm)"])
+            target_speed = float(Barr_Speed.value)
+            if Barr_Units.value == 'cm':
+                direction = int(
+                    sign(float(Barr_Target.value) - float(Bar_Sep.value)))
+                tempspeed = target_speed
+                temp_targ = float(Barr_Target.value)
+            elif Barr_Units.value == "cm^2":
+                direction = int(
+                    sign(float(Barr_Target.value) - float(Bar_Area.value)))
+                tempspeed = (target_speed - skimmer_correction) / width
+                temp_targ = \
+                    sqcm_to_cm(float(Barr_Target.value), 0,
+                               Trough_GUI.calibrations)[0]
+            elif Barr_Units.value == "Angstrom^2/molec":
+                direction = int(sign(
+                    float(Barr_Target.value) - float(Bar_Area_per_Molec.value)))
+                tempspeed = (target_speed - skimmer_correction) / width / 1e16 * float(
+                    moles_molec.value) * 6.02214076e23
+                sqcm, sqcmerr = angpermolec_to_sqcm(float(Barr_Target.value), 0,
+                                                    float(moles_molec.value))
+                temp_targ = sqcm_to_cm(
+                    *angpermolec_to_sqcm(float(Barr_Target.value), 0,
+                                         float(moles_molec.value)),
+                    Trough_GUI.calibrations)[0]
+            if direction < 0:
+                target = \
+                    Trough_GUI.calibrations.barriers_close.cal_inv(
+                        float(temp_targ), 0)[
+                        0]
+                speed = \
+                Trough_GUI.calibrations.speed_close.cal_inv(tempspeed, 0)[0]
+            else:
+                target = \
+                    Trough_GUI.calibrations.barriers_open.cal_inv(
+                        float(temp_targ), 0)[
+                        0]
+                speed = \
+                Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
+            cmdsend.send(['Speed', speed])
+            cmdsend.send(['Direction', direction])
+            cmdsend.send(['MoveTo', target])
+            trough_lock.release()
+            # display data as collected and periodically update status widgets
+            # spawn updater thread that updates both status widgets and the figure.
+            updater = Thread(target=collect_data_updater,
+                             args=(trough_lock, cmdsend,
+                                   datarcv,
+                                   Trough_GUI.calibrations,
+                                   Trough_GUI.lastdirection,
+                                   Trough_GUI.run_updater,
+                                   Trough_GUI.updater_running,
+                                   self))
+            updater.start()
+            return
+
+        def _on_stop_run():
+            from IPython import get_ipython
+            Trough_GUI = get_ipython().user_ns["Trough_GUI"]
+            run_start_stop.description = "Done"
+            run_start_stop.disabled = True
+            run_start_stop.button_style = ""
+            # Stop run
+            if Trough_GUI.updater_running.value:
+                Trough_GUI.run_updater.value = False
+            # when collection stops it will call _end_of_run.
+            return
+
+        run_start_stop.on_click(_on_run_start_stop)
+
+        run_start_stop.description = "Run"
+        run_start_stop.disabled = False
+        run_start_stop.button_style = "success"
+        collect_control1 = HBox([surf_press, run_start_stop])
+        position = None
+        x_units = Barr_Units.value
+        if Barr_Units.value == 'cm':
+            position = Bar_Sep
+        elif Barr_Units.value == 'cm^2':
+            position = Bar_Area
+            x_units = "$cm^2$"
+        elif Barr_Units.value == 'Angstrom^2/molec':
+            position = Bar_Area_per_Molec
+            x_units = "$Area per molecule ({\overset{\circ}{A}}^2)$"
+        collect_control2 = HBox([degC, position])
+        self.collect_control = VBox([collect_control1, collect_control2])
+        x_min = 0
+        x_max = 1
+        if float(Barr_Target.value) < float(position.value):
+            x_min = 0.98 * float(Barr_Target.value)
+            x_max = 1.02 * float(position.value)
+        else:
+            x_min = 0.98 * float(position.value)
+            x_max = 1.02 * float(Barr_Target.value)
+        if float(Barr_Speed.value) == 0:
+            x_units = 'Time (s)'
+            x_min = 0
+            x_max = 600  # 10 minutes
+        self.livefig.update_yaxes(title="$\Pi\,(mN/m)$",
+                                                 range=[0, 60])
+        self.livefig.update_xaxes(title=x_units,
+                                                 range=[x_min, x_max])
+        self.livefig.add_scatter(x=[], y=[])
+        return
+
+    def close_collect_control(self):
+        """This makes `self.collect_control` into an empty VBox so that the
+        display will show nothing. This also minimizes the objects maintained on
+        the Python side."""
+        from ipywidgets import VBox
+        self.collect_control = VBox([])
+        return
+
     def __repr__(self):
         from IPython.display import HTML, display
         display(self.livefig)
@@ -132,7 +316,6 @@ class trough_run():
     def to_html(self):
         """Create an html string representing a run"""
         from AdvancedHTMLParser import AdvancedTag as Domel
-        from AdvancedHTMLParser import AdvancedHTMLParser as Parser
         # create the html
         run_div = Domel('div')
         run_info = Domel('table')
@@ -208,111 +391,7 @@ class trough_run():
         f.close()
         return
 
-def on_run_start_stop(change):
-    from threading import Thread
-    from numpy import sign
-    from IPython import get_ipython
-    from Trough_GUI.conversions import sqcm_to_cm, angpermolec_to_sqcm
-    Trough_GUI = get_ipython().user_ns["Trough_GUI"]
-    Bar_Sep = Trough_GUI.status_widgets.Bar_Sep
-    Bar_Area = Trough_GUI.status_widgets.Bar_Area
-    Bar_Area_per_Molec = Trough_GUI.status_widgets.Bar_Area_per_Molec
-    moles_molec = Trough_GUI.status_widgets.moles_molec
-    Barr_Units = Trough_GUI.command_widgets.Barr_Units
-    Barr_Speed = Trough_GUI.command_widgets.Barr_Speed
-    Barr_Target = Trough_GUI.command_widgets.Barr_Target
-    # Check if we are stopping a run
-    if run_start_stop.description == "Stop":
-        on_stop_run()
-        return
-    # take over status updating
-    # First shutdown currently running updater
-    if Trough_GUI.updater_running.value:
-        Trough_GUI.run_updater.value = False
-        while Trough_GUI.updater_running.value:
-            # wait
-            pass
-    # Start run
-    # Convert "Start" to "Stop" button
-    Trough_GUI.run_updater.value = True
-    run_start_stop.description = "Stop"
-    run_start_stop.button_style = "danger"
-    # start barriers
-    trough_lock.acquire()
-    direction = 0
-    tempspeed = 0
-    temp_targ = 0
-    speed = 0
-    skimmer_correction = float(Trough_GUI.calibrations.barriers_open.additional_data["skimmer correction (cm^2)"])
-    width = float(Trough_GUI.calibrations.barriers_open.additional_data["trough width (cm)"])
-    target_speed = float(Barr_Speed.value)
-    if Barr_Units.value == 'cm':
-        direction = int(sign(float(Barr_Target.value)-float(Bar_Sep.value)))
-        tempspeed = target_speed
-        temp_targ = float(Barr_Target.value)
-    elif Barr_Units.value == "cm^2":
-        direction = int(sign(float(Barr_Target.value)-float(Bar_Area.value)))
-        tempspeed = (target_speed - skimmer_correction) / width
-        temp_targ = sqcm_to_cm(float(Barr_Target.value),0, Trough_GUI.calibrations)[0]
-    elif Barr_Units.value == "Angstrom^2/molec":
-        direction = int(sign(float(Barr_Target.value)-float(Bar_Area_per_Molec.value)))
-        tempspeed = (target_speed - skimmer_correction) / width / 1e16 * float(moles_molec.value) * 6.02214076e23
-        sqcm, sqcmerr = angpermolec_to_sqcm(float(Barr_Target.value), 0, float(moles_molec.value))
-        temp_targ = sqcm_to_cm(*angpermolec_to_sqcm(float(Barr_Target.value), 0, float(moles_molec.value)),
-                               Trough_GUI.calibrations)[0]
-    if direction < 0:
-        target = Trough_GUI.calibrations.barriers_close.cal_inv(float(temp_targ),0)[0]
-        speed = Trough_GUI.calibrations.speed_close.cal_inv(tempspeed,0)[0]
-    else:
-        target = Trough_GUI.calibrations.barriers_open.cal_inv(float(temp_targ), 0)[0]
-        speed = Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
-    cmdsend.send(['Speed', speed])
-    cmdsend.send(['Direction', direction])
-    cmdsend.send(['MoveTo', target])
-    trough_lock.release()
-    # display data as collected and periodically update status widgets
-    # spawn updater thread that updates both status widgets and the figure.
-    updater = Thread(target=collect_data_updater, args=(trough_lock, cmdsend,
-                                                datarcv,
-                                                Trough_GUI.calibrations,
-                                                Trough_GUI.lastdirection,
-                                                Trough_GUI.run_updater,
-                                                Trough_GUI.updater_running,
-                                                Trough_GUI.runs[-1]))
-    updater.start()
-    return
 
-def end_of_run():
-    from IPython import get_ipython
-    from IPython.display import display, clear_output
-    Trough_GUI = get_ipython().user_ns["Trough_GUI"]
-    # update the stop button
-    run_start_stop.description = "Done"
-    run_start_stop.button_style = ""
-    run_start_stop.disabled = True
-    # Store data
-    Trough_GUI.runs[-1].write_run('')
-    # start background updating
-    if not Trough_GUI.updater_running.value:
-        Trough_GUI.run_updater.value = True
-        Trough_GUI.start_status_updater()
-    # because we are on a different thread we cannot use a
-    #  an IPython.display call to change the output. However,
-    #  the IPython.clear_output() call does work.
-    return
-
-def on_stop_run():
-    from IPython import get_ipython
-    Trough_GUI = get_ipython().user_ns["Trough_GUI"]
-    # Stop run
-    if Trough_GUI.updater_running.value:
-        Trough_GUI.run_updater.value = False
-    # when collection stops it will call end_of_run above.
-    return
-
-run_start_stop = Button(description="Run",
-                        button_style="success")
-run_start_stop.on_click(on_run_start_stop)
 
 def Run(run_name):
     """
@@ -394,46 +473,11 @@ def Run(run_name):
                                           float(moles_molec.value),
                                           float(plate_circumference.value)))
         # Create the collection display
-        headerhtmlstr = Trough_GUI.runs[id].run_caption()
-        run_start_stop.description = "Run"
-        run_start_stop.disabled = False
-        run_start_stop.button_style = "success"
-        collect_control1 = HBox([surf_press, run_start_stop])
-        position = None
-        x_units = Barr_Units.value
-        if Barr_Units.value == 'cm':
-            position = Bar_Sep
-        elif Barr_Units.value == 'cm^2':
-            position = Bar_Area
-            x_units = "$cm^2$"
-        elif Barr_Units.value == 'Angstrom^2/molec':
-            position = Bar_Area_per_Molec
-            x_units = "$Area per molecule ({\overset{\circ}{A}}^2)$"
-        collect_control2 = HBox([degC, position])
-        collect_control = VBox([collect_control1, collect_control2])
-        x_min = 0
-        x_max = 1
-        if float(Barr_Target.value) < float(position.value):
-            x_min = 0.98*float(Barr_Target.value)
-            x_max = 1.02*float(position.value)
-        else:
-            x_min = 0.98*float(position.value)
-            x_max = 1.02*float(Barr_Target.value)
-        if float(Barr_Speed.value) == 0:
-            x_units = 'Time (s)'
-            x_min = 0
-            x_max = 600 # 10 minutes
-        Trough_GUI.runs[id].livefig.update_yaxes(title = "$\Pi\,(mN/m)$",
-                                                 range=[0, 60])
-        Trough_GUI.runs[id].livefig.update_xaxes(title=x_units,
-                                                 range=[x_min,x_max])
-        Trough_GUI.runs[id].livefig.add_scatter(x=[],y=[])
-        # Clear output and display collection
-        #   with fixed param and start run button.
+        Trough_GUI.runs[-1].init_collect_control()
         clear_output()
-        display(Trough_GUI.runs[id].livefig)
-        display(collect_control)
-        display(HTML(headerhtmlstr))
+        display(Trough_GUI.runs[-1].livefig)
+        display(Trough_GUI.runs[-1].collect_control)
+        display(HTML(Trough_GUI.runs[-1].run_caption()))
         return
 
     store_settings.on_click(on_store_settings)
@@ -518,7 +562,7 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
     # Release lock and set the shared I'm running flag to False before exiting.
     trough_lock.release()
     updater_running.value = False
-    Trough_GUI.Collect_data.end_of_run()
+    run._end_of_run()
     return
 
 def update_collection(datapkg, cals, lastdirection, run_updater, updater_running, run):

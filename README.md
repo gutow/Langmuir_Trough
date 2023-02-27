@@ -27,7 +27,7 @@ Once installed:
    Trough_GUI`. This will take a while to run the first time it is run each 
    day because it needs to check the movement of the barriers.
 9. To control and monitor the trough or do calibrations run the command 
-   `Controls()`.
+   `Trough_GUI.Controls(Trough_GUI.calibrations)`
 10. Do not do any real runs without making sure the calibrations are correct.
 11. To start data collection (a run) run the command `Run("name_for_run")`, 
     where you replace name_for_run with the text for the name of the run (no 

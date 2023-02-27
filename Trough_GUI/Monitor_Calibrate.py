@@ -586,3 +586,4 @@ def Monitor_Setup_Trough(calibrations):
                                    Barrier, Barrier_Accord, Status])
     display(Mon_Ctl_Calib)
     pass
+

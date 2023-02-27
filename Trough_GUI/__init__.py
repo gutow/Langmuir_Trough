@@ -24,6 +24,7 @@ calibrations = calibration_utils.Calibrations()
 
 # Now we should be able to import Monitor_Calibrate
 from Trough_GUI import Monitor_Calibrate
+from .Monitor_Calibrate import Monitor_Setup_Trough as Controls
 from .status_widgets import start_status_updater
 from threading import Thread
 status_update_thread = Thread(target=status_widgets.status_updater,
@@ -35,3 +36,4 @@ status_update_thread = Thread(target=status_widgets.status_updater,
                                     run_updater,
                                     updater_running))
 status_update_thread.start()
+

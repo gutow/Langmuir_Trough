@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="Langmuir_Trough",
-    version="0.1.0",
+    version="0.5.0",
     description="Controls and collects data from Gutow Lab Langmuir Trough.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -24,9 +24,6 @@ setuptools.setup(
         'lmfit>=1.0.3',
         'round-using-error>=1.1.1',
         'RPi.GPIO>=0.7.0;platform_system=="Linux"',
-        'Adafruit-PureIO>=1.1.9',
-        'Adafruit-ADS1x15>=1.0.2',
-        'Adafruit-GPIO>=1.0.3',
         'pi-plates>=7.21',
         'numpy>=1.21',
         'plotly>=5.8.2',

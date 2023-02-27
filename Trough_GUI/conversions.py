@@ -4,7 +4,7 @@
    `*func(...)`. For example `sqcm_to_angpermolec(*cm_to_sqcm(9.2, 0.1, cals),
    cals)`
 """
-
+# TODO use conversion utilities more places
 def cm_to_sqcm(value, err, cals):
     """convert barrier separation in cm to trough area in sqcm"""
     from round_using_error import numbers_rndwitherr

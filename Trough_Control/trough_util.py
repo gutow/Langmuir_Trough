@@ -555,7 +555,7 @@ def troughctl(CTLPipe,DATAPipe):
     # Unless some other process tries to access the A-to-D this should
     # make most of the fault tolerance unnecessary.
     ctlpid = take_over_barrier_monitoring()
-    # TODO: Should this all be wrapped in a try... so that if
+    # TODO Should this all be wrapped in a try... so that if
     #   anything stops this it gives up barrier monitoring?
     pos_F = deque(maxlen=20)
     pos_F_std = deque(maxlen=20)

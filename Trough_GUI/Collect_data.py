@@ -211,8 +211,6 @@ class trough_run():
                     float(Barr_Target.value) - float(Bar_Area_per_Molec.value)))
                 tempspeed = (target_speed - skimmer_correction) / width / 1e16 * float(
                     moles_molec.value) * 6.02214076e23
-                sqcm, sqcmerr = angpermolec_to_sqcm(float(Barr_Target.value), 0,
-                                                    float(moles_molec.value))
                 temp_targ = sqcm_to_cm(
                     *angpermolec_to_sqcm(float(Barr_Target.value), 0,
                                          float(moles_molec.value)),
@@ -441,8 +439,15 @@ def Run(run_name):
                      value = str(run_name),
                      disabled = False)
     def changed_base_on(change):
-        # TODO update settings to match the chosen run
+        # update settings to match the chosen model run
+        modelrun = name_to_run[str(change["new"])]
+        plate_circumference.value = str(modelrun.plate_circ)
+        moles_molec.value = str(modelrun.moles)
+        Barr_Units.value = str(modelrun.units)
+        Barr_Speed.value = str(modelrun.speed)
+        Barr_Target.value = str(modelrun.target)
         pass
+
     base_on = Dropdown(description = "Base on",
                        options=['None'] + completed_runs)
     base_on.observe(changed_base_on)

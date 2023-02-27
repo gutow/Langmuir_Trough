@@ -9,7 +9,7 @@ setuptools.setup(
     description="Controls and collects data from Gutow Lab Langmuir Trough.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/gutow/troughtsting.git",
+    url="https://github.com/gutow/Langmuir_Trough.git",
     author="Jonathan Gutow",
     author_email="gutow@uwosh.edu",
     keywords="",

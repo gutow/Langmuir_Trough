@@ -107,7 +107,7 @@ install as a special kernel when you are the user.
 
 ## Development
 
-### [Code Repository](https://github.com/gutow/troughtsting)
+### [Code Repository](https://github.com/gutow/Langmuir_Trough.git)
 
 1. For development purposes clone the GIT repository.
 2. Create the virtual environment to run it in within the development 

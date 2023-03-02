@@ -440,7 +440,9 @@ def Run(run_name):
                      disabled = False)
     def changed_base_on(change):
         # update settings to match the chosen model run
-        modelrun = name_to_run[str(change["new"])]
+        if base_on.value == 'None':
+            return
+        modelrun = name_to_run[str(base_on.value)]
         plate_circumference.value = str(modelrun.plate_circ)
         moles_molec.value = str(modelrun.moles)
         Barr_Units.value = str(modelrun.units)
@@ -449,8 +451,9 @@ def Run(run_name):
         pass
 
     base_on = Dropdown(description = "Base on",
-                       options=['None'] + completed_runs)
-    base_on.observe(changed_base_on)
+                       options=['None'] + completed_runs,
+                       value='None')
+    base_on.observe(changed_base_on, names='value')
     top_HBox = HBox([run_title, base_on])
     # Displayed status widgets
     status_HBox1 = HBox([Bar_Sep, Bar_Area, Bar_Area_per_Molec])

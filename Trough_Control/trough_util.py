@@ -89,7 +89,19 @@ def init_trough():
 
     cmdsend, cmdrcv = Pipe()
     datasend, datarcv = Pipe()
-    TROUGH = Process(target=troughctl, args=(cmdrcv, datasend))
+    # Check for trough hardware
+    trough_exists = True
+    try:
+        from piplates import DAQC2plate
+        del DAQC2plate
+    except Exception as e:
+        trough_exists = False
+    if trough_exists:
+        TROUGH = Process(target=troughctl, args=(cmdrcv, datasend))
+    else:
+        print("Unable to find Trough. Using simulation.")
+        from Trough_Control.simulation import simulated_troughctl
+        TROUGH = Process(target=simulated_troughctl, args=(cmdrcv, datasend))
     TROUGH.start()
     time.sleep(0.2)
     waiting = True

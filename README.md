@@ -115,7 +115,8 @@ install as a special kernel when you are the user.
 3. Within the shell pip install for development `pip install -e .`.
 
 ### Ideas/Things to do
-* Rename software package to `Langmuir_Trough`.
 * Make a simulated trough package, so it can run on any computer with Python.
 * Make more robust by wrapping data collection in `try ...` so that it can 
   exit more gracefully and give up barrier monitoring?
+* Add explanation of how to use the barrier watch deamon to prevent barrier 
+  crashing if software fails.

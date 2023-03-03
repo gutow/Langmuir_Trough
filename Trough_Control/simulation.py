@@ -75,8 +75,11 @@ def simulated_troughctl(CTLPipe,DATAPipe):
         #itcount = 0
         while (time.time() < stopat):
             now = time.time()
-            temp_pos = normalvariate(pos_init,pos_init*noise_frac) \
-                      + direction * speed * (now-barrier_start_time)
+            # Not using normalvariate to avoid occasional large excursions
+            # causing the data collection to think the barrier has reached its
+            # target.
+            temp_pos = pos_init + (random()-0.5)*(pos_init*noise_frac) \
+                      + direction * speed / 78 * (now-barrier_start_time)
             pos.append(temp_pos)
             temp_bal = normalvariate(bal_init,bal_init*noise_frac) \
                        + direction * 0.01 * (now-barrier_start_time)
@@ -86,6 +89,23 @@ def simulated_troughctl(CTLPipe,DATAPipe):
             temp_therm = normalvariate(temp_init, temp_init*noise_frac) \
                         + sin(elapsed*pi*2/cycle_seconds) * 0.05
             therm.append(temp_therm)
+            # Check barrier positions
+            if direction < 0 and (pos[-1] <= to_pos or pos[-1] <= 0):
+                pos_init = pos[-1]
+                bal_init = bal[-1]
+                speed = 0
+                direction = 0
+                messages.append("Reached closing stop at " + str(pos[-1]))
+                messages.append("barrier_start_time " + str(barrier_start_time))
+                messages.append("now " + str(now))
+            if direction > 0 and (pos[-1] >= to_pos or pos[-1] >= 1):
+                pos_init = pos[-1]
+                bal_init = bal[-1]
+                speed = 0
+                direction = 0
+                messages.append("Reached opening stop at " + str(pos[-1]))
+                messages.append("barrier_start_time " + str(barrier_start_time))
+                messages.append("now " + str(now))
         time_stamp.append((starttime + stopat) / 2)
         # position
         #print("poshigh: "+str(poshigh))
@@ -114,19 +134,6 @@ def simulated_troughctl(CTLPipe,DATAPipe):
             therm_V.append(avg)
             therm_std.append(stdev_avg)
 
-        # Check barrier positions
-        if direction < 0 and (pos[-1] <= to_pos or pos[-1] <=0):
-            pos_init = pos_F[-1]
-            bal_init = bal[-1]
-            speed = 0
-            direction = 0
-            # messages.append("Reached closing stop at " + str(pos[-1]))
-        if direction > 0 and (pos[-1] >= to_pos or pos[-1] >=1):
-            pos_init = pos_F[-1]
-            bal_init = bal[-1]
-            speed = 0
-            direction = 0
-            # messages.append("Reached opening stop at " + str(pos[-1]))
         # Communicattion
         while CTLPipe.poll():
             cmd_deque.append(CTLPipe.recv())
@@ -184,7 +191,7 @@ def simulated_troughctl(CTLPipe,DATAPipe):
                 # messages.append("direction => "+ str(chosen_direction))
             elif cmd[0] == 'Speed':
                 # set the speed
-                speed = float(cmd[1])/60
+                speed = float(cmd[1])
                 if speed > 1:
                     speed = 1
                 if speed < 0:
@@ -203,8 +210,11 @@ def simulated_troughctl(CTLPipe,DATAPipe):
                     direction = 1
                 else:
                     direction = -1
-                # messages.append("moveto position => " + str(to_pos))
-                # messages.append("moveto direction => " + str(direction))
+                messages.append("barrier_start_time => " +
+                                str(barrier_start_time))
+                messages.append("moveto speed => " + str(speed))
+                messages.append("moveto position => " + str(to_pos))
+                messages.append("moveto direction => " + str(direction))
                 pass
             elif cmd[0] == 'MotorCal':
                 # calibrate the voltages for starting motor and speeds

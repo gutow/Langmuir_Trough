@@ -4,7 +4,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 setuptools.setup(
-    name="Langmuir_Trough",
+    name="langmuir_trough",
     version="0.5.0",
     description="Controls and collects data from Gutow Lab Langmuir Trough.",
     long_description=long_description,

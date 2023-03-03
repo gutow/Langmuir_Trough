@@ -2,9 +2,11 @@ import Trough_GUI
 from Trough_GUI.status_widgets import *
 from Trough_GUI.command_widgets import *
 from IPython import get_ipython
-cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
-datarcv = get_ipython().user_ns["Trough_Control"].datarcv
-trough_lock = get_ipython().user_ns["Trough_Control"].trough_lock
+# only load if in IPython so docs can be built.
+if get_ipython():
+    cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
+    datarcv = get_ipython().user_ns["Trough_Control"].datarcv
+    trough_lock = get_ipython().user_ns["Trough_Control"].trough_lock
 
 def Monitor_Setup_Trough(calibrations):
     """

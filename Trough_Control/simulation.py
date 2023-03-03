@@ -141,7 +141,11 @@ def simulated_troughctl(CTLPipe, DATAPipe):
 
         # Communicattion
         while CTLPipe.poll():
-            cmd_deque.append(CTLPipe.recv())
+            try:
+                rcvd = CTLPipe.recv()
+            except EOFError:
+                break
+            cmd_deque.append(rcvd)
         # Each command is a python list.
         #    element 1: cmd name (string)
         #    element 2: single command parameter (number or string)

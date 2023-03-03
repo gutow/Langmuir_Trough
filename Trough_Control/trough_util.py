@@ -54,7 +54,11 @@ def is_trough_initialized():
     from IPython import get_ipython
     from multiprocessing import Process
     from multiprocessing.connection import Connection
-    user_ns = get_ipython().user_ns
+    # only load if in IPython to allow building of docs.
+    if get_ipython():
+        user_ns = get_ipython().user_ns
+    else:
+        user_ns = []
     trough_running = False
     if "TROUGH" in user_ns:
         # Check that it is a process

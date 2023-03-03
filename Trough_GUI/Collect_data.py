@@ -1,7 +1,9 @@
 from IPython import get_ipython
-cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
-datarcv = get_ipython().user_ns["Trough_Control"].datarcv
-trough_lock = get_ipython().user_ns["Trough_Control"].trough_lock
+# Only load if in IPython to allow build of docs
+if get_ipython():
+    cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
+    datarcv = get_ipython().user_ns["Trough_Control"].datarcv
+    trough_lock = get_ipython().user_ns["Trough_Control"].trough_lock
 
 # Boilerplate style for long descriptions on ipywidget
 longdesc = {'description_width': 'initial'}
@@ -67,7 +69,8 @@ class trough_run():
                         self.livefig.update_xaxes(title="$Area\,(cm^2)$")
                     if self.units == 'Angstrom^2/molec':
                         x_data = self.df['Area per molecule (A^2)']
-                        self.livefig.update_xaxes(title="$Area per molecule ({\overset{\circ}{A}}^2)$")
+                        self.livefig.update_xaxes(title="$Area\,per\,"
+                                        "molecule\,({\overset{\circ}{A}}^2)$")
                 else:
                     x_data = self.df['time_stamp']-self.df['time_stamp'][0]
                 self.livefig.add_scatter(y=self.df['Surface Pressure (mN/m)'], x=x_data)

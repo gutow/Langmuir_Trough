@@ -5,10 +5,18 @@ Jupyter notebook environment. However, all of the parts that are not elements
 of the user interface should work in a vanilla Python environment.
 
 Hardware requirements:
-Raspberry Pi compatible system with a Pi-Plates DAQC2 data acquisition plate 
+Raspberry Pi compatible system with a [Pi-Plates 
+DAQC2](https://pi-plates.com/daqc2r1/) data acquisition plate 
 and a trough controlled by the DAQC2 plate. This software could be used with 
 a trough controlled some other way by rewriting the routines in `trough_util.
-py`. The GUI front end would need no rewriting 
+py`. The GUI front end would need no rewriting to use with a different 
+trough if a custom backend controlling the barriers, reading the temperature 
+and Whilhelmy balance is written. The backend needs to continually monitor 
+the trough and respond to the following commands: `Stop, Send, Start, 
+Direction, Speed, MoveTo, MotorCal, ConstPi, DataLabels, ShutDown`.
+
+**If you do not have compatible hardware the GUI will run with a simulated 
+trough, allowing you to see how it works.**
 
 ## Usage
 
@@ -83,14 +91,14 @@ Python](https://docs.python-guide.org/dev/virtualenvs/).
    the environment you can issue the `$ exit` command on the command line.
 5. While still in the shell install the latest trough software and all its
  requirements
-   `$ pip install -U ????`.
+   `$ pip install -U langmuir_trough`.
 6. Still within the environment shell test
    this by starting jupyter `$ jupyter notebook`. Jupyter should launch in your 
    browser.
     1. Open a new notebook using the default (Python 3) kernel.
     2. In the first cell import the Trough_GUI: 
        `import Trough_GUI`.
-        When run this cell set things up and try to talk to the trough.
+        When run this cell sets things up and tries to talk to the trough.
 7. If you wish, you can make this environment available to an alternate Jupyter
 install as a special kernel when you are the user.
     1. Make sure you are running in your virtual environment `$ pipenv shell` 
@@ -102,7 +110,7 @@ install as a special kernel when you are the user.
      found [here](https://janakiev.com/til/jupyter-virtual-envs/). 
 
 ## Change Log
-* 0.5.0 (Mar. 4, 2023) First version with basically working GUI
+* 0.5.0 (Mar. 4, 2023) First version with working GUI
 * 0.1.0 First pypi compatible package version.
 
 ## Known issues
@@ -117,6 +125,30 @@ install as a special kernel when you are the user.
 2. Create the virtual environment to run it in within the development 
    directory `pipenv shell`.
 3. Within the shell pip install for development `pip install -e .`.
+
+### Constructing the Documentation
+
+1. Make sure pdoc is installed and updated in the virtual environment `pip 
+   install -U pdoc`.
+2. Update any `.md` files included in `_init_.py`.
+   * Generally URLs should be absolute, not relative.
+3. At the root level run pdoc `pdoc --logo-link https://gutow.github.io/Langmuir_Trough/ --footer-text "Langmuir_Trough v0.5.0" --math -html -o docs Trough_GUI Trough_Control` 
+   where `X.X.X` is the version number.
+4. Because of the way the document building process works the background tasks 
+   will be started. **You will have to stop the document build after the 
+   documentation is done building (watch the `doc` folder) with a `^C` to 
+   terminate it.**
+
+### Releasing on PyPi
+
+Proceed only if testing of the build is successful.
+
+1. Double check the version number in `setup.py`.
+1. Rebuild the release: `python -m setup sdist bdist_wheel`.
+1. Upload it: `python -m twine upload dist/*`
+1. Make sure it works by installing it in a clean virtual environment. `pip 
+   install -U ...`. **Copy the actual link from pypi.org.**
+   `. If it does not work, pull the release.
 
 ### Ideas/Things to do
 * Make more robust by wrapping data collection in `try ...` so that it can 

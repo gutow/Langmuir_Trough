@@ -1,8 +1,10 @@
 # Start up the trough if necessary
 import Trough_Control
 from IPython import get_ipython
-user_ns = get_ipython().user_ns
-user_ns["Trough_Control"] = Trough_Control
+# Allow building of documentation by not loading if not in IPython
+if get_ipython():
+    user_ns = get_ipython().user_ns
+    user_ns["Trough_Control"] = Trough_Control
 if not Trough_Control.trough_util.is_trough_initialized():
     Trough_Control.cmdsend, Trough_Control.datarcv, \
     Trough_Control.TROUGH = Trough_Control.trough_util.init_trough()

@@ -1,17 +1,21 @@
-def simulated_troughctl(CTLPipe,DATAPipe):
+def simulated_troughctl(CTLPipe, DATAPipe):
     """
     Will run as separate process taking in commands through a pipe and
     returning data on demand through a second pipe.
 
-    :param Pipe CTLPipe: pipe commands come in on and messages go out on.
-    :param Pipe DATAPipe: pipe data is sent out on
+    Parameters
+    ----------
+    CTLPipe: Pipe
+        commands come in on and messages go out on.
+
+    DATAPipe: Pipe
+        data is sent out on
     """
     import time
     import numpy as np
     from random import random, normalvariate
-    from math import sin, pi, trunc, remainder
+    from math import sin, pi
     from collections import deque
-    from multiprocessing import Pipe
     from sys import exit
 
     def bundle_to_send(que_lst):
@@ -24,7 +28,7 @@ def simulated_troughctl(CTLPipe,DATAPipe):
 
         Returns
         -------
-        list
+        list: list
             list of lists. One list for each deque.
         """
 
@@ -46,16 +50,18 @@ def simulated_troughctl(CTLPipe,DATAPipe):
     time_stamp = deque(maxlen=20)
     cmd_deque = deque()
     messages = deque()
-    que_lst = [time_stamp, pos_F, pos_F_std, bal_V, bal_std, therm_V, therm_std, messages]
-    que_lst_labels = ["time stamp", "position fraction", "position standard deviation",
-                      "balance voltage", "balance standard deviation", "thermistor voltage",
+    que_lst = [time_stamp, pos_F, pos_F_std, bal_V, bal_std, therm_V, therm_std,
+               messages]
+    que_lst_labels = ["time stamp", "position fraction",
+                      "position standard deviation", "balance voltage",
+                      "balance standard deviation", "thermistor voltage",
                       "thermistor standard deviation", "messages"]
     timedelta = 0.500  # seconds
     messages.append("Trough ready")
     DATAPipe.send(bundle_to_send(que_lst))
     messages.clear()
-    speed = 0 # 0 to 1 fraction of maximum speed.
-    direction = 0 # -1 close, 0 don't move, 1 open
+    speed = 0  # 0 to 1 fraction of maximum speed.
+    direction = 0  # -1 close, 0 don't move, 1 open
     chosen_direction = 0
     run = True
     barrier_start_time = 0
@@ -64,15 +70,14 @@ def simulated_troughctl(CTLPipe,DATAPipe):
     pos_init = random()
     temp_init = 3.30 + random()*0.05
     bal_init = (random()-0.5)
+    to_pos = 0.5
     while run:
         pos = []
         bal = []
         therm = []
         starttime = time.time()
-        stopat = starttime + timedelta - 0.200  # leave 200 ms for communications and control
-        #loopcount +=1
-        #print('Starting a data record: '+str(loopcount))
-        #itcount = 0
+        # leave 200 ms for communications and control
+        stopat = starttime + timedelta - 0.200
         while (time.time() < stopat):
             now = time.time()
             # Not using normalvariate to avoid occasional large excursions
@@ -81,11 +86,11 @@ def simulated_troughctl(CTLPipe,DATAPipe):
             temp_pos = pos_init + (random()-0.5)*(pos_init*noise_frac) \
                       + direction * speed / 78 * (now-barrier_start_time)
             pos.append(temp_pos)
-            temp_bal = normalvariate(bal_init,bal_init*noise_frac) \
+            temp_bal = normalvariate(bal_init, bal_init*noise_frac) \
                        + direction * 0.01 * (now-barrier_start_time)
             bal.append(temp_bal)
 
-            elapsed = now%cycle_seconds
+            elapsed = now % cycle_seconds
             temp_therm = normalvariate(temp_init, temp_init*noise_frac) \
                         + sin(elapsed*pi*2/cycle_seconds) * 0.05
             therm.append(temp_therm)
@@ -95,20 +100,20 @@ def simulated_troughctl(CTLPipe,DATAPipe):
                 bal_init = bal[-1]
                 speed = 0
                 direction = 0
-                messages.append("Reached closing stop at " + str(pos[-1]))
-                messages.append("barrier_start_time " + str(barrier_start_time))
-                messages.append("now " + str(now))
+                # messages.append("Reached closing stop at " + str(pos[-1]))
+                # messages.append("barrier_start_time "+str(barrier_start_time))
+                # messages.append("now " + str(now))
             if direction > 0 and (pos[-1] >= to_pos or pos[-1] >= 1):
                 pos_init = pos[-1]
                 bal_init = bal[-1]
                 speed = 0
                 direction = 0
-                messages.append("Reached opening stop at " + str(pos[-1]))
-                messages.append("barrier_start_time " + str(barrier_start_time))
-                messages.append("now " + str(now))
+                # messages.append("Reached opening stop at " + str(pos[-1]))
+                # messages.append("barrier_start_time "+str(barrier_start_time))
+                # messages.append("now " + str(now))
         time_stamp.append((starttime + stopat) / 2)
         # position
-        #print("poshigh: "+str(poshigh))
+        # print("poshigh: "+str(poshigh))
         ndata = len(pos)
         if ndata >= 1:
             vals = np.array(pos, dtype=np.float64)
@@ -141,18 +146,18 @@ def simulated_troughctl(CTLPipe,DATAPipe):
         #    element 1: cmd name (string)
         #    element 2: single command parameter (number or string)
         # Execute commands in queue
-        #print('Executing commands...')
+        # print('Executing commands...')
         while len(cmd_deque) > 0:
             cmd = cmd_deque.popleft()
             # execute the command
-            #print(str(cmd))
+            # print(str(cmd))
             if cmd[0] == 'Stop':
                 pos_init = pos_F[-1]
                 bal_init = bal[-1]
                 speed = 0
                 direction = 0
             elif cmd[0] == 'Send':
-                #print('Got a "Send" command.')
+                # print('Got a "Send" command.')
                 # send current contents of the data deques
                 DATAPipe.send(bundle_to_send(que_lst))
                 # purge the sent content
@@ -210,11 +215,11 @@ def simulated_troughctl(CTLPipe,DATAPipe):
                     direction = 1
                 else:
                     direction = -1
-                messages.append("barrier_start_time => " +
-                                str(barrier_start_time))
-                messages.append("moveto speed => " + str(speed))
-                messages.append("moveto position => " + str(to_pos))
-                messages.append("moveto direction => " + str(direction))
+                # messages.append("barrier_start_time => " + str(
+                # barrier_start_time))
+                # messages.append("moveto speed => " + str(speed))
+                # messages.append("moveto position => " + str(to_pos))
+                # messages.append("moveto direction => " + str(direction))
                 pass
             elif cmd[0] == 'MotorCal':
                 # calibrate the voltages for starting motor and speeds

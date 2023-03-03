@@ -102,8 +102,12 @@ install as a special kernel when you are the user.
      found [here](https://janakiev.com/til/jupyter-virtual-envs/). 
 
 ## Change Log
-* 0.5.0 (27-2-2023) First version with basically working GUI
+* 0.5.0 (Mar. 4, 2023) First version with basically working GUI
 * 0.1.0 First pypi compatible package version.
+
+## Known issues
+* 0.5.0 The estimated error on values converted to metric units based on 
+  calibration fits appears to be too pessimistic.
 
 ## Development
 
@@ -115,7 +119,6 @@ install as a special kernel when you are the user.
 3. Within the shell pip install for development `pip install -e .`.
 
 ### Ideas/Things to do
-* Make a simulated trough package, so it can run on any computer with Python.
 * Make more robust by wrapping data collection in `try ...` so that it can 
   exit more gracefully and give up barrier monitoring?
 * Add explanation of how to use the barrier watch deamon to prevent barrier 

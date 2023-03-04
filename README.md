@@ -119,7 +119,7 @@ install as a special kernel when you are the user.
 
 ## Development
 
-### [Code Repository](https://github.com/gutow/Langmuir_Trough.git)
+### [CodeRepository](https://github.com/gutow/Langmuir_Trough.git) | [API Docs](https://gutow.github.io/Langmuir_Trough)
 
 1. For development purposes clone the GIT repository.
 2. Create the virtual environment to run it in within the development 
@@ -132,7 +132,9 @@ install as a special kernel when you are the user.
    install -U pdoc`.
 2. Update any `.md` files included in `_init_.py`.
    * Generally URLs should be absolute, not relative.
-3. At the root level run pdoc `pdoc --logo-link https://gutow.github.io/Langmuir_Trough/ --footer-text "Langmuir_Trough v0.5.0" --math -html -o docs Trough_GUI Trough_Control` 
+3. At the root level run pdoc `pdoc --logo-link https://gutow.github.
+   io/Langmuir_Trough/ --footer-text "Langmuir_Trough vX.X.X" --math -html -o 
+   docs Trough_GUI Trough_Control` 
    where `X.X.X` is the version number.
 4. Because of the way the document building process works the background tasks 
    will be started. **You will have to stop the document build after the 

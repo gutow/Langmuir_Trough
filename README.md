@@ -145,10 +145,11 @@ install as a special kernel when you are the user.
 
 Proceed only if testing of the build is successful.
 
-1. Double check the version number in `setup.py`.
-1. Rebuild the release: `python -m setup sdist bdist_wheel`.
-1. Upload it: `python -m twine upload dist/*`
-1. Make sure it works by installing it in a clean virtual environment. `pip 
+1. Update packaging software `pip install -U setuptools wheel twine`
+2. Double check the version number in `setup.py`.
+3. Rebuild the release: `python -m setup sdist bdist_wheel`.
+4. Upload it: `python -m twine upload dist/*`
+5. Make sure it works by installing it in a clean virtual environment. `pip 
    install -U ...`. **Copy the actual link from pypi.org.**
    `. If it does not work, pull the release.
 

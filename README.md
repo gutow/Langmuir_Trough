@@ -37,7 +37,8 @@ Once installed:
 9. To control and monitor the trough or do calibrations run the command 
    `Trough_GUI.Controls(Trough_GUI.calibrations)`
 10. Do not do any real runs without making sure the calibrations are correct.
-11. To start data collection (a run) run the command `Run("name_for_run")`, 
+11. To start data collection (a run) run the command 
+    `Trough_GUI.Collect_data.Run("name_for_run")`, 
     where you replace name_for_run with the text for the name of the run (no 
     spaces).
 12. Set the run conditions.

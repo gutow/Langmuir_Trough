@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="langmuir_trough",
-    version="0.5.0",
+    version="0.5.1",
     description="Controls and collects data from Gutow Lab Langmuir Trough.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -23,7 +23,8 @@ setuptools.setup(
         'JPSLMenus>=0.5.0',
         'lmfit>=1.0.3',
         'round-using-error>=1.1.1',
-        'RPi.GPIO>=0.7.0;platform_system=="Linux"',
+        'RPi.GPIO>=0.7.0;platform_system=="Linux"', # pi-plates requires
+        'spidev>=3.5;platform_system=="Linux"', # pi-plates requires
         'pi-plates>=7.21',
         'numpy>=1.21',
         'plotly>=5.8.2',

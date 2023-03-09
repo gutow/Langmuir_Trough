@@ -99,6 +99,8 @@ def init_trough():
         from piplates import DAQC2plate
         del DAQC2plate
     except Exception as e:
+        print("An issue was encountered while accessing the DAQC2plate:" +
+              str(e))
         trough_exists = False
     if trough_exists:
         TROUGH = Process(target=troughctl, args=(cmdrcv, datasend))

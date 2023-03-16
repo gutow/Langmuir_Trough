@@ -407,6 +407,7 @@ def Run(run_name):
     """
     from pathlib import Path
     from ipywidgets import Text, Dropdown, HBox, VBox, Accordion, Label, Button
+    from ipywidgets import Output
     from IPython.display import display
     from IPython import get_ipython
     Trough_GUI = get_ipython().user_ns["Trough_GUI"]
@@ -423,6 +424,7 @@ def Run(run_name):
     Barr_Target = Trough_GUI.command_widgets.Barr_Target
     name_to_run = {}
     completed_runs = []
+    out_elem = Output() # place to target displays of widgets
     for k in Trough_GUI.runs:
         name_to_run[k.title]= k
         completed_runs.append(k.title)
@@ -471,7 +473,7 @@ def Run(run_name):
     store_settings = Button(description="Store Settings")
 
     def on_store_settings(change):
-        from IPython.display import HTML, clear_output
+        from IPython.display import HTML
         # create the run object
         id = len(Trough_GUI.runs)
         Trough_GUI.runs.append(trough_run(id,run_name+'.trh.run.html', run_title.value,
@@ -482,10 +484,11 @@ def Run(run_name):
                                           float(plate_circumference.value)))
         # Create the collection display
         Trough_GUI.runs[-1].init_collect_control()
-        clear_output()
-        display(Trough_GUI.runs[-1].livefig)
-        display(Trough_GUI.runs[-1].collect_control)
-        display(HTML(Trough_GUI.runs[-1].run_caption()))
+        out_elem.clear_output()
+        with out_elem:
+            display(Trough_GUI.runs[-1].livefig)
+            display(Trough_GUI.runs[-1].collect_control)
+            display(HTML(Trough_GUI.runs[-1].run_caption()))
         return
 
     store_settings.on_click(on_store_settings)
@@ -496,8 +499,9 @@ def Run(run_name):
     settings_Acc.set_title(0, "Settings")
     status_Acc.selected_index = 0
     Barr_Target.disabled = False
-    display(top_HBox, status_Acc, settings_Acc)
-
+    with out_elem:
+        display(top_HBox, status_Acc, settings_Acc)
+    display(out_elem)
     return
 
 def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,

@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="langmuir_trough",
-    version="0.5.1",
+    version="0.5.2",
     description="Controls and collects data from Gutow Lab Langmuir Trough.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -29,6 +29,7 @@ setuptools.setup(
         'numpy>=1.21',
         'plotly>=5.8.2',
         'jupyter>=1.0.0',
+        'jupyterlab>=3.6.1',
         'notebook>=6.4.12',  # security fixes
         'jupyter-contrib-nbextensions>=0.5.1',
         'pandas>=1.4.2',

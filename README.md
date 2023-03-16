@@ -111,6 +111,9 @@ install as a special kernel when you are the user.
      found [here](https://janakiev.com/til/jupyter-virtual-envs/). 
 
 ## Change Log
+* 0.5.2 (Mar. 16, 2023) Now works in Jupyter Lab.
+  * Adjusted widget updating/clearing to work in Jupyter lab.
+  * Added JupyterLab >= 3.6.1 to requirements.
 * 0.5.1 (Mar. 9, 2023) 
   * Include `spidev` package in requirements. 
   * More details reported when unable to "find trough".
@@ -118,8 +121,8 @@ install as a special kernel when you are the user.
 * 0.1.0 First pypi compatible package version.
 
 ## Known issues
-* 0.5.0 The estimated error on values converted to metric units based on 
-  calibration fits appears to be too pessimistic.
+* 0.5.0 - 0.5.2 The estimated error on values converted to metric units 
+  based on calibration fits appears to be too pessimistic.
 
 ## Development
 
@@ -136,9 +139,9 @@ install as a special kernel when you are the user.
    install -U pdoc`.
 2. Update any `.md` files included in `_init_.py`.
    * Generally URLs should be absolute, not relative.
-3. At the root level run pdoc `pdoc --logo-link https://gutow.github.
-io/Langmuir_Trough/ --footer-text "Langmuir_Trough vX.X.X" --math -html -o 
-docs Trough_GUI Trough_Control` where `X.X.X` is the version number.
+3. At the root level run pdoc `pdoc --logo-link
+https://gutow.github.io/Langmuir_Trough/ --footer-text "Langmuir_Trough vX.X.X" 
+--math -html -o docs Trough_GUI Trough_Control` where `X.X.X` is the version number.
 4. Because of the way the document building process works the background tasks 
    will be started. **You will have to stop the document build after the 
    documentation is done building (watch the `doc` folder) with a `^C` to 

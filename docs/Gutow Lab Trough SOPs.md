@@ -86,12 +86,12 @@
 
 ## Storage of Trough Between Runs
 * If the trough is being used regularly (1X/week or more): store the trough 
-  with clean subphase in it. For water subphase make sure that the 
+  with clean subphase in it. If the subphase is water make sure that the 
   humidification beaker in the isolation box is kept about 50% full.
 * If the trough will be unused for a significant time:
-  1. Empty the humidification beaker.
-  2. [After verifying the trough and subphase cleanliness](#checking-trough-and-subphase-cleanliness)
+  1. [After verifying the trough and subphase cleanliness](#checking-trough-and-subphase-cleanliness)
      aspirate off all the subphase.
+  2. Empty the humidification beaker.
   3. Cover the trough with the polycarbonate lid.
   4. Make sure the isolation box is closed.
   5. Make sure the power supply is off.
@@ -128,12 +128,43 @@ compounds at a level that will ruin experiments**
 6. Dispense 90 &micro;L of the solvent sample onto the surface between the 
    barriers.
 7. Allow to evaporate (15 min is adequate for hexanes).
-8. Perform a compression at 1 cm/min from fully open to fully closed.
+8. [Perform a compression](#running-a-compression) at 1 cm/min from fully 
+   open to fully closed.
 9. **The solvent is clean if the surface pressure stays between -0.2 and +0.2 
    mN/m.**
 
 ## Making a Spreading Solution
-
+For most molecules we want to spread about 3.00 X 10<sup>-8</sup> moles of 
+molecules on our trough to get a range of roughly 60 to 15 square Angstroms per 
+molecule during a compression.
+1. The ideal volume to spread is 50 &micro;L of solution. Thus we want a 
+   concentration near (3.00 X 10<sup>-8</sup> moles)/(50.0 X 10<sup>-6</sup> L)
+   = 6 X 10<sup>-4</sup> M. It is practical to spread anywhere between 20 
+   and 90 &micro;L. So, you can adapt to concentrations that vary between 1.00 
+   x 10<sup>-3</sup> M and 3.3 X 10<sup>-4</sup> M.
+2. Ideally your molecule will dissolve in pure hexanes at a concentration of 
+   6 X 10<sup>-4</sup> M. If it is not soluble you can put a few percent (up 
+   to 5% v/v) of ethanol in with the hexanes. This solvent mixture works for 
+   many surfactants, without significantly impacting the surface tension of 
+   a water subphase.
+3. Experiments take very little solution, so make as small volumes of 
+   solution as possible. Note that you should not try to measure out 
+   surfactant in amounts that produce less than three significant figures on 
+   a standard analytical balance (e.g. at least 10 mg, preferably 50 mg or 
+   more.) This may mean that you will have to make a stock solution and 
+   dilute it to get in the correct concentration range.
+4. All solutions must be made using 
+   [properly cleaned glassware](#handling-spreading-solvents) and spreading 
+   solvents that have been
+   [verified to be clean.](#checking-spreading-solvent-cleanliness) Use 
+   volumetric flasks with ground glass stoppers to avoid contamination by 
+   the plasticizers found in most polymer caps.
+5. Because the solvents are very volatile the solutions will not keep long 
+   in the volumetric flasks with ground glass stoppers. They can be 
+   transferred for somewhat longer term storage to sealed brown bottles 
+   if they are [properly washed](#checking-spreading-solvent-cleanliness) 
+   and you have verified that a little solvent stored in the bottle 
+   overnight and shaken [stays clean.](#checking-spreading-solvent-cleanliness)
 
 ## Spreading a Sample
 

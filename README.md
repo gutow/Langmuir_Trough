@@ -25,7 +25,8 @@ Once installed:
 1. Turn on the power supply for the trough.
 2. In a terminal navigate to the directory containing the trough software.
 3. Start the virtual environment `pipenv shell`.
-4. Launch Jupyter `jupyter notebook` (Jupyter lab may also work).
+4. Launch Jupyter `jupyter notebook` (`jupyter lab` also works and is now 
+   more stable).
 5. Create a folder for the new day using the **New** menu near the top right 
    of the Jupyter browser page. Give it an appropriate name.
 6. Switch to that folder by clicking on it.

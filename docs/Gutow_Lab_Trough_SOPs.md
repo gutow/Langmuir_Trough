@@ -14,9 +14,9 @@
    abbreviation, DD = day of the month and YYYY = the year.
 7. Open the folder by clicking on it.
 8. Open a new Notebook. Give it a descriptive name.
-9. In the first cell run the command `import Trough_GUI`. If the trough has 
-   not been started in the last 12 hours this will take a while as it checks 
-   the motor calibration for moving the barriers.
+9. In the first cell run the command `from Trough import Trough_GUI`. If the 
+   trough has not been started in the last 12 hours this will take a while 
+   as it checks the motor calibration for moving the barriers.
 
 ## Checking Trough and Subphase Cleanliness
 **This need to be done before each experiment.**

@@ -1,5 +1,5 @@
 # Start up the trough if necessary
-import Trough_Control
+from Trough import Trough_Control
 from IPython import get_ipython
 # Allow building of documentation by not loading if not in IPython
 if get_ipython():
@@ -19,13 +19,11 @@ lastdirection = Value('i', 0)
 run_updater = Value(c_bool, True)
 updater_running = Value(c_bool, False)
 
-from Trough_GUI import calibration_utils, status_widgets,\
-    command_widgets, Collect_data
+from . import status_widgets, calibration_utils, Collect_data
 
 calibrations = calibration_utils.Calibrations()
 
 # Now we should be able to import Monitor_Calibrate
-from Trough_GUI import Monitor_Calibrate
 from .Monitor_Calibrate import Monitor_Setup_Trough as Controls
 from .status_widgets import start_status_updater
 from threading import Thread

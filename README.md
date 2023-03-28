@@ -32,9 +32,9 @@ Once installed:
 6. Switch to that folder by clicking on it.
 7. Start a new ipython notebook using the **New** menu. Give it a
    name that describes the experiment.
-8. In the first cell initialize the trough by running the command `import 
-   Trough_GUI`. This will take a while to run the first time it is run each 
-   day because it needs to check the movement of the barriers.
+8. In the first cell initialize the trough by running the command `from 
+   Trough import Trough_GUI`. This will take a while to run the first time 
+   it is run each day because it needs to check the movement of the barriers.
 9. To control and monitor the trough or do calibrations run the command 
    `Trough_GUI.Controls(Trough_GUI.calibrations)`
 10. Do not do any real runs without making sure the calibrations are correct.
@@ -99,7 +99,7 @@ Python](https://docs.python-guide.org/dev/virtualenvs/).
    browser.
     1. Open a new notebook using the default (Python 3) kernel.
     2. In the first cell import the Trough_GUI: 
-       `import Trough_GUI`.
+       `from Trough import Trough_GUI`.
         When run this cell sets things up and tries to talk to the trough.
 7. If you wish, you can make this environment available to an alternate Jupyter
 install as a special kernel when you are the user.
@@ -112,6 +112,10 @@ install as a special kernel when you are the user.
      found [here](https://janakiev.com/til/jupyter-virtual-envs/). 
 
 ## Change Log
+* 0.6.0dev
+  * Documentation updates including Gutow Lab Standard Operating Procedures 
+    (SOPs).
+  * Refactored everything to underneath the module `Trough`.
 * 0.5.2 (Mar. 16, 2023) Now works in Jupyter Lab.
   * Adjusted widget updating/clearing to work in Jupyter lab.
   * Added JupyterLab >= 3.6.1 to requirements.
@@ -127,7 +131,7 @@ install as a special kernel when you are the user.
 
 ## Development
 
-### [CodeRepository](https://github.com/gutow/Langmuir_Trough.git) | [API Docs](https://gutow.github.io/Langmuir_Trough)
+### [CodeRepository](https://github.com/gutow/Langmuir_Trough.git) | [Docs](https://gutow.github.io/Langmuir_Trough)
 
 1. For development purposes clone the GIT repository.
 2. Create the virtual environment to run it in within the development 
@@ -142,7 +146,7 @@ install as a special kernel when you are the user.
    * Generally URLs should be absolute, not relative.
 3. At the root level run pdoc `pdoc --logo-link
 https://gutow.github.io/Langmuir_Trough/ --footer-text "Langmuir_Trough vX.X.X" 
---math -html -o docs Trough_GUI Trough_Control` where `X.X.X` is the version number.
+--math -html -o docs Trough` where `X.X.X` is the version number.
 4. Because of the way the document building process works the background tasks 
    will be started. **You will have to stop the document build after the 
    documentation is done building (watch the `doc` folder) with a `^C` to 

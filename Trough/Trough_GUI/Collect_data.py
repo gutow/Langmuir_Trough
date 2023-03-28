@@ -160,7 +160,7 @@ class trough_run():
             from threading import Thread
             from numpy import sign
             from IPython import get_ipython
-            from Trough_GUI.conversions import sqcm_to_cm, angpermolec_to_sqcm
+            from Trough.Trough_GUI.conversions import sqcm_to_cm, angpermolec_to_sqcm
             Trough_GUI = get_ipython().user_ns["Trough_GUI"]
             Bar_Sep = Trough_GUI.status_widgets.Bar_Sep
             Bar_Area = Trough_GUI.status_widgets.Bar_Area

@@ -87,7 +87,7 @@ def init_trough():
     TROUGH: the process handle for the trough.
     """
     from multiprocessing import Process, Pipe
-    from Trough_Control.message_utils import extract_messages
+    from Trough.Trough_Control.message_utils import extract_messages
     import time
     from sys import exit
 
@@ -106,7 +106,7 @@ def init_trough():
         TROUGH = Process(target=troughctl, args=(cmdrcv, datasend))
     else:
         print("Unable to find Trough. Using simulation.")
-        from Trough_Control.simulation import simulated_troughctl
+        from Trough.Trough_Control.simulation import simulated_troughctl
         TROUGH = Process(target=simulated_troughctl, args=(cmdrcv, datasend))
     TROUGH.start()
     time.sleep(0.2)
@@ -135,7 +135,6 @@ def troughctl(CTLPipe,DATAPipe):
     import time
     import numpy as np
     from collections import deque
-    from multiprocessing import Pipe
     from piplates import DAQC2plate as DAQC2
     from sys import exit
 
@@ -389,7 +388,7 @@ def troughctl(CTLPipe,DATAPipe):
         :returns float startopen: DAC setting providing minimum voltage to start opening.
         '''
 
-        import os, time
+        import time
         # Since this runs in a tight loop needs to take over watching barriers.
         # Check if a trough controller is registered at /tmp/troughctl.pid.
         # If one is store it's pid and replace with own. Will revert on exit without

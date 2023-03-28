@@ -126,7 +126,7 @@ install as a special kernel when you are the user.
 * 0.1.0 First pypi compatible package version.
 
 ## Known issues
-* 0.5.0 - 0.5.2 The estimated error on values converted to metric units 
+* 0.5.0 - 0.6.0 The estimated error on values converted to metric units 
   based on calibration fits appears to be too pessimistic.
 
 ## Development

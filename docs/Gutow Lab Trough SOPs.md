@@ -162,12 +162,34 @@ molecule during a compression.
 5. Because the solvents are very volatile the solutions will not keep long 
    in the volumetric flasks with ground glass stoppers. They can be 
    transferred for somewhat longer term storage to sealed brown bottles 
-   if they are [properly washed](#checking-spreading-solvent-cleanliness) 
+   if the bottles are 
+   [properly washed](#checking-spreading-solvent-cleanliness) 
    and you have verified that a little solvent stored in the bottle 
    overnight and shaken [stays clean.](#checking-spreading-solvent-cleanliness)
 
 ## Spreading a Sample
-
+1. Rinse a small vial 2X with absolute ethanol from a TFE squeeze bottle 
+   then 3X with hexanes from a TFE squeeze bottle.
+2. If you need to use a pipette or funnel (the funnel is a better choice as 
+   you are less likely to contaminate the stock spreading solution) to transfer 
+   the spreading solution to the vial rinse the pipette or funnel 2X with 
+   absolute ethanol from a TFE squeeze bottle and then 3X with hexanes from 
+   a TFE squeeze bottle.
+3. Rinse the transfer tool with the spreading solution 6X.
+4. Rinse the vial 6X (10-20% of vial volume) with the spreading solution.
+5. Use the transfer tool to transfer about 1 mL of the spreading solution to 
+   the small vial.
+6. Set the positive displacement dispenser to the volume you will be 
+   dispensing.
+7. Rinse the dispenser 2X with absolute ethanol from a TFE squeeze bottle 
+   then 3X with hexanes from a TFE squeeze bottle. Make sure you move the 
+   plunger through its dispensing motion while doing this.
+8. When the dispenser is dry, rinse 6X with the spreading solution making 
+   sure to take up the full amount to be dispensed on each rinse.
+9. With the **barriers fully open** dispense the spreading solution drop wise 
+   onto the surface between the barriers. Avoid the Wilhelmy plate.
+10. Allow time for the solvent to evaporate (~ 15 minutes for hexanes) 
+    before doing a compression.
 
 ## Running a Compression
 1. Trough must first be

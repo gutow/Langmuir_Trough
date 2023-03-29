@@ -112,10 +112,10 @@ install as a special kernel when you are the user.
      found [here](https://janakiev.com/til/jupyter-virtual-envs/). 
 
 ## Change Log
-* 0.6.0dev
+* 0.6.0 (Mar. 29, 2023)
   * Documentation updates including Gutow Lab Standard Operating Procedures 
     (SOPs).
-  * Refactored everything to underneath the module `Trough`.
+  * Refactored everything to inside the module `Trough`.
 * 0.5.2 (Mar. 16, 2023) Now works in Jupyter Lab.
   * Adjusted widget updating/clearing to work in Jupyter lab.
   * Added JupyterLab >= 3.6.1 to requirements.
@@ -128,6 +128,9 @@ install as a special kernel when you are the user.
 ## Known issues
 * 0.5.0 - 0.6.0 The estimated error on values converted to metric units 
   based on calibration fits appears to be too pessimistic.
+* Inconsistent rendering of Latex ipywidget labels with ipywidgets >= 8.0. 
+  Until figured out requiring ipywidgets < 8.0.
+* Runs don't label graph axes reliably for x-axis units other than cm.
 
 ## Development
 

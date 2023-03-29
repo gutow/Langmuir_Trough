@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="pdoc 13.0.1"/>
+    <title>Trough API documentation</title>
+
+    <style>/*! * Bootstrap Reboot v5.0.0 (https://getbootstrap.com/) * Copyright 2011-2021 The Bootstrap Authors * Copyright 2011-2021 Twitter, Inc. * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE) * Forked from Normalize.css, licensed MIT (https://github.com/necolas/normalize.css/blob/master/LICENSE.md) */*,::after,::before{box-sizing:border-box}@media (prefers-reduced-motion:no-preference){:root{scroll-behavior:smooth}}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#fff;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}hr{margin:1rem 0;color:inherit;background-color:currentColor;border:0;opacity:.25}hr:not([size]){height:1px}h1,h2,h3,h4,h5,h6{margin-top:0;margin-bottom:.5rem;font-weight:500;line-height:1.2}h1{font-size:calc(1.375rem + 1.5vw)}@media (min-width:1200px){h1{font-size:2.5rem}}h2{font-size:calc(1.325rem + .9vw)}@media (min-width:1200px){h2{font-size:2rem}}h3{font-size:calc(1.3rem + .6vw)}@media (min-width:1200px){h3{font-size:1.75rem}}h4{font-size:calc(1.275rem + .3vw)}@media (min-width:1200px){h4{font-size:1.5rem}}h5{font-size:1.25rem}h6{font-size:1rem}p{margin-top:0;margin-bottom:1rem}abbr[data-bs-original-title],abbr[title]{-webkit-text-decoration:underline dotted;text-decoration:underline dotted;cursor:help;-webkit-text-decoration-skip-ink:none;text-decoration-skip-ink:none}address{margin-bottom:1rem;font-style:normal;line-height:inherit}ol,ul{padding-left:2rem}dl,ol,ul{margin-top:0;margin-bottom:1rem}ol ol,ol ul,ul ol,ul ul{margin-bottom:0}dt{font-weight:700}dd{margin-bottom:.5rem;margin-left:0}blockquote{margin:0 0 1rem}b,strong{font-weight:bolder}small{font-size:.875em}mark{padding:.2em;background-color:#fcf8e3}sub,sup{position:relative;font-size:.75em;line-height:0;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}a{color:#0d6efd;text-decoration:underline}a:hover{color:#0a58ca}a:not([href]):not([class]),a:not([href]):not([class]):hover{color:inherit;text-decoration:none}code,kbd,pre,samp{font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:1em;direction:ltr;unicode-bidi:bidi-override}pre{display:block;margin-top:0;margin-bottom:1rem;overflow:auto;font-size:.875em}pre code{font-size:inherit;color:inherit;word-break:normal}code{font-size:.875em;color:#d63384;word-wrap:break-word}a>code{color:inherit}kbd{padding:.2rem .4rem;font-size:.875em;color:#fff;background-color:#212529;border-radius:.2rem}kbd kbd{padding:0;font-size:1em;font-weight:700}figure{margin:0 0 1rem}img,svg{vertical-align:middle}table{caption-side:bottom;border-collapse:collapse}caption{padding-top:.5rem;padding-bottom:.5rem;color:#6c757d;text-align:left}th{text-align:inherit;text-align:-webkit-match-parent}tbody,td,tfoot,th,thead,tr{border-color:inherit;border-style:solid;border-width:0}label{display:inline-block}button{border-radius:0}button:focus:not(:focus-visible){outline:0}button,input,optgroup,select,textarea{margin:0;font-family:inherit;font-size:inherit;line-height:inherit}button,select{text-transform:none}[role=button]{cursor:pointer}select{word-wrap:normal}select:disabled{opacity:1}[list]::-webkit-calendar-picker-indicator{display:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}[type=button]:not(:disabled),[type=reset]:not(:disabled),[type=submit]:not(:disabled),button:not(:disabled){cursor:pointer}::-moz-focus-inner{padding:0;border-style:none}textarea{resize:vertical}fieldset{min-width:0;padding:0;margin:0;border:0}legend{float:left;width:100%;padding:0;margin-bottom:.5rem;font-size:calc(1.275rem + .3vw);line-height:inherit}@media (min-width:1200px){legend{font-size:1.5rem}}legend+*{clear:left}::-webkit-datetime-edit-day-field,::-webkit-datetime-edit-fields-wrapper,::-webkit-datetime-edit-hour-field,::-webkit-datetime-edit-minute,::-webkit-datetime-edit-month-field,::-webkit-datetime-edit-text,::-webkit-datetime-edit-year-field{padding:0}::-webkit-inner-spin-button{height:auto}[type=search]{outline-offset:-2px;-webkit-appearance:textfield}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-color-swatch-wrapper{padding:0}::file-selector-button{font:inherit}::-webkit-file-upload-button{font:inherit;-webkit-appearance:button}output{display:inline-block}iframe{border:0}summary{display:list-item;cursor:pointer}progress{vertical-align:baseline}[hidden]{display:none!important}</style>
+    <style>/*! syntax-highlighting.css */pre{line-height:125%;}span.linenos{color:inherit; background-color:transparent; padding-left:5px; padding-right:20px;}.pdoc-code .hll{background-color:#ffffcc}.pdoc-code{background:#f8f8f8;}.pdoc-code .c{color:#3D7B7B; font-style:italic}.pdoc-code .err{border:1px solid #FF0000}.pdoc-code .k{color:#008000; font-weight:bold}.pdoc-code .o{color:#666666}.pdoc-code .ch{color:#3D7B7B; font-style:italic}.pdoc-code .cm{color:#3D7B7B; font-style:italic}.pdoc-code .cp{color:#9C6500}.pdoc-code .cpf{color:#3D7B7B; font-style:italic}.pdoc-code .c1{color:#3D7B7B; font-style:italic}.pdoc-code .cs{color:#3D7B7B; font-style:italic}.pdoc-code .gd{color:#A00000}.pdoc-code .ge{font-style:italic}.pdoc-code .gr{color:#E40000}.pdoc-code .gh{color:#000080; font-weight:bold}.pdoc-code .gi{color:#008400}.pdoc-code .go{color:#717171}.pdoc-code .gp{color:#000080; font-weight:bold}.pdoc-code .gs{font-weight:bold}.pdoc-code .gu{color:#800080; font-weight:bold}.pdoc-code .gt{color:#0044DD}.pdoc-code .kc{color:#008000; font-weight:bold}.pdoc-code .kd{color:#008000; font-weight:bold}.pdoc-code .kn{color:#008000; font-weight:bold}.pdoc-code .kp{color:#008000}.pdoc-code .kr{color:#008000; font-weight:bold}.pdoc-code .kt{color:#B00040}.pdoc-code .m{color:#666666}.pdoc-code .s{color:#BA2121}.pdoc-code .na{color:#687822}.pdoc-code .nb{color:#008000}.pdoc-code .nc{color:#0000FF; font-weight:bold}.pdoc-code .no{color:#880000}.pdoc-code .nd{color:#AA22FF}.pdoc-code .ni{color:#717171; font-weight:bold}.pdoc-code .ne{color:#CB3F38; font-weight:bold}.pdoc-code .nf{color:#0000FF}.pdoc-code .nl{color:#767600}.pdoc-code .nn{color:#0000FF; font-weight:bold}.pdoc-code .nt{color:#008000; font-weight:bold}.pdoc-code .nv{color:#19177C}.pdoc-code .ow{color:#AA22FF; font-weight:bold}.pdoc-code .w{color:#bbbbbb}.pdoc-code .mb{color:#666666}.pdoc-code .mf{color:#666666}.pdoc-code .mh{color:#666666}.pdoc-code .mi{color:#666666}.pdoc-code .mo{color:#666666}.pdoc-code .sa{color:#BA2121}.pdoc-code .sb{color:#BA2121}.pdoc-code .sc{color:#BA2121}.pdoc-code .dl{color:#BA2121}.pdoc-code .sd{color:#BA2121; font-style:italic}.pdoc-code .s2{color:#BA2121}.pdoc-code .se{color:#AA5D1F; font-weight:bold}.pdoc-code .sh{color:#BA2121}.pdoc-code .si{color:#A45A77; font-weight:bold}.pdoc-code .sx{color:#008000}.pdoc-code .sr{color:#A45A77}.pdoc-code .s1{color:#BA2121}.pdoc-code .ss{color:#19177C}.pdoc-code .bp{color:#008000}.pdoc-code .fm{color:#0000FF}.pdoc-code .vc{color:#19177C}.pdoc-code .vg{color:#19177C}.pdoc-code .vi{color:#19177C}.pdoc-code .vm{color:#19177C}.pdoc-code .il{color:#666666}</style>
+    <style>/*! theme.css */:root{--pdoc-background:#fff;}.pdoc{--text:#212529;--muted:#6c757d;--link:#3660a5;--link-hover:#1659c5;--code:#f8f8f8;--active:#fff598;--accent:#eee;--accent2:#c1c1c1;--nav-hover:rgba(255, 255, 255, 0.5);--name:#0066BB;--def:#008800;--annotation:#007020;}</style>
+    <style>/*! layout.css */html, body{width:100%;height:100%;}html, main{scroll-behavior:smooth;}body{background-color:var(--pdoc-background);}@media (max-width:769px){#navtoggle{cursor:pointer;position:absolute;width:50px;height:40px;top:1rem;right:1rem;border-color:var(--text);color:var(--text);display:flex;opacity:0.8;z-index:999;}#navtoggle:hover{opacity:1;}#togglestate + div{display:none;}#togglestate:checked + div{display:inherit;}main, header{padding:2rem 3vw;}header + main{margin-top:-3rem;}.git-button{display:none !important;}nav input[type="search"]{max-width:77%;}nav input[type="search"]:first-child{margin-top:-6px;}nav input[type="search"]:valid ~ *{display:none !important;}}@media (min-width:770px){:root{--sidebar-width:clamp(12.5rem, 28vw, 22rem);}nav{position:fixed;overflow:auto;height:100vh;width:var(--sidebar-width);}main, header{padding:3rem 2rem 3rem calc(var(--sidebar-width) + 3rem);width:calc(54rem + var(--sidebar-width));max-width:100%;}header + main{margin-top:-4rem;}#navtoggle{display:none;}}#togglestate{position:absolute;height:0;opacity:0;}nav.pdoc{--pad:clamp(0.5rem, 2vw, 1.75rem);--indent:1.5rem;background-color:var(--accent);border-right:1px solid var(--accent2);box-shadow:0 0 20px rgba(50, 50, 50, .2) inset;padding:0 0 0 var(--pad);overflow-wrap:anywhere;scrollbar-width:thin; scrollbar-color:var(--accent2) transparent }nav.pdoc::-webkit-scrollbar{width:.4rem; }nav.pdoc::-webkit-scrollbar-thumb{background-color:var(--accent2); }nav.pdoc > div{padding:var(--pad) 0;}nav.pdoc .module-list-button{display:inline-flex;align-items:center;color:var(--text);border-color:var(--muted);margin-bottom:1rem;}nav.pdoc .module-list-button:hover{border-color:var(--text);}nav.pdoc input[type=search]{display:block;outline-offset:0;width:calc(100% - var(--pad));}nav.pdoc .logo{max-width:calc(100% - var(--pad));max-height:35vh;display:block;margin:0 auto 1rem;transform:translate(calc(-.5 * var(--pad)), 0);}nav.pdoc ul{list-style:none;padding-left:0;}nav.pdoc > div > ul{margin-left:calc(0px - var(--pad));}nav.pdoc li a{padding:.2rem 0 .2rem calc(var(--pad) + var(--indent));}nav.pdoc > div > ul > li > a{padding-left:var(--pad);}nav.pdoc li{transition:all 100ms;}nav.pdoc li:hover{background-color:var(--nav-hover);}nav.pdoc a, nav.pdoc a:hover{color:var(--text);}nav.pdoc a{display:block;}nav.pdoc > h2:first-of-type{margin-top:1.5rem;}nav.pdoc .class:before{content:"class ";color:var(--muted);}nav.pdoc .function:after{content:"()";color:var(--muted);}nav.pdoc footer:before{content:"";display:block;width:calc(100% - var(--pad));border-top:solid var(--accent2) 1px;margin-top:1.5rem;padding-top:.5rem;}nav.pdoc footer{font-size:small;}</style>
+    <style>/*! content.css */.pdoc{color:var(--text);box-sizing:border-box;line-height:1.5;background:none;}.pdoc .pdoc-button{cursor:pointer;display:inline-block;border:solid black 1px;border-radius:2px;font-size:.75rem;padding:calc(0.5em - 1px) 1em;transition:100ms all;}.pdoc .pdoc-alert{padding:1rem 1rem 1rem calc(1.5rem + 24px);border:1px solid transparent;border-radius:.25rem;background-repeat:no-repeat;background-position:1rem center;margin-bottom:1rem;}.pdoc .pdoc-alert > *:last-child{margin-bottom:0;}.pdoc .pdoc-alert-note {color:#084298;background-color:#cfe2ff;border-color:#b6d4fe;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23084298%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016zm.93-9.412-1%204.705c-.07.34.029.533.304.533.194%200%20.487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703%200-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381%202.29-.287zM8%205.5a1%201%200%201%201%200-2%201%201%200%200%201%200%202z%22/%3E%3C/svg%3E");}.pdoc .pdoc-alert-warning{color:#664d03;background-color:#fff3cd;border-color:#ffecb5;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23664d03%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8.982%201.566a1.13%201.13%200%200%200-1.96%200L.165%2013.233c-.457.778.091%201.767.98%201.767h13.713c.889%200%201.438-.99.98-1.767L8.982%201.566zM8%205c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%205.995A.905.905%200%200%201%208%205zm.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2z%22/%3E%3C/svg%3E");}.pdoc .pdoc-alert-danger{color:#842029;background-color:#f8d7da;border-color:#f5c2c7;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23842029%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5.52.359A.5.5%200%200%201%206%200h4a.5.5%200%200%201%20.474.658L8.694%206H12.5a.5.5%200%200%201%20.395.807l-7%209a.5.5%200%200%201-.873-.454L6.823%209.5H3.5a.5.5%200%200%201-.48-.641l2.5-8.5z%22/%3E%3C/svg%3E");}.pdoc .visually-hidden{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0, 0, 0, 0) !important;white-space:nowrap !important;border:0 !important;}.pdoc h1, .pdoc h2, .pdoc h3{font-weight:300;margin:.3em 0;padding:.2em 0;}.pdoc > section:not(.module-info) h1{font-size:1.5rem;font-weight:500;}.pdoc > section:not(.module-info) h2{font-size:1.4rem;font-weight:500;}.pdoc > section:not(.module-info) h3{font-size:1.3rem;font-weight:500;}.pdoc > section:not(.module-info) h4{font-size:1.2rem;}.pdoc > section:not(.module-info) h5{font-size:1.1rem;}.pdoc a{text-decoration:none;color:var(--link);}.pdoc a:hover{color:var(--link-hover);}.pdoc blockquote{margin-left:2rem;}.pdoc pre{border-top:1px solid var(--accent2);border-bottom:1px solid var(--accent2);margin-top:0;margin-bottom:1em;padding:.5rem 0 .5rem .5rem;overflow-x:auto;background-color:var(--code);}.pdoc code{color:var(--text);padding:.2em .4em;margin:0;font-size:85%;background-color:var(--code);border-radius:6px;}.pdoc a > code{color:inherit;}.pdoc pre > code{display:inline-block;font-size:inherit;background:none;border:none;padding:0;}.pdoc > section:not(.module-info){margin-bottom:1.5rem;}.pdoc .modulename{margin-top:0;font-weight:bold;}.pdoc .modulename a{color:var(--link);transition:100ms all;}.pdoc .git-button{float:right;border:solid var(--link) 1px;}.pdoc .git-button:hover{background-color:var(--link);color:var(--pdoc-background);}.view-source-toggle-state,.view-source-toggle-state ~ .pdoc-code{display:none;}.view-source-toggle-state:checked ~ .pdoc-code{display:block;}.view-source-button{display:inline-block;float:right;font-size:.75rem;line-height:1.5rem;color:var(--muted);padding:0 .4rem 0 1.3rem;cursor:pointer;text-indent:-2px;}.view-source-button > span{visibility:hidden;}.module-info .view-source-button{float:none;display:flex;justify-content:flex-end;margin:-1.2rem .4rem -.2rem 0;}.view-source-button::before{position:absolute;content:"View Source";display:list-item;list-style-type:disclosure-closed;}.view-source-toggle-state:checked ~ .attr .view-source-button::before,.view-source-toggle-state:checked ~ .view-source-button::before{list-style-type:disclosure-open;}.pdoc .docstring{margin-bottom:1.5rem;}.pdoc section:not(.module-info) .docstring{margin-left:clamp(0rem, 5vw - 2rem, 1rem);}.pdoc .docstring .pdoc-code{margin-left:1em;margin-right:1em;}.pdoc h1:target,.pdoc h2:target,.pdoc h3:target,.pdoc h4:target,.pdoc h5:target,.pdoc h6:target,.pdoc .pdoc-code > pre > span:target{background-color:var(--active);box-shadow:-1rem 0 0 0 var(--active);}.pdoc .pdoc-code > pre > span:target{display:block;}.pdoc div:target > .attr,.pdoc section:target > .attr,.pdoc dd:target > a{background-color:var(--active);}.pdoc *{scroll-margin:2rem;}.pdoc .pdoc-code .linenos{user-select:none;}.pdoc .attr:hover{filter:contrast(0.95);}.pdoc section, .pdoc .classattr{position:relative;}.pdoc .headerlink{--width:clamp(1rem, 3vw, 2rem);position:absolute;top:0;left:calc(0rem - var(--width));transition:all 100ms ease-in-out;opacity:0;}.pdoc .headerlink::before{content:"#";display:block;text-align:center;width:var(--width);height:2.3rem;line-height:2.3rem;font-size:1.5rem;}.pdoc .attr:hover ~ .headerlink,.pdoc *:target > .headerlink,.pdoc .headerlink:hover{opacity:1;}.pdoc .attr{display:block;margin:.5rem 0 .5rem;padding:.4rem .4rem .4rem 1rem;background-color:var(--accent);overflow-x:auto;}.pdoc .classattr{margin-left:2rem;}.pdoc .name{color:var(--name);font-weight:bold;}.pdoc .def{color:var(--def);font-weight:bold;}.pdoc .signature{background-color:transparent;}.pdoc .param, .pdoc .return-annotation{white-space:pre;}.pdoc .signature.multiline .param{display:block;}.pdoc .signature.condensed .param{display:inline-block;}.pdoc .annotation{color:var(--annotation);}.pdoc .view-value-toggle-state,.pdoc .view-value-toggle-state ~ .default_value{display:none;}.pdoc .view-value-toggle-state:checked ~ .default_value{display:inherit;}.pdoc .view-value-button{font-size:.5rem;vertical-align:middle;border-style:dashed;margin-top:-0.1rem;}.pdoc .view-value-button:hover{background:white;}.pdoc .view-value-button::before{content:"show";text-align:center;width:2.2em;display:inline-block;}.pdoc .view-value-toggle-state:checked ~ .view-value-button::before{content:"hide";}.pdoc .inherited{margin-left:2rem;}.pdoc .inherited dt{font-weight:700;}.pdoc .inherited dt, .pdoc .inherited dd{display:inline;margin-left:0;margin-bottom:.5rem;}.pdoc .inherited dd:not(:last-child):after{content:", ";}.pdoc .inherited .class:before{content:"class ";}.pdoc .inherited .function a:after{content:"()";}.pdoc .search-result .docstring{overflow:auto;max-height:25vh;}.pdoc .search-result.focused > .attr{background-color:var(--active);}.pdoc .attribution{margin-top:2rem;display:block;opacity:0.5;transition:all 200ms;filter:grayscale(100%);}.pdoc .attribution:hover{opacity:1;filter:grayscale(0%);}.pdoc .attribution img{margin-left:5px;height:35px;vertical-align:middle;width:70px;transition:all 200ms;}.pdoc table{display:block;width:max-content;max-width:100%;overflow:auto;margin-bottom:1rem;}.pdoc table th{font-weight:600;}.pdoc table th, .pdoc table td{padding:6px 13px;border:1px solid var(--accent2);}</style>
+    <style>/*! custom.css */</style><script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+    /* Re-invoke MathJax when DOM content changes, for example during search. */
+    document.addEventListener("DOMContentLoaded", () => {
+        new MutationObserver(() => MathJax.typeset()).observe(
+            document.querySelector("main.pdoc").parentNode,
+            {childList: true}
+        );
+    })
+</script>
+<style>
+    mjx-container {
+        overflow-x: auto;
+    }
+</style></head>
+<body>
+    <nav class="pdoc">
+        <label id="navtoggle" for="togglestate" class="pdoc-button"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke-linecap='round' stroke="currentColor" stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg></label>
+        <input id="togglestate" type="checkbox" aria-hidden="true" tabindex="-1">
+        <div>
+
+            <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
+                   pattern=".+" required>
+
+            <h2>Contents</h2>
+            <ul>
+  <li><a href="#langmuir-trough">Langmuir Trough</a>
+  <ul>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#installation">Installation</a></li>
+    <li><a href="#change-log">Change Log</a></li>
+    <li><a href="#known-issues">Known issues</a></li>
+    <li><a href="#development">Development</a></li>
+  </ul></li>
+  <li><a href="#langmuir-trough-standard-operating-procedures-for-the-gutow-lab">Langmuir Trough Standard Operating Procedures for the Gutow Lab</a>
+  <ul>
+    <li><a href="#initialization">Initialization</a></li>
+    <li><a href="#checking-trough-and-subphase-cleanliness">Checking Trough and Subphase Cleanliness</a></li>
+    <li><a href="#storage-of-trough-between-runs">Storage of Trough Between Runs</a></li>
+    <li><a href="#handling-spreading-solvents">Handling Spreading Solvent(s)</a></li>
+    <li><a href="#checking-spreading-solvent-cleanliness">Checking Spreading Solvent Cleanliness</a></li>
+    <li><a href="#making-a-spreading-solution">Making a Spreading Solution</a></li>
+    <li><a href="#spreading-a-sample">Spreading a Sample</a></li>
+    <li><a href="#running-a-compression">Running a Compression</a></li>
+    <li><a href="#calibrating-the-wilhelmy-balance">Calibrating the Wilhelmy Balance</a></li>
+    <li><a href="#calibrating-barrier-position-and-speed">Calibrating Barrier Position and Speed</a></li>
+    <li><a href="#calibrating-the-temperature-probe">Calibrating the Temperature Probe.</a></li>
+    <li><a href="#cleaning-the-trough">Cleaning the Trough</a></li>
+  </ul></li>
+</ul>
+
+
+            <h2>Submodules</h2>
+            <ul>
+                    <li><a href="Trough/Trough_Control.html">Trough_Control</a></li>
+                    <li><a href="Trough/Trough_GUI.html">Trough_GUI</a></li>
+            </ul>
+
+            <h2>API Documentation</h2>
+                <ul class="memberlist">
+    </ul>
+
+
+            <footer>Langmuir_Trough v0.6.0</footer>
+
+        <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
+            built with <span class="visually-hidden">pdoc</span><img
+                alt="pdoc logo"
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20role%3D%22img%22%20aria-label%3D%22pdoc%20logo%22%20width%3D%22300%22%20height%3D%22150%22%20viewBox%3D%22-1%200%2060%2030%22%3E%3Ctitle%3Epdoc%3C/title%3E%3Cpath%20d%3D%22M29.621%2021.293c-.011-.273-.214-.475-.511-.481a.5.5%200%200%200-.489.503l-.044%201.393c-.097.551-.695%201.215-1.566%201.704-.577.428-1.306.486-2.193.182-1.426-.617-2.467-1.654-3.304-2.487l-.173-.172a3.43%203.43%200%200%200-.365-.306.49.49%200%200%200-.286-.196c-1.718-1.06-4.931-1.47-7.353.191l-.219.15c-1.707%201.187-3.413%202.131-4.328%201.03-.02-.027-.49-.685-.141-1.763.233-.721.546-2.408.772-4.076.042-.09.067-.187.046-.288.166-1.347.277-2.625.241-3.351%201.378-1.008%202.271-2.586%202.271-4.362%200-.976-.272-1.935-.788-2.774-.057-.094-.122-.18-.184-.268.033-.167.052-.339.052-.516%200-1.477-1.202-2.679-2.679-2.679-.791%200-1.496.352-1.987.9a6.3%206.3%200%200%200-1.001.029c-.492-.564-1.207-.929-2.012-.929-1.477%200-2.679%201.202-2.679%202.679A2.65%202.65%200%200%200%20.97%206.554c-.383.747-.595%201.572-.595%202.41%200%202.311%201.507%204.29%203.635%205.107-.037.699-.147%202.27-.423%203.294l-.137.461c-.622%202.042-2.515%208.257%201.727%2010.643%201.614.908%203.06%201.248%204.317%201.248%202.665%200%204.492-1.524%205.322-2.401%201.476-1.559%202.886-1.854%206.491.82%201.877%201.393%203.514%201.753%204.861%201.068%202.223-1.713%202.811-3.867%203.399-6.374.077-.846.056-1.469.054-1.537zm-4.835%204.313c-.054.305-.156.586-.242.629-.034-.007-.131-.022-.307-.157-.145-.111-.314-.478-.456-.908.221.121.432.25.675.355.115.039.219.051.33.081zm-2.251-1.238c-.05.33-.158.648-.252.694-.022.001-.125-.018-.307-.157-.217-.166-.488-.906-.639-1.573.358.344.754.693%201.198%201.036zm-3.887-2.337c-.006-.116-.018-.231-.041-.342.635.145%201.189.368%201.599.625.097.231.166.481.174.642-.03.049-.055.101-.067.158-.046.013-.128.026-.298.004-.278-.037-.901-.57-1.367-1.087zm-1.127-.497c.116.306.176.625.12.71-.019.014-.117.045-.345.016-.206-.027-.604-.332-.986-.695.41-.051.816-.056%201.211-.031zm-4.535%201.535c.209.22.379.47.358.598-.006.041-.088.138-.351.234-.144.055-.539-.063-.979-.259a11.66%2011.66%200%200%200%20.972-.573zm.983-.664c.359-.237.738-.418%201.126-.554.25.237.479.548.457.694-.006.042-.087.138-.351.235-.174.064-.694-.105-1.232-.375zm-3.381%201.794c-.022.145-.061.29-.149.401-.133.166-.358.248-.69.251h-.002c-.133%200-.306-.26-.45-.621.417.091.854.07%201.291-.031zm-2.066-8.077a4.78%204.78%200%200%201-.775-.584c.172-.115.505-.254.88-.378l-.105.962zm-.331%202.302a10.32%2010.32%200%200%201-.828-.502c.202-.143.576-.328.984-.49l-.156.992zm-.45%202.157l-.701-.403c.214-.115.536-.249.891-.376a11.57%2011.57%200%200%201-.19.779zm-.181%201.716c.064.398.194.702.298.893-.194-.051-.435-.162-.736-.398.061-.119.224-.3.438-.495zM8.87%204.141c0%20.152-.123.276-.276.276s-.275-.124-.275-.276.123-.276.276-.276.275.124.275.276zm-.735-.389a1.15%201.15%200%200%200-.314.783%201.16%201.16%200%200%200%201.162%201.162c.457%200%20.842-.27%201.032-.653.026.117.042.238.042.362a1.68%201.68%200%200%201-1.679%201.679%201.68%201.68%200%200%201-1.679-1.679c0-.843.626-1.535%201.436-1.654zM5.059%205.406A1.68%201.68%200%200%201%203.38%207.085a1.68%201.68%200%200%201-1.679-1.679c0-.037.009-.072.011-.109.21.3.541.508.935.508a1.16%201.16%200%200%200%201.162-1.162%201.14%201.14%200%200%200-.474-.912c.015%200%20.03-.005.045-.005.926.001%201.679.754%201.679%201.68zM3.198%204.141c0%20.152-.123.276-.276.276s-.275-.124-.275-.276.123-.276.276-.276.275.124.275.276zM1.375%208.964c0-.52.103-1.035.288-1.52.466.394%201.06.64%201.717.64%201.144%200%202.116-.725%202.499-1.738.383%201.012%201.355%201.738%202.499%201.738.867%200%201.631-.421%202.121-1.062.307.605.478%201.267.478%201.942%200%202.486-2.153%204.51-4.801%204.51s-4.801-2.023-4.801-4.51zm24.342%2019.349c-.985.498-2.267.168-3.813-.979-3.073-2.281-5.453-3.199-7.813-.705-1.315%201.391-4.163%203.365-8.423.97-3.174-1.786-2.239-6.266-1.261-9.479l.146-.492c.276-1.02.395-2.457.444-3.268a6.11%206.11%200%200%200%201.18.115%206.01%206.01%200%200%200%202.536-.562l-.006.175c-.802.215-1.848.612-2.021%201.25-.079.295.021.601.274.837.219.203.415.364.598.501-.667.304-1.243.698-1.311%201.179-.02.144-.022.507.393.787.213.144.395.26.564.365-1.285.521-1.361.96-1.381%201.126-.018.142-.011.496.427.746l.854.489c-.473.389-.971.914-.999%201.429-.018.278.095.532.316.713.675.556%201.231.721%201.653.721.059%200%20.104-.014.158-.02.207.707.641%201.64%201.513%201.64h.013c.8-.008%201.236-.345%201.462-.626.173-.216.268-.457.325-.692.424.195.93.374%201.372.374.151%200%20.294-.021.423-.068.732-.27.944-.704.993-1.021.009-.061.003-.119.002-.179.266.086.538.147.789.147.15%200%20.294-.021.423-.069.542-.2.797-.489.914-.754.237.147.478.258.704.288.106.014.205.021.296.021.356%200%20.595-.101.767-.229.438.435%201.094.992%201.656%201.067.106.014.205.021.296.021a1.56%201.56%200%200%200%20.323-.035c.17.575.453%201.289.866%201.605.358.273.665.362.914.362a.99.99%200%200%200%20.421-.093%201.03%201.03%200%200%200%20.245-.164c.168.428.39.846.68%201.068.358.273.665.362.913.362a.99.99%200%200%200%20.421-.093c.317-.148.512-.448.639-.762.251.157.495.257.726.257.127%200%20.25-.024.37-.071.427-.17.706-.617.841-1.314.022-.015.047-.022.068-.038.067-.051.133-.104.196-.159-.443%201.486-1.107%202.761-2.086%203.257zM8.66%209.925a.5.5%200%201%200-1%200c0%20.653-.818%201.205-1.787%201.205s-1.787-.552-1.787-1.205a.5.5%200%201%200-1%200c0%201.216%201.25%202.205%202.787%202.205s2.787-.989%202.787-2.205zm4.4%2015.965l-.208.097c-2.661%201.258-4.708%201.436-6.086.527-1.542-1.017-1.88-3.19-1.844-4.198a.4.4%200%200%200-.385-.414c-.242-.029-.406.164-.414.385-.046%201.249.367%203.686%202.202%204.896.708.467%201.547.7%202.51.7%201.248%200%202.706-.392%204.362-1.174l.185-.086a.4.4%200%200%200%20.205-.527c-.089-.204-.326-.291-.527-.206zM9.547%202.292c.093.077.205.114.317.114a.5.5%200%200%200%20.318-.886L8.817.397a.5.5%200%200%200-.703.068.5.5%200%200%200%20.069.703l1.364%201.124zm-7.661-.065c.086%200%20.173-.022.253-.068l1.523-.893a.5.5%200%200%200-.506-.863l-1.523.892a.5.5%200%200%200-.179.685c.094.158.261.247.432.247z%22%20transform%3D%22matrix%28-1%200%200%201%2058%200%29%22%20fill%3D%22%233bb300%22/%3E%3Cpath%20d%3D%22M.3%2021.86V10.18q0-.46.02-.68.04-.22.18-.5.28-.54%201.34-.54%201.06%200%201.42.28.38.26.44.78.76-1.04%202.38-1.04%201.64%200%203.1%201.54%201.46%201.54%201.46%203.58%200%202.04-1.46%203.58-1.44%201.54-3.08%201.54-1.64%200-2.38-.92v4.04q0%20.46-.04.68-.02.22-.18.5-.14.3-.5.42-.36.12-.98.12-.62%200-1-.12-.36-.12-.52-.4-.14-.28-.18-.5-.02-.22-.02-.68zm3.96-9.42q-.46.54-.46%201.18%200%20.64.46%201.18.48.52%201.2.52.74%200%201.24-.52.52-.52.52-1.18%200-.66-.48-1.18-.48-.54-1.26-.54-.76%200-1.22.54zm14.741-8.36q.16-.3.54-.42.38-.12%201-.12.64%200%201.02.12.38.12.52.42.16.3.18.54.04.22.04.68v11.94q0%20.46-.04.7-.02.22-.18.5-.3.54-1.7.54-1.38%200-1.54-.98-.84.96-2.34.96-1.8%200-3.28-1.56-1.48-1.58-1.48-3.66%200-2.1%201.48-3.68%201.5-1.58%203.28-1.58%201.48%200%202.3%201v-4.2q0-.46.02-.68.04-.24.18-.52zm-3.24%2010.86q.52.54%201.26.54.74%200%201.22-.54.5-.54.5-1.18%200-.66-.48-1.22-.46-.56-1.26-.56-.8%200-1.28.56-.48.54-.48%201.2%200%20.66.52%201.2zm7.833-1.2q0-2.4%201.68-3.96%201.68-1.56%203.84-1.56%202.16%200%203.82%201.56%201.66%201.54%201.66%203.94%200%201.66-.86%202.96-.86%201.28-2.1%201.9-1.22.6-2.54.6-1.32%200-2.56-.64-1.24-.66-2.1-1.92-.84-1.28-.84-2.88zm4.18%201.44q.64.48%201.3.48.66%200%201.32-.5.66-.5.66-1.48%200-.98-.62-1.46-.62-.48-1.34-.48-.72%200-1.34.5-.62.5-.62%201.48%200%20.96.64%201.46zm11.412-1.44q0%20.84.56%201.32.56.46%201.18.46.64%200%201.18-.36.56-.38.9-.38.6%200%201.46%201.06.46.58.46%201.04%200%20.76-1.1%201.42-1.14.8-2.8.8-1.86%200-3.58-1.34-.82-.64-1.34-1.7-.52-1.08-.52-2.36%200-1.3.52-2.34.52-1.06%201.34-1.7%201.66-1.32%203.54-1.32.76%200%201.48.22.72.2%201.06.4l.32.2q.36.24.56.38.52.4.52.92%200%20.5-.42%201.14-.72%201.1-1.38%201.1-.38%200-1.08-.44-.36-.34-1.04-.34-.66%200-1.24.48-.58.48-.58%201.34z%22%20fill%3D%22green%22/%3E%3C/svg%3E"/>
+        </a>
+</div>
+    </nav>
+    <main class="pdoc">
+            <section class="module-info">
+                    <h1 class="modulename">
+Trough    </h1>
+
+                        <div class="docstring"><h1 id="langmuir-trough">Langmuir Trough</h1>
+
+<p>This software is a custom controller and GUI for the research Langmuir trough 
+in the Gutow Lab at UW Oshkosh. It is written in Python and expects to run in a
+Jupyter notebook environment. However, all of the parts that are not elements
+of the user interface should work in a vanilla Python environment.</p>
+
+<p>Hardware requirements:
+Raspberry Pi compatible system with a <a href="https://pi-plates.com/daqc2r1/">Pi-Plates 
+DAQC2</a> data acquisition plate 
+and a trough controlled by the DAQC2 plate. This software could be used with 
+a trough controlled some other way by rewriting the routines in <code>trough_util.
+py</code>. The GUI front end would need no rewriting to use with a different 
+trough if a custom backend controlling the barriers, reading the temperature 
+and Whilhelmy balance is written. The backend needs to continually monitor 
+the trough and respond to the following commands: <code>Stop, Send, Start, 
+Direction, Speed, MoveTo, MotorCal, ConstPi, DataLabels, ShutDown</code>.</p>
+
+<p><strong>If you do not have compatible hardware the GUI will run with a simulated 
+trough, allowing you to see how it works.</strong></p>
+
+<h2 id="usage">Usage</h2>
+
+<p>Once installed:</p>
+
+<ol>
+<li>Turn on the power supply for the trough.</li>
+<li>In a terminal navigate to the directory containing the trough software.</li>
+<li>Start the virtual environment <code>pipenv shell</code>.</li>
+<li>Launch Jupyter <code>jupyter notebook</code> (<code>jupyter lab</code> also works and is now 
+more stable).</li>
+<li>Create a folder for the new day using the <strong>New</strong> menu near the top right 
+of the Jupyter browser page. Give it an appropriate name.</li>
+<li>Switch to that folder by clicking on it.</li>
+<li>Start a new ipython notebook using the <strong>New</strong> menu. Give it a
+name that describes the experiment.</li>
+<li>In the first cell initialize the trough by running the command <code>from 
+Trough import Trough_GUI</code>. This will take a while to run the first time 
+it is run each day because it needs to check the movement of the barriers.</li>
+<li>To control and monitor the trough or do calibrations run the command 
+<code>Trough_GUI.Controls(Trough_GUI.calibrations)</code></li>
+<li>Do not do any real runs without making sure the calibrations are correct.</li>
+<li>To start data collection (a run) run the command 
+<code>Trough_GUI.Collect_data.Run("name_for_run")</code>, 
+where you replace name_for_run with the text for the name of the run (no 
+spaces).</li>
+<li>Set the run conditions.</li>
+<li>You can start data collection by clicking the green "Run" button.</li>
+<li>If you set the speed to zero the data collection will be displayed 
+versus time and will not stop until you click the red "Stop" button.</li>
+</ol>
+
+<h2 id="installation">Installation</h2>
+
+<h3 id="os-setup-ubuntu-on-pi"><em>OS setup - Ubuntu on Pi</em></h3>
+
+<p>By default in Ubuntu 20.04 for Pis the gpio and spi groups do not exist.
+The i2c group does (not always).</p>
+
+<ol>
+<li>Make sure that the following packages are installed <code>rpi.gpio-common 
+python3-pigpio python3-gpiozero python3-rpi.gpio</code>.</li>
+<li>You can avoid having to create a gpio group, by assigning users who need
+ gpio access to the dialout group. Check that /dev/gpiomem is part of that 
+group and that the dialout group has rw access. If not you will need to set
+ it.</li>
+<li>Users also need to be members of the i2c group. If it does not exist create 
+ it and then make that the group for /dev/i2c-1 with group rw permissions. 
+THIS MAY NOT BE NECESSARY. </li>
+<li>The spi group needs to be created (addgroup?).</li>
+<li>Additionally the spi group needs to be given rw access to the spi devices
+at each boot. To do this create a one line rule in a file named 
+<code>/etc/udev/rules.d/50-spidev.rules</code> containing <code>SUBSYSTEM=="spidev", 
+GROUP="spi", MODE="0660"</code>. The file should have rw permission for root 
+and read permission for everyone else.</li>
+<li>Make sure you have <a href="https://pip.pypa.io/en/stable/">pip</a> installed for 
+python 3: <code>python3 -m pip --version</code> or <code>pip3 --version</code>. If you do not, 
+install using <code>apt 
+install python3-pip</code>.</li>
+</ol>
+
+<h3 id="trough-software-installation"><em>Trough Software Installation</em></h3>
+
+<p>To avoid library conflicts the software should be installed into a <a href="https://docs.python.org/3/tutorial/venv.html?highlight=virtual%20environments">virtual environment</a>.
+Instructions for doing this using <a href="https://pipenv.pypa.io/en/latest/">pipenv</a>
+follow.</p>
+
+<p>Log into your chosen user account:</p>
+
+<ol>
+<li>Install <a href="https://pipenv.pypa.io/en/latest/">pipenv</a>: <code>pip3 install 
+--user pipenv</code>. You may
+need to add <code>~/.local/bin</code> to your <code>PATH</code> to make <code>pipenv</code>
+available in your command shell. More discussion: 
+<a href="https://docs.python-guide.org/dev/virtualenvs/">The Hitchhiker's Guide to
+Python</a>.</li>
+<li>Create a directory for the virtual environment you will be installing
+into (example: <code>$ mkdir Trough</code>).</li>
+<li>Navigate into the directory <code>$ cd Trough</code>.</li>
+<li>Create the virtual environment and enter it <code>$ pipenv shell</code>. To get out of
+the environment you can issue the <code>$ exit</code> command on the command line.</li>
+<li>While still in the shell install the latest trough software and all its
+requirements
+  <code>$ pip install -U langmuir_trough</code>.</li>
+<li>Still within the environment shell test
+this by starting jupyter <code>$ jupyter notebook</code>. Jupyter should launch in your 
+browser.
+<ol>
+<li>Open a new notebook using the default (Python 3) kernel.</li>
+<li>In the first cell import the Trough_GUI: 
+<code>from Trough import Trough_GUI</code>.
+ When run this cell sets things up and tries to talk to the trough.</li>
+</ol></li>
+<li>If you wish, you can make this environment available to an alternate Jupyter
+install as a special kernel when you are the user.
+<ol>
+<li>Make sure you are running in your virtual environment <code>$ pipenv shell</code> 
+in the directory for  virtual environment will do that.</li>
+<li>Issue the command to add this as a kernel to your personal space: 
+<code>$ python -m ipykernel install --user --name=&lt;name-you-want-for-kernel&gt;</code>.</li>
+<li>More information is available in the Jupyter/Ipython documentation. 
+A simple tutorial from Nikolai Jankiev (_Parametric Thoughts_) can be
+found <a href="https://janakiev.com/til/jupyter-virtual-envs/">here</a>. </li>
+</ol></li>
+</ol>
+
+<h2 id="change-log">Change Log</h2>
+
+<ul>
+<li>0.6.0 (Mar. 29, 2023)
+<ul>
+<li>Documentation updates including Gutow Lab Standard Operating Procedures 
+(SOPs).</li>
+<li>Refactored everything to inside the module <code><a href="">Trough</a></code>.</li>
+</ul></li>
+<li>0.5.2 (Mar. 16, 2023) Now works in Jupyter Lab.
+<ul>
+<li>Adjusted widget updating/clearing to work in Jupyter lab.</li>
+<li>Added JupyterLab &gt;= 3.6.1 to requirements.</li>
+</ul></li>
+<li>0.5.1 (Mar. 9, 2023) 
+<ul>
+<li>Include <code>spidev</code> package in requirements. </li>
+<li>More details reported when unable to "find trough".</li>
+</ul></li>
+<li>0.5.0 (Mar. 4, 2023) First version with working GUI</li>
+<li>0.1.0 First pypi compatible package version.</li>
+</ul>
+
+<h2 id="known-issues">Known issues</h2>
+
+<ul>
+<li>0.5.0 - 0.6.0 The estimated error on values converted to metric units 
+based on calibration fits appears to be too pessimistic.</li>
+<li>Inconsistent rendering of Latex ipywidget labels with ipywidgets &gt;= 8.0. 
+Until figured out requiring ipywidgets &lt; 8.0.</li>
+<li>Runs don't label graph axes reliably for x-axis units other than cm.</li>
+</ul>
+
+<h2 id="development">Development</h2>
+
+<h3 id="coderepositoryhttpsgithubcomgutowlangmuir_troughgit-docshttpsgutowgithubiolangmuir_trough"><a href="https://github.com/gutow/Langmuir_Trough.git">CodeRepository</a> | <a href="https://gutow.github.io/Langmuir_Trough">Docs</a></h3>
+
+<ol>
+<li>For development purposes clone the GIT repository.</li>
+<li>Create the virtual environment to run it in within the development 
+directory <code>pipenv shell</code>.</li>
+<li>Within the shell pip install for development <code>pip install -e .</code>.</li>
+</ol>
+
+<h3 id="constructing-the-documentation">Constructing the Documentation</h3>
+
+<ol>
+<li>Make sure pdoc is installed and updated in the virtual environment <code>pip 
+install -U pdoc</code>.</li>
+<li>Update any <code>.md</code> files included in <code>_init_.py</code>.
+<ul>
+<li>Generally URLs should be absolute, not relative.</li>
+</ul></li>
+<li>At the root level run pdoc <code>pdoc --logo-link
+https://gutow.github.io/Langmuir_Trough/ --footer-text "Langmuir_Trough vX.X.X" 
+--math -html -o docs Trough</code> where <code>X.X.X</code> is the version number.</li>
+<li>Because of the way the document building process works the background tasks 
+will be started. <strong>You will have to stop the document build after the 
+documentation is done building (watch the <code>doc</code> folder) with a <code>^C</code> to 
+terminate it.</strong></li>
+</ol>
+
+<h3 id="releasing-on-pypi">Releasing on PyPi</h3>
+
+<p>Proceed only if testing of the build is successful.</p>
+
+<ol>
+<li>Update packaging software <code>pip install -U setuptools wheel twine</code></li>
+<li>Double check the version number in <code>setup.py</code>.</li>
+<li>Rebuild the release: <code>python -m setup sdist bdist_wheel</code>.</li>
+<li>Upload it: <code>python -m twine upload dist/*</code></li>
+<li>Make sure it works by installing it in a clean virtual environment. <code>pip 
+install -U ...</code>. <strong>Copy the actual link from pypi.org.</strong>
+`. If it does not work, pull the release.</li>
+</ol>
+
+<h3 id="ideasthings-to-do">Ideas/Things to do</h3>
+
+<ul>
+<li>Make more robust by wrapping data collection in <code>try ...</code> so that it can 
+exit more gracefully and give up barrier monitoring?</li>
+<li>Add explanation of how to use the barrier watch deamon to prevent barrier 
+crashing if software fails.</li>
+</ul>
+
+<h1 id="langmuir-trough-standard-operating-procedures-for-the-gutow-lab">Langmuir Trough Standard Operating Procedures for the Gutow Lab</h1>
+
+<h2 id="initialization">Initialization</h2>
+
+<ol>
+<li>Check that recirculating temperature controller is connected to the 
+trough. Then turn it on and verify that the temperature is set to what 
+you want. Stabilization time is about 20 minutes for temperatures near 
+room temperature.</li>
+<li>Turn on power to the trough.</li>
+<li>Open a terminal and navigate to the <code><a href="">Trough</a></code> directory of the user 
+<code><a href="">Trough</a></code>.</li>
+<li>Activate the trough python environment <code>pipenv shell</code></li>
+<li>Launch Jupyter Lab <code>jupyter lab</code>.</li>
+<li>Within Jupyter Lab create a new folder for the Day. Name it something 
+like "DescriptiveWord_MMM_DD_YYYY", where MMM = three letter month 
+abbreviation, DD = day of the month and YYYY = the year.</li>
+<li>Open the folder by clicking on it.</li>
+<li>Open a new Notebook. Give it a descriptive name.</li>
+<li>In the first cell run the command <code>from Trough import Trough_GUI</code>. If the 
+trough has not been started in the last 12 hours this will take a while 
+as it checks the motor calibration for moving the barriers.</li>
+</ol>
+
+<h2 id="checking-trough-and-subphase-cleanliness">Checking Trough and Subphase Cleanliness</h2>
+
+<p><strong>This need to be done before each experiment.</strong></p>
+
+<ol>
+<li>We usually use high-purity water as the subphase. Primarily this is 
+18+ M&Omega; de-ionized water mixed with KMnO<sub>4</sub> and redistilled.
+Depending on the status of the water polishers, it is sometimes possible 
+to use 18+ M&Omega; water from these directly.</li>
+<li>If the trough is already filled with subphase (1 - 1.5 mm above trough 
+edges) and the Wilhelmy plate is installed skip steps 3 - 6.</li>
+<li><a href="#calibrating-the-wilhelmy-balance">Calibrate the Wilhelmy balance</a>
+if necessary.</li>
+<li>Hang a clean filter paper Wilhelmy plate from a fine wire on the balance. 
+Make sure that you know the circumference of the plate in mm. This should be 
+recorded in the Jupyter Notebook you are running. Our default 
+circumference is 21.5 mm.</li>
+<li>The subphase should fill the trough so that it rises 1 - 1.5 mm above the 
+edges of the trough. To add subphase use the clean glass funnel in the trough 
+isolation box to pour through (pouring directly from a bottle splashes). 
+The funnel makes it much easier to add subphase when the polycarbonate lid 
+with just a small opening is in use. Always add subphase between the 
+barriers to trap any surface active species between them for easier removal.</li>
+<li>Adjust the height of the Wilhelmy balance so the plate is partially 
+submerged in the subphase. The balance settling time is long. You will 
+have to wait at least 1 minute before any measurements will be valid. 
+With a reasonably clean trough and subphase the unzeroed balance should 
+settle to a surface pressure &lt; 10 mN/m. If it does not or shows no noise, 
+there may be a problem.</li>
+<li>If necessary <a href="#initialization">initialize the trough</a> then start the 
+trough control and calibration tool by running the command 
+<code>Trough_GUI.Controls(Trough_GUI.calibrations)</code> in an empty cell of the 
+notebook.</li>
+<li>Expand the "Manual Barrier Control" accordian. Set the direction to 
+"open". Set the speed to maximum (~10 cm/min). Click the start button. 
+Watch the surface pressure indicator. When the barriers stop (~12.7 cm 
+separation), wait to make sure the surface pressure has stabilized.</li>
+<li>Switch the direction to "close". Set the speed to the maximum closing 
+speed (~6.8 cm/min). Click the start button. Watch the surface pressure 
+indicator.</li>
+<li>Once the barriers are fully closed (~2.8 cm separation), check the 
+surface pressure. If it is greater than it was when fully open carefully 
+aspirate the surface between the barriers without catching the Wilhelmy 
+plate until the surface pressure is slightly less than observed for the 
+open barriers.</li>
+<li>Repeat steps 8 - 10 up to 4X to get the surface clean. If it is still 
+not clean:
+<ol>
+<li>Raise the Wilhelmy balance carefully and rotate it aside. Make 
+sure to lock it in place.</li>
+<li>Remove the polycarbonate lid if it is in place. Store it so that it 
+does not get contaminated.</li>
+<li>Aspirate all the subphase out of the trough and try again.</li>
+</ol></li>
+<li>If after a second try the trough and subphase are still not clean the 
+<a href="#cleaning-the-trough">trough probably needs to be cleaned</a>.</li>
+<li>When it appears clean test:
+<ol>
+<li>Manually open the barriers all the way.</li>
+<li>Set up a run by executing the command 
+<code>Trough_GUI.Collect_Data.Run("XXX")</code>, where XXX is replaced with a 
+name for the run (e.g. "clean_test_MMM_DD_YYYYa") in an empty cell.</li>
+<li>Set the units to cm separation. Set the speed to 1 cm/min. Set the 
+final separation to the minimum for the trough (~2.86 cm).</li>
+<li>When the surface pressure is stable click on the "zero pressure" 
+button to tare the Wilhelmy balance.</li>
+<li>Click start. The run will stop when the barriers reach the target 
+separation. You can also stop the collection by clicking the "stop" 
+button.</li>
+<li><strong>If the surface pressure stays between -0.2 and +0.2 mN/m the trough 
+is adequately clean.</strong></li>
+</ol></li>
+</ol>
+
+<h2 id="storage-of-trough-between-runs">Storage of Trough Between Runs</h2>
+
+<ul>
+<li>If the trough is being used regularly (1X/week or more): store the trough 
+with clean subphase in it. If the subphase is water make sure that the 
+humidification beaker in the isolation box is kept about 50% full.</li>
+<li>If the trough will be unused for a significant time:
+<ol>
+<li><a href="#checking-trough-and-subphase-cleanliness">After verifying the trough and subphase cleanliness</a>
+aspirate off all the subphase.</li>
+<li>Empty the humidification beaker.</li>
+<li>Cover the trough with the polycarbonate lid.</li>
+<li>Make sure the isolation box is closed.</li>
+<li>Make sure the power supply is off.</li>
+<li>Shut down the computer.</li>
+</ol></li>
+</ul>
+
+<h2 id="handling-spreading-solvents">Handling Spreading Solvent(s)</h2>
+
+<p><strong>It is extremely easy to contaminate the solvents with surface active 
+compounds at a level that will ruin experiments</strong></p>
+
+<ul>
+<li>Generally HPLC grade solvents are adequately clean. We most commonly use 
+HPLC grade hexanes and absolute ethanol.</li>
+<li>All glassware must be carefully cleaned before using to transfer or 
+contain spreading solvents.
+<ol>
+<li>If unsure of basic cleanliness wash well with soap and water. Rinse 
+five (5) times with warm tap water. Rinse three (3) times with 
+de-ionized water.</li>
+<li>Rinse two (2) times with absolute ethanol (10% - 20% container volume per 
+rinse).</li>
+<li>Rinse six (6) times with the spreading solvent (10% - 20% container volume 
+per rinse).</li>
+</ol></li>
+<li><strong>Do not stick anything into the clean spreading solvent stock bottle.</strong> Get 
+samples to work with by pouring into properly cleaned intermediate containers.</li>
+</ul>
+
+<h2 id="checking-spreading-solvent-cleanliness">Checking Spreading Solvent Cleanliness</h2>
+
+<ol>
+<li>Transfer &lt; 1 mL of spreading solvent to a
+<a href="#handling-spreading-solvents">properly cleaned</a> vial.</li>
+<li><a href="#initialization">Initialize the trough</a> and 
+<a href="#checking-trough-and-subphase-cleanliness">verify that the subphase is clean.</a></li>
+<li>Using the "Manual Barrier Controls" open the barriers all the way.</li>
+<li>Rinse the positive displacement microdispenser 3X with absolute ethanol 
+from a TFE squeeze bottle and then 3X with HPLC grade hexanes from a TFE 
+squeeze bottle.</li>
+<li>Rinse with the solvent sample being tested 6X by sucking up 90 &micro;L 
+of the solvent sample and dispensing it into a waste beaker.</li>
+<li>Dispense 90 &micro;L of the solvent sample onto the surface between the 
+barriers.</li>
+<li>Allow to evaporate (15 min is adequate for hexanes).</li>
+<li><a href="#running-a-compression">Perform a compression</a> at 1 cm/min from fully 
+open to fully closed.</li>
+<li><strong>The solvent is clean if the surface pressure stays between -0.2 and +0.2 
+mN/m.</strong></li>
+</ol>
+
+<h2 id="making-a-spreading-solution">Making a Spreading Solution</h2>
+
+<p>For most molecules we want to spread about 3.00 X 10<sup>-8</sup> moles of 
+molecules on our trough to get a range of roughly 60 to 15 square Angstroms per 
+molecule during a compression.</p>
+
+<ol>
+<li>The ideal volume to spread is 50 &micro;L of solution. Thus we want a 
+concentration near (3.00 X 10<sup>-8</sup> moles)/(50.0 X 10<sup>-6</sup> L)
+= 6 X 10<sup>-4</sup> M. It is practical to spread anywhere between 20 
+and 90 &micro;L. So, you can adapt to concentrations that vary between 1.00 
+x 10<sup>-3</sup> M and 3.3 X 10<sup>-4</sup> M.</li>
+<li>Ideally your molecule will dissolve in pure hexanes at a concentration of 
+6 X 10<sup>-4</sup> M. If it is not soluble you can put a few percent (up 
+to 5% v/v) of ethanol in with the hexanes. This solvent mixture works for 
+many surfactants, without significantly impacting the surface tension of 
+a water subphase.</li>
+<li>Experiments take very little solution, so make as small volumes of 
+solution as possible. Note that you should not try to measure out 
+surfactant in amounts that produce less than three significant figures on 
+a standard analytical balance (e.g. at least 10 mg, preferably 50 mg or 
+more.) This may mean that you will have to make a stock solution and 
+dilute it to get in the correct concentration range.</li>
+<li>All solutions must be made using 
+<a href="#handling-spreading-solvents">properly cleaned glassware</a> and spreading 
+solvents that have been
+<a href="#checking-spreading-solvent-cleanliness">verified to be clean.</a> Use 
+volumetric flasks with ground glass stoppers to avoid contamination by 
+the plasticizers found in most polymer caps.</li>
+<li>Because the solvents are very volatile the solutions will not keep long 
+in the volumetric flasks with ground glass stoppers. They can be 
+transferred for somewhat longer term storage to sealed brown bottles 
+if the bottles are 
+<a href="#checking-spreading-solvent-cleanliness">properly washed</a> 
+and you have verified that a little solvent stored in the bottle 
+overnight and shaken <a href="#checking-spreading-solvent-cleanliness">stays clean.</a></li>
+</ol>
+
+<h2 id="spreading-a-sample">Spreading a Sample</h2>
+
+<ol>
+<li>Rinse a small vial 2X with absolute ethanol from a TFE squeeze bottle 
+then 3X with hexanes from a TFE squeeze bottle.</li>
+<li>If you need to use a pipette or funnel (the funnel is a better choice as 
+you are less likely to contaminate the stock spreading solution) to transfer 
+the spreading solution to the vial rinse the pipette or funnel 2X with 
+absolute ethanol from a TFE squeeze bottle and then 3X with hexanes from 
+a TFE squeeze bottle.</li>
+<li>Rinse the transfer tool with the spreading solution 6X.</li>
+<li>Rinse the vial 6X (10-20% of vial volume) with the spreading solution.</li>
+<li>Use the transfer tool to transfer about 1 mL of the spreading solution to 
+the small vial.</li>
+<li>Set the positive displacement dispenser to the volume you will be 
+dispensing.</li>
+<li>Rinse the dispenser 2X with absolute ethanol from a TFE squeeze bottle 
+then 3X with hexanes from a TFE squeeze bottle. Make sure you move the 
+plunger through its dispensing motion while doing this.</li>
+<li>When the dispenser is dry, rinse 6X with the spreading solution making 
+sure to take up the full amount to be dispensed on each rinse.</li>
+<li>With the <strong>barriers fully open</strong> dispense the spreading solution drop wise 
+onto the surface between the barriers. Avoid the Wilhelmy plate.</li>
+<li>Allow time for the solvent to evaporate (~ 15 minutes for hexanes) 
+before doing a compression.</li>
+</ol>
+
+<h2 id="running-a-compression">Running a Compression</h2>
+
+<ol>
+<li>Trough must first be
+<a href="#checking-trough-and-subphase-cleanliness">verified to be clean</a>.</li>
+<li>Spread the surfactant solution on the trough with the barriers open. 
+Allow sufficient time for the solvent to evaporate (~15 min for hexanes). 
+The amount to spread will depend on your target range for area per 
+molecule and the concentration of your solution (10<sup>-4</sup> - 
+10<sup>-3</sup> M is typical).</li>
+<li>In a new notebook cell execute the command 
+<code>Trough_GUI.Collect_Data.Run("XXX")</code>, where XXX is replaced with a 
+    name for the run (e.g. "CompoundName_MMM_DD_YYYYa")</li>
+<li>Adjust the moles of molecules to the moles of surfactant you spread. 
+Adjust the units to Angstroms squared per molecule. Choose your desired 
+final target area and compression speed.</li>
+<li>When the solvent is fully evaporated zero the balance.</li>
+<li>Store the settings.</li>
+<li>When ready click the "Start" button. The collection will stop when the 
+desired area is reached. You can also stop the run by clicking the "Stop" 
+button.</li>
+</ol>
+
+<h2 id="calibrating-the-wilhelmy-balance">Calibrating the Wilhelmy Balance</h2>
+
+<p><strong>This should be done at the beginning of any day real data is collected</strong></p>
+
+<ol>
+<li>If it is not already running launch the trough control and calibration 
+tool by running the command <code>Trough_GUI.Controls(Trough_GUI.calibrations)
+</code> in an empty notebook cell.</li>
+<li>Expand the "Calibrate Balance" accordian and follow the on screen 
+instructions.</li>
+</ol>
+
+<h2 id="calibrating-barrier-position-and-speed">Calibrating Barrier Position and Speed</h2>
+
+<p><strong>This only needs to be done if a check of the measured barrier separation 
+is off by more than ±0.03 mm</strong></p>
+
+<ol>
+<li>If it is not already running launch the trough control and calibration 
+tool by running the command <code>Trough_GUI.Controls(Trough_GUI.calibrations)
+</code> in an empty notebook cell.</li>
+<li>Expand the "Calibrate Barriers" accordian and follow the on screen 
+instructions.</li>
+</ol>
+
+<h2 id="calibrating-the-temperature-probe">Calibrating the Temperature Probe.</h2>
+
+<p><strong>This is very stable so should not need to be done often</strong></p>
+
+<ol>
+<li>If it is not already running launch the trough control and calibration 
+tool by running the command <code>Trough_GUI.Controls(Trough_GUI.calibrations)
+</code> in an empty notebook cell.</li>
+<li>Expand the "Calibrate Temperature" accordian and follow the on screen 
+instructions.</li>
+<li>A good source of known temperatures is the thermostat recirculator.</li>
+</ol>
+
+<h2 id="cleaning-the-trough">Cleaning the Trough</h2>
+
+<ol>
+<li>The cleaning solution 1:1 concentrated nitric acid:concentrated sulfuric 
+acid is extremely dangerous and also has potential to damage parts of the 
+trough. Do not perform this cleaning procedure until Dr. Guto has 
+certified you for the process.</li>
+<li>The trough can be powered down during this procedure.</li>
+<li>The Wilhelmy balance should be locked in position out of the way.</li>
+<li>The polycarbonate lid should be removed (store it so that does not get 
+contaminated).</li>
+<li>Fill the trough with the 1:1 concentrated nitric:sulfuric acid solution. 
+Allow to sit 10 + minutes.</li>
+<li>While the cleaning solution sits in the trough make sure the aspirator 
+trap is dry.</li>
+<li>Aspirate off the cleaning solution. 
+<ul>
+<li>Unless the trough is extremely dirty the collected cleaning 
+solution may be returned to the cleaning solution storage bottle.</li>
+<li>If disposing of the cleaning solution treat it as strong acid waste and 
+neutralize properly.</li>
+</ul></li>
+<li>Rinse the trough twice with clean water subphase.</li>
+<li><a href="#checking-trough-and-subphase-cleanliness">Check the cleanliness of the trough</a></li>
+</ol>
+</div>
+
+                        <input id="mod-Trough-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+
+                        <label class="view-source-button" for="mod-Trough-view-source"><span>View Source</span></label>
+
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">2</span></a><span class="sd">.. include:: ../README.md</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">3</span></a><span class="sd">.. include:: ../docs/Gutow_Lab_Trough_SOPs.md</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">4</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">5</span></a><span class="n">__docformat__</span> <span class="o">=</span> <span class="s2">&quot;numpy&quot;</span>
+</span></pre></div>
+
+
+            </section>
+    </main>
+<script>
+    function escapeHTML(html) {
+        return document.createElement('div').appendChild(document.createTextNode(html)).parentNode.innerHTML;
+    }
+
+    const originalContent = document.querySelector("main.pdoc");
+    let currentContent = originalContent;
+
+    function setContent(innerHTML) {
+        let elem;
+        if (innerHTML) {
+            elem = document.createElement("main");
+            elem.classList.add("pdoc");
+            elem.innerHTML = innerHTML;
+        } else {
+            elem = originalContent;
+        }
+        if (currentContent !== elem) {
+            currentContent.replaceWith(elem);
+            currentContent = elem;
+        }
+    }
+
+    function getSearchTerm() {
+        return (new URL(window.location)).searchParams.get("search");
+    }
+
+    const searchBox = document.querySelector(".pdoc input[type=search]");
+    searchBox.addEventListener("input", function () {
+        let url = new URL(window.location);
+        if (searchBox.value.trim()) {
+            url.hash = "";
+            url.searchParams.set("search", searchBox.value);
+        } else {
+            url.searchParams.delete("search");
+        }
+        history.replaceState("", "", url.toString());
+        onInput();
+    });
+    window.addEventListener("popstate", onInput);
+
+
+    let search, searchErr;
+
+    async function initialize() {
+        try {
+            search = await new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+                script.type = "text/javascript";
+                script.async = true;
+                script.onload = () => resolve(window.pdocSearch);
+                script.onerror = (e) => reject(e);
+                script.src = "search.js";
+                document.getElementsByTagName("head")[0].appendChild(script);
+            });
+        } catch (e) {
+            console.error("Cannot fetch pdoc search index");
+            searchErr = "Cannot fetch search index.";
+        }
+        onInput();
+
+        document.querySelector("nav.pdoc").addEventListener("click", e => {
+            if (e.target.hash) {
+                searchBox.value = "";
+                searchBox.dispatchEvent(new Event("input"));
+            }
+        });
+    }
+
+    function onInput() {
+        setContent((() => {
+            const term = getSearchTerm();
+            if (!term) {
+                return null
+            }
+            if (searchErr) {
+                return `<h3>Error: ${searchErr}</h3>`
+            }
+            if (!search) {
+                return "<h3>Searching...</h3>"
+            }
+
+            window.scrollTo({top: 0, left: 0, behavior: 'auto'});
+
+            const results = search(term);
+
+            let html;
+            if (results.length === 0) {
+                html = `No search results for '${escapeHTML(term)}'.`
+            } else {
+                html = `<h4>${results.length} search result${results.length > 1 ? "s" : ""} for '${escapeHTML(term)}'.</h4>`;
+            }
+            for (let result of results.slice(0, 10)) {
+                let doc = result.doc;
+                let url = `${doc.modulename.replaceAll(".", "/")}.html`;
+                if (doc.qualname) {
+                    url += `#${doc.qualname}`;
+                }
+
+                let heading;
+                switch (result.doc.kind) {
+                    case "function":
+                        if (doc.fullname.endsWith(".__init__")) {
+                            heading = `<span class="name">${doc.fullname.replace(/\.__init__$/, "")}</span>${doc.signature}`;
+                        } else {
+                            heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span>${doc.signature}`;
+                        }
+                        break;
+                    case "class":
+                        heading = `<span class="def">class</span> <span class="name">${doc.fullname}</span>`;
+                        if (doc.bases)
+                            heading += `<wbr>(<span class="base">${doc.bases}</span>)`;
+                        heading += `:`;
+                        break;
+                    case "variable":
+                        heading = `<span class="name">${doc.fullname}</span>`;
+                        if (doc.annotation)
+                            heading += `<span class="annotation">${doc.annotation}</span>`;
+                        if (doc.default_value)
+                            heading += `<span class="default_value"> = ${doc.default_value}</span>`;
+                        break;
+                    default:
+                        heading = `<span class="name">${doc.fullname}</span>`;
+                        break;
+                }
+                html += `
+                        <section class="search-result">
+                        <a href="${url}" class="attr ${doc.kind}">${heading}</a>
+                        <div class="docstring">${doc.doc}</div>
+                        </section>
+                    `;
+
+            }
+            return html;
+        })());
+    }
+
+    if (getSearchTerm()) {
+        initialize();
+        searchBox.value = getSearchTerm();
+        onInput();
+    } else {
+        searchBox.addEventListener("focus", initialize, {once: true});
+    }
+
+    searchBox.addEventListener("keydown", e => {
+        if (["ArrowDown", "ArrowUp", "Enter"].includes(e.key)) {
+            let focused = currentContent.querySelector(".search-result.focused");
+            if (!focused) {
+                currentContent.querySelector(".search-result").classList.add("focused");
+            } else if (
+                e.key === "ArrowDown"
+                && focused.nextElementSibling
+                && focused.nextElementSibling.classList.contains("search-result")
+            ) {
+                focused.classList.remove("focused");
+                focused.nextElementSibling.classList.add("focused");
+                focused.nextElementSibling.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "nearest"
+                });
+            } else if (
+                e.key === "ArrowUp"
+                && focused.previousElementSibling
+                && focused.previousElementSibling.classList.contains("search-result")
+            ) {
+                focused.classList.remove("focused");
+                focused.previousElementSibling.classList.add("focused");
+                focused.previousElementSibling.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "nearest"
+                });
+            } else if (
+                e.key === "Enter"
+            ) {
+                focused.querySelector("a").click();
+            }
+        }
+    });
+</script></body>
+</html>

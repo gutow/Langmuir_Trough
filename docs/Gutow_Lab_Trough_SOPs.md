@@ -20,6 +20,7 @@
 
 ## Checking Trough and Subphase Cleanliness
 **This need to be done before each experiment.**
+
 1. We usually use high-purity water as the subphase. Primarily this is 
    18+ M&Omega; de-ionized water mixed with KMnO<sub>4</sub> and redistilled.
    Depending on the status of the water polishers, it is sometimes possible 
@@ -100,6 +101,7 @@
 ## Handling Spreading Solvent(s)
 **It is extremely easy to contaminate the solvents with surface active 
 compounds at a level that will ruin experiments**
+
 * Generally HPLC grade solvents are adequately clean. We most commonly use 
   HPLC grade hexanes and absolute ethanol.
 * All glassware must be carefully cleaned before using to transfer or 
@@ -137,6 +139,7 @@ compounds at a level that will ruin experiments**
 For most molecules we want to spread about 3.00 X 10<sup>-8</sup> moles of 
 molecules on our trough to get a range of roughly 60 to 15 square Angstroms per 
 molecule during a compression.
+
 1. The ideal volume to spread is 50 &micro;L of solution. Thus we want a 
    concentration near (3.00 X 10<sup>-8</sup> moles)/(50.0 X 10<sup>-6</sup> L)
    = 6 X 10<sup>-4</sup> M. It is practical to spread anywhere between 20 
@@ -213,6 +216,7 @@ molecule during a compression.
 
 ## Calibrating the Wilhelmy Balance
 **This should be done at the beginning of any day real data is collected**
+
 1. If it is not already running launch the trough control and calibration 
    tool by running the command `Trough_GUI.Controls(Trough_GUI.calibrations)
    ` in an empty notebook cell.
@@ -222,6 +226,7 @@ molecule during a compression.
 ## Calibrating Barrier Position and Speed
 **This only needs to be done if a check of the measured barrier separation 
 is off by more than ±0.03 mm**
+
 1. If it is not already running launch the trough control and calibration 
    tool by running the command `Trough_GUI.Controls(Trough_GUI.calibrations)
    ` in an empty notebook cell.
@@ -230,6 +235,7 @@ is off by more than ±0.03 mm**
 
 ## Calibrating the Temperature Probe.
 **This is very stable so should not need to be done often**
+
 1. If it is not already running launch the trough control and calibration 
    tool by running the command `Trough_GUI.Controls(Trough_GUI.calibrations)
    ` in an empty notebook cell.

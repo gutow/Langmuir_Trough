@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="langmuir_trough",
-    version="0.6.0",
+    version="0.7.0",
     description="Controls and collects data from Gutow Lab Langmuir Trough.",
     long_description=long_description,
     long_description_content_type="text/markdown",

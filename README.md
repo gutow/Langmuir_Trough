@@ -112,6 +112,15 @@ install as a special kernel when you are the user.
      found [here](https://janakiev.com/til/jupyter-virtual-envs/). 
 
 ## Change Log
+* 0.7.0 (Apr. 28, 2023)
+  * Added Access to [pandas_GUI](https://jupyterphysscilab.github.io/jupyter_Pandas_GUI)
+    tools as `Trough_GUI.newPlot()`, `Trough_GUI.newFit()` and 
+    `Trough_GUI.newCalculatedColumn()`.
+  * BUG_FIX: Opening a new notebook and importing Trough_GUI no longer 
+    clobbers an already running notebook that is talking to the trough 
+    A-to-D hardware.
+  * BUG_FIX: Stopping a data collection run now makes sure the barriers are 
+    stopped.
 * 0.6.0 (Mar. 29, 2023)
   * Documentation updates including Gutow Lab Standard Operating Procedures 
     (SOPs).
@@ -126,7 +135,7 @@ install as a special kernel when you are the user.
 * 0.1.0 First pypi compatible package version.
 
 ## Known issues
-* 0.5.0 - 0.6.0 The estimated error on values converted to metric units 
+* 0.5.0 - 0.7.0 The estimated error on values converted to metric units 
   based on calibration fits appears to be too pessimistic.
 * Inconsistent rendering of Latex ipywidget labels with ipywidgets >= 8.0. 
   Until figured out requiring ipywidgets < 8.0.

@@ -246,7 +246,7 @@ is off by more than ±0.03 mm**
 ## Cleaning the Trough
 1. The cleaning solution 1:1 concentrated nitric acid:concentrated sulfuric 
    acid is extremely dangerous and also has potential to damage parts of the 
-   trough. Do not perform this cleaning procedure until Dr. Guto has 
+   trough. Do not perform this cleaning procedure until Dr. Gutow has 
    certified you for the process.
 2. The trough can be powered down during this procedure.
 3. The Wilhelmy balance should be locked in position out of the way.
@@ -263,3 +263,18 @@ is off by more than ±0.03 mm**
      neutralize properly.
 8. Rinse the trough twice with clean water subphase.
 9. [Check the cleanliness of the trough](#checking-trough-and-subphase-cleanliness)
+
+## Data Analysis
+The data is collected in Jupyter notebooks so that you can use the 
+[Pandas_GUI](https://jupyterphysscilab.github.io/jupyter_Pandas_GUI) 
+analysis tools or write python code 
+to analyze the data sets. When a data set is loaded from file or collected 
+using the command `Trough_GUI.Collect_Data.Run("Run_Name")` a run is added 
+to the list `Trough_GUI.runs`. Data from a run is stored in its Pandas 
+Dataframe `Trough_GUI.runs[i].df`, where `i` is the zero based index of the run.
+The [Pandas_GUI](https://jupyterphysscilab.github.io/jupyter_Pandas_GUI) 
+tools which provide menu access to the data can be run using the commands:
+* A new plot `Trough_GUI.newPlot()`.
+* Calculate a new column (manipulate a dataset) 
+  `Trough_GUI.newCalculatedColumn()`.
+* A new fit `Trough_GUI.newFit()`.

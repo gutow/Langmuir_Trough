@@ -251,6 +251,11 @@ class trough_run():
 
         def _on_stop_run():
             from IPython import get_ipython
+            trough_lock = get_ipython().user_ns["Trough_Control"].trough_lock
+            trough_lock.acquire()
+            cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
+            cmdsend.send(['Stop', '']) # make sure barriers stopped.
+            trough_lock.release()
             Trough_GUI = get_ipython().user_ns["Trough_GUI"]
             run_start_stop.description = "Done"
             run_start_stop.disabled = True

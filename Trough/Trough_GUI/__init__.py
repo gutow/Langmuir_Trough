@@ -37,3 +37,47 @@ status_update_thread = Thread(target=status_widgets.status_updater,
                                     updater_running))
 status_update_thread.start()
 
+def newCalculatedColumn():
+    """
+    Uses jupyter-pandas-GUI.new_pandas_column_GUI to provide a GUI expression
+    composer. This method finds the datasets and launches the GUI.
+    """
+    import pandas as pd
+    from pandas_GUI import new_pandas_column_GUI
+    df_info = []
+    for i in range(len(runs)):
+        if isinstance(runs[i].df, pd.DataFrame):
+            df_info.append([runs[i].df, 'Trough_GUI.runs['+str(i)+'].df',
+                            str(runs[i].title)])
+    new_pandas_column_GUI(df_info)
+    pass
+
+def newPlot():
+    """
+    Uses jupyter-pandas-GUI.plot_pandas_GUI to provide a GUI expression
+    composer. This method finds the datasets and launches the GUI.
+    """
+    import pandas as pd
+    from pandas_GUI import plot_pandas_GUI
+    df_info = []
+    for i in range(len(runs)):
+        if isinstance(runs[i].df,pd.DataFrame):
+            df_info.append([runs[i].df, 'Trough_GUI.runs['+str(i)+'].df',
+                            str(runs[i].title)])
+    plot_pandas_GUI(df_info)
+    pass
+
+def newFit():
+    """
+    Uses jupyter-pandas-GUI.fit_pandas_GUI to provide a GUI expression
+    composer. This method finds the datasets and launches the GUI.
+    """
+    import pandas as pd
+    from pandas_GUI import fit_pandas_GUI
+    df_info = []
+    for i in range(len(runs)):
+        if isinstance(runs[i].df,pd.DataFrame):
+            df_info.append([runs[i].df, 'Trough_GUI.runs['+str(i)+'].df',
+                            str(runs[i].title)])
+    fit_pandas_GUI(df_info)
+    pass

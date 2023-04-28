@@ -44,6 +44,36 @@ def etol_call(obj, param):
     else:
         raise TypeError(str(obj) + ' must be a callable object.')
 
+def pid_exists(pid):
+    """Check whether pid exists in the current process table.
+    UNIX only. From this stackoverflow suggestion:
+    https://stackoverflow.com/a/6940314
+    """
+    import os, errno, time
+    if pid < 0:
+        return False
+    if pid == 0:
+        # According to "man 2 kill" PID 0 refers to every process
+        # in the process group of the calling process.
+        # On certain systems 0 is a valid PID but we have no way
+        # to know that in a portable fashion.
+        raise ValueError('invalid PID 0')
+    try:
+        os.kill(pid, 0)
+    except OSError as err:
+        if err.errno == errno.ESRCH:
+            # ESRCH == No such process
+            return False
+        elif err.errno == errno.EPERM:
+            # EPERM clearly means there's a process to deny access to
+            return True
+        else:
+            # According to "man 2 kill" possible error values are
+            # (EINVAL, EPERM, ESRCH)
+            raise
+    else:
+        return True
+
 def is_trough_initialized():
     """Checks for a running Trough process and good connections to it.
     Returns
@@ -88,13 +118,21 @@ def init_trough():
     """
     from multiprocessing import Process, Pipe
     from Trough.Trough_Control.message_utils import extract_messages
-    import time
+    import time, os
     from sys import exit
 
     cmdsend, cmdrcv = Pipe()
     datasend, datarcv = Pipe()
-    # Check for trough hardware
     trough_exists = True
+    # Check if another process is monitoring the trough
+    pidpath = '/tmp/troughctl.pid'
+    if os.path.exists(pidpath):
+        file=open(pidpath,'r')
+        pid = int(file.readline())
+        if pid_exists(pid):
+            print("Another process is controlling the Trough.")
+            trough_exists = False
+    # Check for trough hardware
     try:
         from piplates import DAQC2plate
         del DAQC2plate
@@ -105,7 +143,7 @@ def init_trough():
     if trough_exists:
         TROUGH = Process(target=troughctl, args=(cmdrcv, datasend))
     else:
-        print("Unable to find Trough. Using simulation.")
+        print("Unable to access Trough. Using simulation.")
         from Trough.Trough_Control.simulation import simulated_troughctl
         TROUGH = Process(target=simulated_troughctl, args=(cmdrcv, datasend))
     TROUGH.start()
@@ -121,8 +159,6 @@ def init_trough():
             if "Trough ready" in messages:
                 waiting = False
     return cmdsend, datarcv, TROUGH
-
-
 
 def troughctl(CTLPipe,DATAPipe):
     """

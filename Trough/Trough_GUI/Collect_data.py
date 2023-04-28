@@ -251,11 +251,6 @@ class trough_run():
 
         def _on_stop_run():
             from IPython import get_ipython
-            trough_lock = get_ipython().user_ns["Trough_Control"].trough_lock
-            trough_lock.acquire()
-            cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
-            cmdsend.send(['Stop', '']) # make sure barriers stopped.
-            trough_lock.release()
             Trough_GUI = get_ipython().user_ns["Trough_GUI"]
             run_start_stop.description = "Done"
             run_start_stop.disabled = True
@@ -576,6 +571,8 @@ def collect_data_updater(trough_lock, cmdsend, datarcv, cals, lastdirection,
                 waiting = False
         if time.time()< min_next_time:
             time.sleep(min_next_time - time.time())
+    # Make sure the barrier stops
+    cmdsend.send(['Stop',''])
     # Release lock and set the shared I'm running flag to False before exiting.
     trough_lock.release()
     updater_running.value = False

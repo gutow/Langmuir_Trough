@@ -205,7 +205,7 @@ class trough_run():
             elif Barr_Units.value == "cm^2":
                 direction = int(
                     sign(float(Barr_Target.value) - float(Bar_Area.value)))
-                tempspeed = (target_speed - skimmer_correction) / width
+                tempspeed = target_speed/ width
                 temp_targ = \
                     sqcm_to_cm(float(Barr_Target.value), 0,
                                Trough_GUI.calibrations)[0]

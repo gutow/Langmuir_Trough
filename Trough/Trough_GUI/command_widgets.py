@@ -246,6 +246,7 @@ Barr_Target = BoundedFloatText(value=10.0, min=0.0, max=12.6,
 Barr_Speed = BoundedFloatText(description="Speed (/min)", value=5.0, min = 0.0,
                        max = 10.0, step = 0.01, disabled=False)
 def on_click_Start(change):
+    from Trough.Trough_GUI.conversions import sqcm_to_cm, angpermolec_to_sqcm
     from IPython import get_ipython
     cmdsend = get_ipython().user_ns["Trough_Control"].cmdsend
     calibrations = get_ipython().user_ns["Trough_GUI"].calibrations
@@ -259,13 +260,14 @@ def on_click_Start(change):
         tempspeed = float(Barr_Speed.value)
         Barr_Target_Frac = calibrations.barriers_open.cal_inv(Barr_Target.value, 0)[0]
     elif Barr_Units.value == 'cm^2':
-        tempspeed = (Barr_Speed.value - skimmer_correction)/width
-        temptarg = (Barr_Target.value - skimmer_correction)/width
+        tempspeed = sqcm_to_cm(Barr_Speed.value,0,calibrations)[0]
+        temptarg = sqcm_to_cm(temptarg,0,calibrations)[0]
         Barr_Target_Frac = calibrations.barriers_open.cal_inv(temptarg, 0)[0]
     elif Barr_Units.value == 'Angstrom^2/molec':
-        tempspeed = (Barr_Speed.value - skimmer_correction)/width/1e16*moles_molec*6.02214076e23
-        temptarg = Barr_Target.value/1e16*moles_molec*6.02214076e23
-        temptarg = (temptarg - skimmer_correction)/width
+        tempspeed = angpermolec_to_sqcm(Barr_Speed.value, 0, moles_molec)[0]
+        tempspeed = tempspeed/width
+        temptarg = angpermolec_to_sqcm(Barr_Target.value, 0,moles_molec)[0]
+        temptarg = sqcm_to_cm(temptarg,0,calibrations)[0]
         Barr_Target_Frac = calibrations.barriers_open.cal_inv(temptarg, 0)[0]
     if Barr_Direction.value != 'Move To':
         direction = 0

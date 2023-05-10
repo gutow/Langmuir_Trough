@@ -212,8 +212,9 @@ class trough_run():
             elif Barr_Units.value == "Angstrom^2/molec":
                 direction = int(sign(
                     float(Barr_Target.value) - float(Bar_Area_per_Molec.value)))
-                tempspeed = (target_speed - skimmer_correction) / width / 1e16 * float(
-                    moles_molec.value) * 6.02214076e23
+                tempspeed = angpermolec_to_sqcm(target_speed, 0, float(
+                    moles_molec.value))[0]
+                tempspeed = sqcm_to_cm(tempspeed,0,Trough_GUI.calibrations)[0]
                 temp_targ = sqcm_to_cm(
                     *angpermolec_to_sqcm(float(Barr_Target.value), 0,
                                          float(moles_molec.value)),

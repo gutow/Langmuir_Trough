@@ -11,7 +11,7 @@ def cm_to_sqcm(value, err, cals):
     sqcm_err = err * float(cals.barriers_open.additional_data[ \
                      "trough width (cm)"])
     sqcm = value * float(cals.barriers_open.additional_data[ \
-                     "trough width (cm)"]) - float(cals.barriers_open. \
+                     "trough width (cm)"]) + float(cals.barriers_open. \
                      additional_data["skimmer correction (cm^2)"])
     return numbers_rndwitherr(sqcm, sqcm_err)
 
@@ -20,7 +20,7 @@ def sqcm_to_cm(value, err, cals):
     from round_using_error import numbers_rndwitherr
     cm_err = err / float(cals.barriers_open.additional_data[ \
                      "trough width (cm)"])
-    cm = (value + float(cals.barriers_open. \
+    cm = (value - float(cals.barriers_open. \
                         additional_data["skimmer correction (cm^2)"])) \
                         / float(cals.barriers_open.additional_data[ \
                         "trough width (cm)"])

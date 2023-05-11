@@ -302,9 +302,6 @@ def Monitor_Setup_Trough(calibrations):
                             Trough_GUI.lastdirection.value = 1
                         else:
                             Trough_GUI.lastdirection.value = -1
-                        Trough.Trough_GUI.status_widgets.update_status(status_dict,
-                                                                       calibrations,
-                                                                       Trough_GUI.lastdirection)
                         if abs(target - position[-1]) < 0.01:
                             moving = False
                         waiting = False
@@ -372,6 +369,12 @@ def Monitor_Setup_Trough(calibrations):
         import time
         nonlocal calibrating_barr_direction
         nonlocal calibrating_barr_step
+        nonlocal close_pos_x
+        nonlocal open_pos_y
+        nonlocal close_speed_x
+        nonlocal open_speed_x
+        nonlocal close_speed_y
+        nonlocal open_speed_y
         steps = None
         direction = 0
         just_finished_keep = False
@@ -426,7 +429,7 @@ def Monitor_Setup_Trough(calibrations):
                 cmdsend.send(['Speed', steps[calibrating_barr_step]["speed"]])
                 cmdsend.send(['MoveTo', steps[calibrating_barr_step]["target"]])
                 trough_lock.release()
-                while abs(float(Barr_Raw.value) - steps[calibrating_barr_step]["target"]) < 0.01:
+                while abs(float(Barr_Raw.value) - steps[calibrating_barr_step]["target"]) > 0.01:
                     # We wait
                     pass
                 Barr_Cal_Butt.description = 'Keep'

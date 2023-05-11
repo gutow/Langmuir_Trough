@@ -308,7 +308,7 @@ def troughctl(CTLPipe,DATAPipe):
         # print("speed:"+str(speed)+", direction:"+str(direction)+", DAC_V:"+str(DAC_V))
         if (DAC_V > startopenV) and (DAC_V < startcloseV) and (direction != 0):
             # need a boost to start moving
-            if speed == 1:
+            if direction == 1:
                 DAQC2.setDAC(0, 0, startcloseV)
             else:
                 DAQC2.setDAC(0, 0, startopenV)

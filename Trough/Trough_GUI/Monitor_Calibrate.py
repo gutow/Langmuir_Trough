@@ -327,7 +327,7 @@ def Monitor_Setup_Trough(calibrations):
                     n_moving_end += 1
             if n_moving_end < 3:
                 tempindex_end -= 1
-            if abs(position[tempindex_start] - position[tempindex_end + 1]) \
+            if abs(position[tempindex_start] - position[tempindex_start + 1]) \
                     > (positiondev[tempindex_start] ** 2 + \
                      positiondev[tempindex_start - 1] ** 2) ** 0.5:
                 if n_moving_start < 3:

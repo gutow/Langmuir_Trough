@@ -88,7 +88,7 @@ def Monitor_Setup_Trough(calibrations):
             params, stdev = calibrations.poly_fit(cal_bal_x, cal_bal_y, 1, 0.5)
             inv_params, inv_stdev = calibrations.poly_fit(cal_bal_y,
                                                           cal_bal_x, 1, 0.001)
-            calibrations.balance = Trough.Trough_GUI.calibration_utils. \
+            calibrations.balance = Trough_GUI.calibration_utils. \
                 Calibration(
                 'balance', 'mg', time.time(), params, stdev, inv_params,
                 inv_stdev, cal_bal_x, cal_bal_y)
@@ -161,7 +161,7 @@ def Monitor_Setup_Trough(calibrations):
             params, stdev = calibrations.poly_fit(cal_temp_x, cal_temp_y, 3, 0.1)
             inv_params, inv_stdev = calibrations.poly_fit(cal_temp_y,
                                                           cal_temp_x, 3, 0.001)
-            calibrations.temperature = Trough.Trough_GUI.calibration_utils. \
+            calibrations.temperature = Trough_GUI.calibration_utils. \
                 Calibration(
                 'temperature', 'C', time.time(), params, stdev, inv_params,
                 inv_stdev, cal_temp_x, cal_temp_y)
@@ -465,7 +465,7 @@ def Monitor_Setup_Trough(calibrations):
             params, stdev = calibrations.poly_fit(open_pos_x, open_pos_y, 3, 0.1)
             inv_params, inv_stdev = calibrations.poly_fit(open_pos_y,
                                                           open_pos_x, 3, 0.001)
-            calibrations.barriers_open = Trough.Trough_GUI.calibration_utils.\
+            calibrations.barriers_open = Trough_GUI.calibration_utils.\
                 Calibration(
                 'barriers_open', 'cm', time.time(), params, stdev, inv_params,
                 inv_stdev, open_pos_x, open_pos_y, additional_data={
@@ -477,7 +477,7 @@ def Monitor_Setup_Trough(calibrations):
             params, stdev = calibrations.poly_fit(close_pos_x, close_pos_y, 3, 0.1)
             inv_params, inv_stdev = calibrations.poly_fit(close_pos_y,
                                                           close_pos_x, 3, 0.001)
-            calibrations.barriers_close = Trough.Trough_GUI.calibration_utils.\
+            calibrations.barriers_close = Trough_GUI.calibration_utils.\
                 Calibration(
                 'barriers_close', 'cm', time.time(), params, stdev, inv_params,
                 inv_stdev, close_pos_x, close_pos_y, additional_data={
@@ -494,7 +494,7 @@ def Monitor_Setup_Trough(calibrations):
             params, stdev = calibrations.poly_fit(open_speed_x, speed_cm_per_min, 3, 0.01)
             inv_params, inv_stdev = calibrations.poly_fit(speed_cm_per_min,
                                                           open_speed_x, 3, 0.001)
-            calibrations.speed_open = Trough.Trough_GUI.calibration_utils.Calibration(
+            calibrations.speed_open = Trough_GUI.calibration_utils.Calibration(
                 'speed_open', 'cm/min', time.time(), params, stdev, inv_params,
                 inv_stdev, open_speed_x, speed_cm_per_min)
             calibrations.write_cal(cal_path, calibrations.speed_open)
@@ -508,7 +508,7 @@ def Monitor_Setup_Trough(calibrations):
                                                   3, 0.01)
             inv_params, inv_stdev = calibrations.poly_fit(speed_cm_per_min,
                                                           close_speed_x, 3, 0.001)
-            calibrations.speed_close = Trough.Trough_GUI.calibration_utils.Calibration(
+            calibrations.speed_close = Trough_GUI.calibration_utils.Calibration(
                 'speed_close', 'cm/min', time.time(), params, stdev, inv_params,
                 inv_stdev, close_speed_x, speed_cm_per_min)
             calibrations.write_cal(cal_path, calibrations.speed_close)

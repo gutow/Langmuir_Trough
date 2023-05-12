@@ -286,9 +286,15 @@ def on_click_Start(change):
     else:
         direction = _moveto_direction()
         if direction == -1:
-            speed = calibrations.speed_close.cal_inv(tempspeed, 0)[0]
+            if tempspeed <= 1.0: # calibrations not good below this.
+                speed = calibrations.speed_close.cal_inv(1.0, 0)[0]*tempspeed
+            else:
+                speed = calibrations.speed_close.cal_inv(tempspeed, 0)[0]
         else:
-            speed = calibrations.speed_open.cal_inv(tempspeed, 0)[0]
+            if tempspeed <= 1.0:
+                speed = calibrations.speed_open.cal_inv(1.0, 0)[0]*tempspeed
+            else:
+                speed = calibrations.speed_open.cal_inv(tempspeed, 0)[0]
         trough_lock.acquire()
         cmdsend.send(['Speed', speed])
         cmdsend.send(['Direction', direction])

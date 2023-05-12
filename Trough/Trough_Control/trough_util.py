@@ -659,7 +659,12 @@ def troughctl(CTLPipe,DATAPipe):
     speed = 0 # 0 to 1 fraction of maximum speed.
     direction = 0 # -1 close, 0 don't move, 1 open
     run = True
-    loopcount = 0
+    # cycles for doing very low speeds by stepping. If cycles_off = 0 then
+    # just runs continuously.
+    cycles_on = 1
+    cycles_off = 0
+    cycle_count = 0
+    moving_flag = False
     while run:
         poshigh = []
         poslow = []
@@ -668,11 +673,15 @@ def troughctl(CTLPipe,DATAPipe):
         thermhigh = []
         thermlow = []
 
+        if cycle_count >= (cycles_on+cycles_off):
+            cycle_count = 0
+        if cycle_count >= cycles_on:
+            DAQC2.clrDOUTbit(0, 0)  # switch off power/stop barriers
+        elif moving_flag:
+            DAQC2.setDOUTbit(0, 0)  # switch on power/start barriers
+
         starttime = time.time()
         stopat = starttime + timedelta - 0.200  # leave 200 ms for communications and control
-        #loopcount +=1
-        #print('Starting a data record: '+str(loopcount))
-        #itcount = 0
         while (time.time() < stopat):
             tempposlow = None
             tempposhigh= None
@@ -762,6 +771,8 @@ def troughctl(CTLPipe,DATAPipe):
         if closelimit > closemax:
             closelimit = closemax
         barrier_at_limit = barrier_at_limit_check(openlimit,closelimit)
+        if barrier_at_limit:
+            moving_flag = False
         # TODO: Send warnings and error messages
         # Check command pipe and update command queue
         #print('Checking commands...')
@@ -778,6 +789,7 @@ def troughctl(CTLPipe,DATAPipe):
             #print(str(cmd))
             if cmd[0] == 'Stop':
                 DAQC2.clrDOUTbit(0, 0)  # switch off power/stop barriers
+                moving_flag = False
             elif cmd[0] == 'Send':
                 #print('Got a "Send" command.')
                 # send current contents of the data deques
@@ -805,6 +817,7 @@ def troughctl(CTLPipe,DATAPipe):
                 openlimit = openmin
                 start_barriers(speed, direction, maxcloseV, mincloseV, maxopenV,
                                minopenV)
+                moving_flag = True
             elif cmd[0] == 'Direction':
                 # set the direction
                 direction = cmd[1]
@@ -812,11 +825,25 @@ def troughctl(CTLPipe,DATAPipe):
                     direction = 0
             elif cmd[0] == 'Speed':
                 # set the speed
-                speed = cmd[1]
-                if speed > 1:
-                    speed = 1
-                if speed < 0:
-                    speed = 0
+                requested_speed = cmd[1]
+                if requested_speed > 1:
+                    requested_speed = 1
+                if requested_speed < 0:
+                    requested_speed = 0
+                if requested_speed < 0.1:
+                    # set up cycles to go at lower speeds
+                    ncycles = trunc(0.1/requested_speed) + 1
+                    if ncycle >= 2:
+                        cycles_on = 1
+                        cycles_off = ncycles - 1
+                        speed = requested_speed*ncycles
+                    else:
+                        ncycles = trunc(0.1/(0.1-requested_speed))
+                        cycles_on = ncycles - 1
+                        cycles_off = 1
+                        speed = requested_speed*ncycles/cycles_on
+                else:
+                    speed = requested_speed
                 pass
             elif cmd[0] == 'MoveTo':
                 # Move to fraction of open 0 .. 1.
@@ -835,6 +862,7 @@ def troughctl(CTLPipe,DATAPipe):
                 # start the barriers
                 start_barriers(speed, direction, maxcloseV, mincloseV, maxopenV,
                                minopenV)
+                moving_flag = True
                 pass
             elif cmd[0] == 'MotorCal':
                 # calibrate the voltages for starting motor and speeds
@@ -879,8 +907,10 @@ def troughctl(CTLPipe,DATAPipe):
                 return_barrier_monitoring_to_prev_process(ctlpid)
                 run = False
                 exit()
+        cycle_count += 1
         # Delay if have not used up all 200 ms
         used = time.time() - starttime
         if used < 0.495:
             time.sleep(0.495 - used)
+
         # shutdown automatically if no communication from controller?

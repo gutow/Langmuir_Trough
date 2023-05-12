@@ -170,6 +170,7 @@ def troughctl(CTLPipe,DATAPipe):
     :param Pipe DATAPipe: pipe data is sent out on
     """
     import time
+    from math import trunc
     import numpy as np
     from collections import deque
     from piplates import DAQC2plate as DAQC2
@@ -833,7 +834,7 @@ def troughctl(CTLPipe,DATAPipe):
                 if requested_speed < 0.1:
                     # set up cycles to go at lower speeds
                     ncycles = trunc(0.1/requested_speed) + 1
-                    if ncycle >= 2:
+                    if ncycles >= 2:
                         cycles_on = 1
                         cycles_off = ncycles - 1
                         speed = requested_speed*ncycles
@@ -844,6 +845,9 @@ def troughctl(CTLPipe,DATAPipe):
                         speed = requested_speed*ncycles/cycles_on
                 else:
                     speed = requested_speed
+                speedstat=str("cycles_on="+str(cycles_on)+", cycles_off="+str(cycles_off)
+                      + ", requested="+str(requested_speed)+", speed="+str(speed))
+                messages.append(speedstat)
                 pass
             elif cmd[0] == 'MoveTo':
                 # Move to fraction of open 0 .. 1.

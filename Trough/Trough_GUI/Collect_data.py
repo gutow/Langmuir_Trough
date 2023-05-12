@@ -224,15 +224,23 @@ class trough_run():
                     Trough_GUI.calibrations.barriers_close.cal_inv(
                         float(temp_targ), 0)[
                         0]
-                speed = \
-                Trough_GUI.calibrations.speed_close.cal_inv(tempspeed, 0)[0]
+                if tempspeed <= 1.0:
+                    speed = \
+                        Trough_GUI.calibrations.speed_close.cal_inv(1.0, 0)[0]*tempspeed
+                else:
+                    speed = \
+                    Trough_GUI.calibrations.speed_close.cal_inv(tempspeed, 0)[0]
             else:
                 target = \
                     Trough_GUI.calibrations.barriers_open.cal_inv(
                         float(temp_targ), 0)[
                         0]
-                speed = \
-                Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
+                if tempspeed <= 1.0:
+                    speed = \
+                        Trough_GUI.calibrations.speed_open.cal_inv(1.0, 0)[0]*tempspeed
+                else:
+                    speed = \
+                    Trough_GUI.calibrations.speed_open.cal_inv(tempspeed, 0)[0]
             cmdsend.send(['Speed', speed])
             cmdsend.send(['Direction', direction])
             cmdsend.send(['MoveTo', target])

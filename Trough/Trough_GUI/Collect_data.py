@@ -589,7 +589,7 @@ def update_collection(datapkg, cals, lastdirection, run_updater, updater_running
     plate_circumference = Trough_GUI.status_widgets.plate_circumference
     moles_molec = Trough_GUI.status_widgets.moles_molec
     # do all the calculations on the new data
-    time_stamp = np.array(datapkg[0])
+    time_stamp = np.array(datapkg[0])-run.timestamp
     pos_raw = np.array(datapkg[1])
     pos_raw_stdev = np.array(datapkg[2])
     bal_raw = np.array(datapkg[3])

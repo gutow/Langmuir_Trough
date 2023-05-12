@@ -261,7 +261,7 @@ def on_click_Start(change):
         Barr_Target_Frac = calibrations.barriers_open.cal_inv(Barr_Target.value, 0)[0]
     elif Barr_Units.value == 'cm^2':
         tempspeed = sqcm_to_cm(Barr_Speed.value,0,calibrations)[0]
-        temptarg = sqcm_to_cm(temptarg,0,calibrations)[0]
+        temptarg = sqcm_to_cm(Barr_Target.value,0,calibrations)[0]
         Barr_Target_Frac = calibrations.barriers_open.cal_inv(temptarg, 0)[0]
     elif Barr_Units.value == 'Angstrom^2/molec':
         tempspeed = angpermolec_to_sqcm(Barr_Speed.value, 0, moles_molec)[0]

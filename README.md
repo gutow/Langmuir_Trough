@@ -112,6 +112,17 @@ install as a special kernel when you are the user.
      found [here](https://janakiev.com/til/jupyter-virtual-envs/). 
 
 ## Change Log
+* 0.8.0 (May 12, 2023)
+  * Added capability to do very slow compressions (< 1 cm/min) by moving the 
+    barriers intermittently at near their lowest continuous speed.
+  * Now record datapoint time_stamps as actual_time_stamp - run_time_stamp. 
+    This avoids round off errors in the html based data storage file.
+  * BUG_FIXES:
+    * Errors in conversion of speeds between units.
+    * Make start boost voltage direction dependent.
+    * Fix inconsistent sign on skimmer corrections.
+    * Correct hanging of GUI updates during barrier calibrations.
+    * Fix wrong target value when units were cm**2.
 * 0.7.0 (Apr. 28, 2023)
   * Added Access to [pandas_GUI](https://jupyterphysscilab.github.io/jupyter_Pandas_GUI)
     tools as `Trough_GUI.newPlot()`, `Trough_GUI.newFit()` and 
@@ -135,11 +146,12 @@ install as a special kernel when you are the user.
 * 0.1.0 First pypi compatible package version.
 
 ## Known issues
-* 0.5.0 - 0.7.0 The estimated error on values converted to metric units 
+* 0.5.0 - 0.8.0 The estimated error on values converted to metric units 
   based on calibration fits appears to be too pessimistic.
 * Inconsistent rendering of Latex ipywidget labels with ipywidgets >= 8.0. 
   Until figured out requiring ipywidgets < 8.0.
-* Runs don't label graph axes reliably for x-axis units other than cm.
+* Runs don't label graph axes reliably for x-axis units other than cm. This 
+  appears to be associated with Latex in ipywidgets as well.
 
 ## Development
 

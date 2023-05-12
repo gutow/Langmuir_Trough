@@ -83,7 +83,7 @@
     </ul>
 
 
-            <footer>Langmuir_Trough v0.7.0</footer>
+            <footer>Langmuir_Trough v0.8.0</footer>
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
             built with <span class="visually-hidden">pdoc</span><img
@@ -226,6 +226,21 @@ found <a href="https://janakiev.com/til/jupyter-virtual-envs/">here</a>. </li>
 <h2 id="change-log">Change Log</h2>
 
 <ul>
+<li>0.8.0 (May 12, 2023)
+<ul>
+<li>Added capability to do very slow compressions (&lt; 1 cm/min) by moving the 
+barriers intermittently at near their lowest continuous speed.</li>
+<li>Now record datapoint time_stamps as actual_time_stamp - run_time_stamp. 
+This avoids round off errors in the html based data storage file.</li>
+<li>BUG_FIXES:
+<ul>
+<li>Errors in conversion of speeds between units.</li>
+<li>Make start boost voltage direction dependent.</li>
+<li>Fix inconsistent sign on skimmer corrections.</li>
+<li>Correct hanging of GUI updates during barrier calibrations.</li>
+<li>Fix wrong target value when units were cm**2.</li>
+</ul></li>
+</ul></li>
 <li>0.7.0 (Apr. 28, 2023)
 <ul>
 <li>Added Access to <a href="https://jupyterphysscilab.github.io/jupyter_Pandas_GUI">pandas_GUI</a>
@@ -260,11 +275,12 @@ stopped.</li>
 <h2 id="known-issues">Known issues</h2>
 
 <ul>
-<li>0.5.0 - 0.7.0 The estimated error on values converted to metric units 
+<li>0.5.0 - 0.8.0 The estimated error on values converted to metric units 
 based on calibration fits appears to be too pessimistic.</li>
 <li>Inconsistent rendering of Latex ipywidget labels with ipywidgets &gt;= 8.0. 
 Until figured out requiring ipywidgets &lt; 8.0.</li>
-<li>Runs don't label graph axes reliably for x-axis units other than cm.</li>
+<li>Runs don't label graph axes reliably for x-axis units other than cm. This 
+appears to be associated with Latex in ipywidgets as well.</li>
 </ul>
 
 <h2 id="development">Development</h2>

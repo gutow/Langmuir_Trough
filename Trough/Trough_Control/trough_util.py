@@ -845,8 +845,10 @@ def troughctl(CTLPipe,DATAPipe):
                         speed = requested_speed*ncycles/cycles_on
                 else:
                     speed = requested_speed
-                speedstat=str("cycles_on="+str(cycles_on)+", cycles_off="+str(cycles_off)
-                      + ", requested="+str(requested_speed)+", speed="+str(speed))
+                speedstat=str("cycles_on="+str(cycles_on)+", cycles_off="
+                              +str(cycles_off)
+                              + ", requested speed="+str(requested_speed)+
+                                ", speed="+str(speed))
                 messages.append(speedstat)
                 pass
             elif cmd[0] == 'MoveTo':

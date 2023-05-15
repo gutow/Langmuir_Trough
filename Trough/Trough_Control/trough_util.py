@@ -826,6 +826,8 @@ def troughctl(CTLPipe,DATAPipe):
                     direction = 0
             elif cmd[0] == 'Speed':
                 # set the speed
+                cycles_on = 1
+                cycles_off = 0
                 requested_speed = cmd[1]
                 if requested_speed > 1:
                     requested_speed = 1

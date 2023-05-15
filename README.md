@@ -112,6 +112,8 @@ install as a special kernel when you are the user.
      found [here](https://janakiev.com/til/jupyter-virtual-envs/). 
 
 ## Change Log
+* 0.8.1 (May 15, 2023)
+  * BUG_FIX: Needed to reset cycles_on and cycles_off when speed updated.
 * 0.8.0 (May 12, 2023)
   * Added capability to do very slow compressions (< 1 cm/min) by moving the 
     barriers intermittently at near their lowest continuous speed.
